@@ -19,6 +19,8 @@ if (config.botToken) {
 
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
+
+// Get commands from the cmd folder
 fs.readdir('./src/cmd/', (err, files) => {
     if (err) logger.error(err);
     logger.info(`Loading a total of ${files.length} commands.`);

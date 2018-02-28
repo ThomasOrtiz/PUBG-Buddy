@@ -15,8 +15,7 @@ function readJSONFromFile(fileName) {
     let inputBuffer = fs.readFileSync(fileName);
     try {
         return JSON.parse(inputBuffer);
-    } catch (e) { 
-        logger.error(e);
+    } catch (e) {
         return {}; 
     }
 }
