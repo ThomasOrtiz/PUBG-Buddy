@@ -1,7 +1,8 @@
 const request = require('request');
 const rp = require('request-promise');
 const phantom = require('phantom');
-const caching = require('./caching');
+const logger = require('winston');
+const caching = require('./caching.js');
 
 module.exports = {
     aggregateData: aggregateData,
@@ -10,11 +11,11 @@ module.exports = {
 };
 
 // Webscraping URL --> pubgBaseRL + <nickname> + pubgNAServer
-const pubgBaseURL = 'https://pubg.op.gg/user/'
+const pubgBaseURL = 'https://pubg.op.gg/user/';
 const pubgNAServer = '?server=na';
-// Direct API URL --> baseAPIURL + <id> + APIOptionsURL
-const directBaseAPIURL = 'https://pubg.op.gg/api/users/'; 
-const APIOptionsURL = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp'
+// Direct API URL --> apiURL + <id> + apiOptions
+const apiURL = 'https://pubg.op.gg/api/users/'; 
+const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp';
 
 /**
  * Aggregates data by either:
@@ -24,9 +25,9 @@ const APIOptionsURL = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=
  * @param {json} nameToIdMapping: a dictionary of name:id mappings
  */
 async function aggregateData(nameToIdMapping) {
-    console.log('---- Aggregating Data ----');
-    data = { };
-    characters = new Array();
+    logger.info('---- Aggregating Data ----');
+    let data = { };
+    let characters = new Array();
 
     for(var username in nameToIdMapping) {
         var id = await getCharacterID(nameToIdMapping, username);
@@ -38,7 +39,7 @@ async function aggregateData(nameToIdMapping) {
     // Sorting Array based off of ranking (higher ranking is ranking)
     data.characters.sort(function(a, b){ return b.ranking - a.ranking; });
 
-    caching.writeJSONToFile('output.json', data);
+    caching.writeJSONToFile('./output/output.json', data);
 
     updateIDs(data);
 
@@ -56,22 +57,22 @@ async function getCharacterID(mapping, username) {
         return id;
     }
 
-    console.log('\tWebscraping for ' + username);
+    logger.info('\tWebscraping for ' + username);
     // Setup PhantomJS Page
     const instance = await phantom.create();
     const page = await instance.createPage();
 
     // Evaluate and Extract Data
-    url = pubgBaseURL + username + pubgNAServer;
+    let url = pubgBaseURL + username + pubgNAServer;
     await page.open(url);
     await page.includeJs('http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js');
     
     id = await page.evaluate(function() {
         try {
-            var idElement = $('#userNickname')
+            var idElement = $('#userNickname');
             return idElement.attr('data-user_id');
         } catch(err) {
-            console.error('Id element does not exist');
+            logger.error('Id element does not exist');
             return -1;
         }
     });
@@ -89,36 +90,35 @@ async function getCharacterID(mapping, username) {
  * @param {string} username: pubg username
  */
 async function getPUBGCharacterData(id, username) {
-    console.log('\tApi call for ' + username);
-    var url = directBaseAPIURL + id + APIOptionsURL;
-    var characterData = {};
+    logger.info('\tApi call for ' + username);
+    var url = apiURL + id + apiOptions;
 
     return rp({ url: url, json: true })
-    .then((json) => {
-        return { 
-            id: id, 
-            nickname: username, 
-            ranking: json.stats.rating, 
-            topPercent: Math.round((json.ranks.rating/json.max_ranks.rating)*100 * 100) / 100 + '%'
-        };
-    }, (err) => {
-        console.log('\t\tInvalid season data');
-        return {
-            id: id,
-            nickname: username,
-            ranking: 0,
-            topPercent: 100 + '%'
-        }
-    });
+        .then((json) => {
+            return { 
+                id: id, 
+                nickname: username, 
+                ranking: json.stats.rating, 
+                topPercent: Math.round((json.ranks.rating/json.max_ranks.rating)*100 * 100) / 100 + '%'
+            };
+        }, () => {
+            logger.info('\t\tInvalid season data');
+            return {
+                id: id,
+                nickname: username,
+                ranking: 0,
+                topPercent: 100 + '%'
+            };
+        });
 }
 
 /**
- * Update the name:id mapping in caching.json
+ * Update the name:id mapping in ../output/caching.json
  * @param {json} data 
  */
 function updateIDs(data) {
     // Read in any pre-existing ids
-    var json = caching.getJSONFromFile('caching.json');
+    var json = caching.readJSONFromFile('./output/caching.json');
 
     // Update name:id mapping
     var characters = data.characters;
@@ -127,5 +127,5 @@ function updateIDs(data) {
         json[character.nickname] = character.id;
     }
 
-    caching.writeJSONToFile('caching.json', json);
+    caching.writeJSONToFile('./output/caching.json', json);
 }

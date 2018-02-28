@@ -1,12 +1,11 @@
 {
-    "name": "PUBG-Ranking-Bot",
+    "name": "pubg-stat-bot",
     "version": "1.0.0",
-    "description": "A bot that reports PUBG rank",
-    "main": "bot.js",
+    "description": "A bot that reports PUBG stats",
+    "main": "src/bot.js",
     "author": "Thomas Ortiz",
     "dependencies": {
         "cheerio": "latest",
-        "discord.io": "github:woor/discord.io#gateway_v6",
         "discord.js": "^11.3.0",
         "express": "latest",
         "phantom": "^4.0.12",
