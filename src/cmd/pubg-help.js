@@ -1,6 +1,6 @@
 exports.run = (bot, msg, params) => {
     if (!params[0]) {
-        msg.channel.sendCode('asciidoc', `= Command List =\n\n[Use "help <commandname>" for details]\n\n${bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n')}`);
+        msg.channel.sendCode('asciidoc', `= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n')}`);
     } else {
         let command = params[0];
         if (bot.commands.has(command)) {
@@ -18,7 +18,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'help',
+    name: 'pubg-help',
     description: 'Returns page details.',
-    usage: 'help [command]'
+    usage: 'pubg-help [command]'
 };

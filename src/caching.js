@@ -28,7 +28,7 @@ function readJSONFromFile(fileName) {
  */
 function writeJSONToFile(fileName, json) {
     fs.writeFile(fileName, JSON.stringify(json, null, 4), () => {
-        console.log('---- Wrote to ' + fileName + ' ----');
+        logger.log('---- Wrote to ' + fileName + ' ----');
     }, (err) => {
         logger.error(err);
     });

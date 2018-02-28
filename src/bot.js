@@ -20,7 +20,7 @@ if (config.botToken) {
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
 fs.readdir('./src/cmd/', (err, files) => {
-    if (err) console.error(err);
+    if (err) logger.error(err);
     logger.info(`Loading a total of ${files.length} commands.`);
     files.forEach(f => {
         let props = require(`./cmd/${f}`);
@@ -31,7 +31,6 @@ fs.readdir('./src/cmd/', (err, files) => {
         });
     });
 });
-
 
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
