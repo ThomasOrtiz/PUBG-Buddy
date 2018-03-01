@@ -11,9 +11,14 @@ async function run(bot, msg) {
     let userToIdMapping = await cache.getUserToIdCache();
 
     let players = '';
-    for (var key in userToIdMapping) {
+    for (let key in userToIdMapping) {
         players += key + '\n';
     }
+    
+    if(players === '') {
+        players = 'No users registered yes. Use `pubg-addUser <username>`';
+    }
+    
 
     embed
         .addField('Players', players, true)
