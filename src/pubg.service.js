@@ -1,7 +1,8 @@
 const rp = require('request-promise');
-const phantom = require('phantom');
 const logger = require('winston');
 const caching = require('./caching.js');
+const cheerio = require('cheerio');
+const curl = require('curlrequest');
 
 module.exports = {
     aggregateData: aggregateData,
@@ -24,7 +25,6 @@ const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp
  * @param {json} nameToIdMapping: a dictionary of name:id mappings
  */
 async function aggregateData(nameToIdMapping) {
-    logger.info('---- Aggregating Data ----');
     let data = { };
     let characters = new Array();
 
@@ -46,7 +46,7 @@ async function aggregateData(nameToIdMapping) {
 }
 
 /**
- * Using phantomJS this scrapes pubg.op.gg for pubg character id.
+ * Using curl this scrapes pubg.op.gg for pubg character id.
  * @param {string} username: pubg username 
  */
 async function getCharacterID(mapping, username) {
@@ -56,31 +56,21 @@ async function getCharacterID(mapping, username) {
         return id;
     }
 
-    logger.info('\tWebscraping for ' + username);
-    // Setup PhantomJS Page
-    const instance = await phantom.create();
-    const page = await instance.createPage();
-
-    // Evaluate and Extract Data
+    logger.info('Webscraping for ' + username);
     let url = pubgBaseURL + username + pubgNAServer;
-    await page.open(url);
-    await page.includeJs('http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js');
-    
-    id = await page.evaluate(function() {
-        try {
-            var idElement = $('#userNickname');
-            return idElement.attr('data-user_id');
-        } catch(err) {
-            logger.error('Id element does not exist');
-            return -1;
-        }
+    let idPromise = new Promise(function(resolve, reject){ 
+        curl.request(url, (err, stdout) => {
+            if(err) { reject(err); }
+
+            let $ = cheerio.load(stdout);
+            id = $('#userNickname').attr('data-user_id');
+
+            updateIDs({ characters: [ { nickname: username, id: id } ] });
+            resolve(id);
+        });
     });
-
-    updateIDs({ characters: [ { nickname: username, id: id } ] });
-
-    // Cleanup PhantomJS
-    await instance.exit();
-    return id;
+    
+    return idPromise; 
 }
 
 /**
