@@ -12,11 +12,17 @@ logger.add(logger.transports.Console, {
 logger.level = 'debug';
 
 const bot = new Discord.Client();
-if (config.botToken) {
-    bot.login(config.botToken);
+let botToken;
+if(process.env.api_key) {
+    botToken = process.env.api_key;
+} else if(config.botToken) {
+    botToken = config.botToken;
 } else {
     logger.error('Token does not exist - check your config.json file.');
 }
+
+bot.login(botToken);
+
 
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
