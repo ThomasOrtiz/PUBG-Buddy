@@ -13,8 +13,8 @@ logger.level = 'debug';
 
 const bot = new Discord.Client();
 let botToken;
-if(process.env.api_key) {
-    botToken = process.env.api_key;
+if(process.env.bot_token) {
+    botToken = process.env.bot_token;
 } else if(config.botToken) {
     botToken = config.botToken;
 } else {
