@@ -56,7 +56,7 @@ async function getCharacterID(mapping, username) {
         return id;
     }
 
-    logger.info('Webscraping for ' + username);
+    logger.info('\tWebscraping for ' + username);
     let url = pubgBaseURL + username + pubgNAServer;
     let idPromise = new Promise(function(resolve, reject){ 
         curl.request(url, (err, stdout) => {

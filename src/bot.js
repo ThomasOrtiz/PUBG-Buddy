@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const logger = require('winston');
 const fs = require('fs');
 const config = require('../config.json');
+const sqlService = require('./sql.service');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -33,6 +34,12 @@ fs.readdir('./src/cmd/', (err, files) => {
         });
     });
 });
+
+// set up db
+sqlService.getConnection().then(() => {
+    sqlService.setupTables();
+});
+
 
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
