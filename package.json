@@ -6,9 +6,9 @@
     "author": "Thomas Ortiz",
     "dependencies": {
         "cheerio": "latest",
+        "curlrequest": "^1.0.1",
         "discord.js": "^11.3.0",
-        "express": "latest",
-        "phantom": "^4.0.12",
+        "request": "^2.83.0",
         "request-promise": "^4.2.2",
         "winston": "^2.4.0"
     }
