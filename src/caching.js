@@ -1,5 +1,4 @@
 const fs = require('fs');
-const logger = require('winston');
 
 module.exports = {
     getUserToIdCache: getUserToIdCache,
@@ -26,11 +25,7 @@ function readJSONFromFile(fileName) {
  * @param {json} json 
  */
 function writeJSONToFile(fileName, json) {
-    fs.writeFile(fileName, JSON.stringify(json, null, 4), () => {
-        logger.log('---- Wrote to ' + fileName + ' ----');
-    }, (err) => {
-        logger.error(err);
-    });
+    fs.writeFileSync(fileName, JSON.stringify(json, null, 4));
 }
 
 /** 
