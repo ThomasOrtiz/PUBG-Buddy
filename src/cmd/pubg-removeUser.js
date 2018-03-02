@@ -1,14 +1,11 @@
-const cache = require('../caching');
+const sql = require('../sql.service');
 
 exports.run = run;
 
 async function run(bot, msg, params) {
-    let userToIdMapping = await cache.getUserToIdCache();
-
     let username = params[0].toLowerCase();
-    delete userToIdMapping[username];
-
-    await cache.writeJSONToFile('./output/caching.json', userToIdMapping);
+    let player = await sql.getPlayer(username);
+    sql.unRegisterUserToServer(player.pubgId, msg.channel.id);
     msg.channel.send('Removed ' + username + ' mapping');
 }
 

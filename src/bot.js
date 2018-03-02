@@ -53,6 +53,9 @@ bot.on('ready', () => {
     logger.info('Connected');
 });
 bot.on('message', msg => {
+    let channelId = msg.channel.id;
+    sqlService.registerServer(channelId);
+
     if (!msg.content.startsWith(config.prefix)) return;
     let command = msg.content.split(' ')[0].slice(config.prefix.length);
     let params = msg.content.split(' ').slice(1);

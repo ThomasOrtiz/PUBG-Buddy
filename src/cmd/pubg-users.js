@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const cache = require('../caching');
+const sql = require('../sql.service');
 
 exports.run = run;
 
@@ -8,11 +8,12 @@ async function run(bot, msg) {
         .setTitle('People added')
         .setColor(0x00AE86);
 
-    let userToIdMapping = await cache.getUserToIdCache();
+    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
 
     let players = '';
-    for (let key in userToIdMapping) {
-        players += key + '\n';
+    for(let i = 0; i < registeredPlayers.length; i++) {
+        let player = registeredPlayers[i];
+        players += player.username + '\n';
     }
     
     if(players === '') {

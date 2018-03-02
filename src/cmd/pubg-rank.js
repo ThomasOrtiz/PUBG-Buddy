@@ -1,14 +1,11 @@
 const Discord = require('discord.js');
 const scrape = require('../pubg.service');
-const cache = require('../caching');
 
 exports.run = run;
 
 async function run(bot, msg, params) {
-    let userToIdMapping = await cache.getUserToIdCache();
-
     let username = params[0].toLowerCase();
-    let id = await scrape.getCharacterID(userToIdMapping, username);
+    let id = await scrape.getCharacterID(username);
     let data = await scrape.getPUBGCharacterData(id, username);
     let embed = new Discord.RichEmbed()
         .setTitle('PUBG Stats')

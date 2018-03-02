@@ -1,16 +1,16 @@
 const Discord = require('discord.js');
 const scrape = require('../pubg.service');
-const cache = require('../caching');
+const sql = require('../sql.service');
 
 exports.run = run;
 
 async function run(bot, msg, params) {
-    let userToIdMapping = await cache.getUserToIdCache();
-
     let amount = params[0];
     msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
-    let data = await scrape.aggregateData(userToIdMapping);
-    let topPlayers = data.characters.slice(0, amount);
+    
+    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
+    let playerInfo = await scrape.aggregateData(registeredPlayers);
+    let topPlayers = playerInfo.slice(0, amount);
 
     // Make one every 5
     let amountProcessed = 0;
@@ -53,6 +53,6 @@ exports.conf = {
 
 exports.help = {
     name: 'pubg-top',
-    description: 'Removes a user from the list all tracked users.',
+    description: 'Gets the top "x" players registered in the server',
     usage: 'pubg-top [Number-Of-Users]'
 };

@@ -1,8 +1,8 @@
 const rp = require('request-promise');
 const logger = require('winston');
-const caching = require('./caching.js');
 const cheerio = require('cheerio');
 const curl = require('curlrequest');
+const sql = require('./sql.service');
 
 module.exports = {
     aggregateData: aggregateData,
@@ -24,53 +24,52 @@ const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp
  * @param {string[]} names: array of pubg names
  * @param {json} nameToIdMapping: a dictionary of name:id mappings
  */
-async function aggregateData(nameToIdMapping) {
-    let data = { };
-    let characters = new Array();
-
-    for(var username in nameToIdMapping) {
-        var id = await getCharacterID(nameToIdMapping, username);
-        var characterInfo = await getPUBGCharacterData(id, username);
-        characters.push(characterInfo);
+async function aggregateData(players) {
+    let playersInfo = new Array();
+    for(let i = 0; i < players.length; i++) {
+        let player = players[i];
+        let id = await getCharacterID(player.username);
+        let characterInfo = await getPUBGCharacterData(id, player.username);
+        playersInfo.push(characterInfo);
     }
-    data.characters = characters;
 
     // Sorting Array based off of ranking (higher ranking is ranking)
-    data.characters.sort(function(a, b){ return b.ranking - a.ranking; });
+    playersInfo.sort(function(a, b){ return b.ranking - a.ranking; });
 
-    caching.writeJSONToFile('./output/output.json', data);
-
-    updateIDs(data);
-
-    return data;
+    return playersInfo;
 }
 
 /**
  * Using curl this scrapes pubg.op.gg for pubg character id.
  * @param {string} username: pubg username 
  */
-async function getCharacterID(mapping, username) {
+async function getCharacterID(username) {
     username = username.toLowerCase();
-    let id = mapping[username];
-    if(id && id !== '') {
-        return id;
-    }
 
+    return sql.getPlayer(username)
+        .then((player) => {
+            if(player && player.pubgId && player.pubgId !== '') {
+                return player.pubgId;
+            } else {
+                return webScrapeForId(username);
+            }
+        });
+}
+
+function webScrapeForId(username) {
     logger.info('\tWebscraping for ' + username);
     let url = pubgBaseURL + username + pubgNAServer;
-    let idPromise = new Promise(function(resolve, reject){ 
+    return new Promise(function(resolve, reject){ 
         curl.request(url, (err, stdout) => {
             if(err) { reject(err); }
 
             let $ = cheerio.load(stdout);
-            id = $('#userNickname').attr('data-user_id');
+            let id = $('#userNickname').attr('data-user_id');
 
-            updateIDs({ characters: [ { nickname: username, id: id } ] });
+            sql.addPlayer(username, id);
             resolve(id);
         });
     });
-    
-    return idPromise; 
 }
 
 /**
@@ -99,22 +98,4 @@ async function getPUBGCharacterData(id, username) {
                 topPercent: 100 + '%'
             };
         });
-}
-
-/**
- * Update the name:id mapping in ../output/caching.json
- * @param {json} data 
- */
-function updateIDs(data) {
-    // Read in any pre-existing ids
-    var json = caching.readJSONFromFile('./output/caching.json');
-
-    // Update name:id mapping
-    var characters = data.characters;
-    for(var i = 0; i < characters.length; i++){
-        var character = characters[i];
-        json[character.nickname] = character.id;
-    }
-
-    caching.writeJSONToFile('./output/caching.json', json);
 }

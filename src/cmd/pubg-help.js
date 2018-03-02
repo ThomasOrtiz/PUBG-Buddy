@@ -1,11 +1,11 @@
 exports.run = (bot, msg, params) => {
     if (!params[0]) {
-        msg.channel.sendCode('asciidoc', `= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n')}`);
+        msg.channel.send(`= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n')}`, { code: 'asciidoc'});
     } else {
         let command = params[0];
         if (bot.commands.has(command)) {
             command = bot.commands.get(command);
-            msg.channel.sendCode('asciidoc', `= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}`);
+            msg.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}`, { code: 'asciidoc'});
         }
     }
 };

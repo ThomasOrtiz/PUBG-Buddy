@@ -1,17 +1,17 @@
 const scrape = require('../pubg.service');
-const cache = require('../caching');
+const sql = require('../sql.service');
 
 exports.run = run;
 
 async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
-    let userToIdMapping = await cache.getUserToIdCache();
 
     msg.channel.send('Webscraping for ' + username + ' ... give me a second');
-    let id = await scrape.getCharacterID(userToIdMapping, username);
+    let id = await scrape.getCharacterID(username);
+    
     if (id && id !== '') {
-        userToIdMapping[username] = id;
-        await cache.writeJSONToFile('./output/caching.json', userToIdMapping);
+        sql.addPlayer(username, id);
+        sql.registerUserToServer(id, msg.channel.id);
         msg.channel.send('Added ' + username);
     } else {
         msg.channel.send('Invalid username');
