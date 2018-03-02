@@ -8,7 +8,7 @@ async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
     
     let season;
-    if(params[1].indexOf('season=') >= 0) {
+    if(params.length > 1 && params[1].indexOf('season=') >= 0) {
         season = params[1].slice(params[1].indexOf('=') + 1);
     } else {
         season = await sql.getLatestSeason();

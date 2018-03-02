@@ -1,13 +1,13 @@
 const sql = require('sqlite');
 
 module.exports = {
-    getConnection: getConnection,
-    setupTables: setupTables,
-    registerServer: registerServer,
-    registerUserToServer: registerUserToServer,
-    unRegisterUserToServer: unRegisterUserToServer,
-    getPlayer: getPlayer,
-    addPlayer: addPlayer,
+    getConnection,
+    setupTables,
+    registerServer,
+    registerUserToServer,
+    unRegisterUserToServer,
+    getPlayer,
+    addPlayer,
     getRegisteredPlayersForServer,
     getLatestSeason
 };
