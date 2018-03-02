@@ -13,7 +13,7 @@ exports.run = (bot, msg, params) => {
 exports.conf = {
     enabled: true,
     guildOnly: false,
-    aliases: [],
+    aliases: ['pubg'],
     permLevel: 0
 };
 
