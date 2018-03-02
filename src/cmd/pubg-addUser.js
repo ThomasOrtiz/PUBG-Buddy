@@ -10,8 +10,8 @@ async function run(bot, msg, params) {
     let id = await scrape.getCharacterID(username);
     
     if (id && id !== '') {
-        sql.addPlayer(username, id);
-        sql.registerUserToServer(id, msg.channel.id);
+        await sql.addPlayer(username, id);
+        await sql.registerUserToServer(id, msg.channel.id);
         msg.channel.send('Added ' + username);
     } else {
         msg.channel.send('Invalid username');
