@@ -15,7 +15,8 @@ const pubgBaseURL = 'https://pubg.op.gg/user/';
 const pubgNAServer = '?server=na';
 // Direct API URL --> apiURL + <id> + apiOptions
 const apiURL = 'https://pubg.op.gg/api/users/'; 
-const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp';
+const apiOptions = '/ranked-stats';
+//const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp';
 
 /**
  * Aggregates data by either:
@@ -77,9 +78,9 @@ function webScrapeForId(username) {
  * @param {string} id: pubg api id
  * @param {string} username: pubg username
  */
-async function getPUBGCharacterData(id, username) {
+async function getPUBGCharacterData(id, username, season, region, squadSize, mode) {
     logger.info('\tApi call for ' + username);
-    var url = apiURL + id + apiOptions;
+    var url = apiURL + id + apiOptions + '?season=' + season + '&server=' + region + '&queue_size=' + squadSize + '&mode=' + mode;
 
     return rp({ url: url, json: true })
         .then((json) => {

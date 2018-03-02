@@ -8,17 +8,43 @@ module.exports = {
     unRegisterUserToServer: unRegisterUserToServer,
     getPlayer: getPlayer,
     addPlayer: addPlayer,
-    getRegisteredPlayersForServer
+    getRegisteredPlayersForServer,
+    getLatestSeason
 };
 
 async function getConnection() {
     return await sql.open('./pubg_data.sqlite');
 }
 
-function setupTables() {
+async function setupTables() {
     sql.run('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
     sql.run('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
     sql.run('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
+    sql.run('CREATE TABLE IF NOT EXISTS seasons (season TEXT)').then(() => {
+        addSeason('2018-01');
+        addSeason('2018-02');
+        addSeason('2018-03');
+    });
+    
+}
+
+/** -------------------- seasons -------------------- */
+async function addSeason(season) {
+    const db = await getConnection();
+    db.get('select * from seasons where season = ?', season)
+        .then(function(player) {
+            if(!player) {
+                sql.run('insert into seasons (season) values (?)', season);
+            }
+        });
+}
+
+async function getLatestSeason() {
+    const db = await getConnection();
+    return db.get('select season from seasons where season = (select max(season) from seasons)')
+        .then((season) => {
+            return season.season;
+        });
 }
 
 /** -------------------- servers -------------------- */
