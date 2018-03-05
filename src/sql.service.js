@@ -17,10 +17,11 @@ async function getConnection() {
 }
 
 async function setupTables() {
-    sql.run('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
-    sql.run('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
-    sql.run('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
-    sql.run('CREATE TABLE IF NOT EXISTS seasons (season TEXT)').then(() => {
+    const db = await getConnection();
+    db.run('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
+    db.run('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
+    db.run('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
+    db.run('CREATE TABLE IF NOT EXISTS seasons (season TEXT)').then(() => {
         addSeason('2018-01');
         addSeason('2018-02');
         addSeason('2018-03');
@@ -34,7 +35,7 @@ async function addSeason(season) {
     db.get('select * from seasons where season = ?', season)
         .then(function(player) {
             if(!player) {
-                sql.run('insert into seasons (season) values (?)', season);
+                db.run('insert into seasons (season) values (?)', season);
             }
         });
 }
@@ -53,7 +54,7 @@ async function registerServer(serverId) {
     db.get('select * from servers where serverId = ?', serverId)
         .then(function(server) {
             if(!server) {
-                sql.run('insert into servers (serverId) values ("' + serverId + '") ');
+                db.run('insert into servers (serverId) values ("' + serverId + '") ');
             }
         });
 }
@@ -64,7 +65,7 @@ async function addPlayer(username, pubgId) {
     db.get('select * from players where username = ?', username)
         .then((player) => {
             if(!player) {
-                sql.run('insert into players (username, pubgId) values (?, ?)', [username, pubgId]);
+                db.run('insert into players (username, pubgId) values (?, ?)', [username, pubgId]);
             }
         });
 }
@@ -85,7 +86,7 @@ async function registerUserToServer(pubgId, serverId) {
     db.get('select * from registery where serverId = ? and pubgId = ?', [serverId, pubgId])
         .then(function(player) {
             if(!player) {
-                sql.run('insert into registery (pubgId, serverId) values (?, ?)', [pubgId, serverId]);
+                db.run('insert into registery (pubgId, serverId) values (?, ?)', [pubgId, serverId]);
             }
         });
 }

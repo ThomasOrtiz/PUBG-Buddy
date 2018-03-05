@@ -42,9 +42,8 @@ fs.readdir('./src/cmd/', (err, files) => {
 });
 
 // set up db
-sqlService.getConnection().then(() => {
-    sqlService.setupTables();
-});
+sqlService.setupTables();
+
 
 
 bot.on('error', logger.error);

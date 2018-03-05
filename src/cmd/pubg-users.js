@@ -9,7 +9,6 @@ async function run(bot, msg) {
         .setColor(0x00AE86);
 
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
-    console.log(msg.channel.id + ' has ' + registeredPlayers.length + ' registered users!');
 
     let players = '';
     for(let i = 0; i < registeredPlayers.length; i++) {
