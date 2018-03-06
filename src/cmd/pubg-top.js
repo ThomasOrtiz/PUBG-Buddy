@@ -10,33 +10,11 @@ async function run(bot, msg, params) {
         amount = +params[0];
     }
 
-    let season;
-    let region;
-    let squadSize;
-    let mode;
+    let season = getParamValue('season=', params, await sql.getLatestSeason());
+    let region = getParamValue('region=', params, 'na');
+    let mode = getParamValue('mode=', params, 'fpp');
+    let squadSize = getParamValue('squadSize=', params, 4);
     let squadSizeString = '';
-
-    
-    let index = isSubstringOfElement('season=', params)
-    if(index >= 0) {
-        season = params[index].slice(params[index].indexOf('=') + 1);
-    } else {
-        season = await sql.getLatestSeason();
-    }
-
-    index = isSubstringOfElement('region=', params)
-    if(index >= 0) {
-        region = params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        region = 'na';
-    }
-
-    index = isSubstringOfElement('squadSize=', params)
-    if(index >= 0) {
-        squadSize = +params[index].slice(params[index].indexOf('=') + 1);
-    } else {
-        squadSize = +'4';
-    }
 
     switch(squadSize) {
         case 1:
@@ -49,14 +27,7 @@ async function run(bot, msg, params) {
             squadSizeString = 'Squad';
             break;
     }
-
-    index = isSubstringOfElement('mode=', params)
-    if(index >= 0) {
-        mode = params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        mode = 'fpp';
-    }
-
+    
     msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
     
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
@@ -109,6 +80,15 @@ function isSubstringOfElement(s, arr) {
         }
     }
     return -1;
+}
+
+function getParamValue(search, params, defaultParam) {
+    let index = isSubstringOfElement(search, params)
+    if(index >= 0) {
+        return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
+    } else {
+        return defaultParam;
+    }
 }
 
 exports.conf = {

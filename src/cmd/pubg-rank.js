@@ -10,32 +10,9 @@ async function run(bot, msg, params) {
         return;
     }
     let username = params[0].toLowerCase();
-
-    let season;
-    let region;
-    let mode;
-
-    
-    let index = isSubstringOfElement('season=', params)
-    if(index >= 0) {
-        season = params[index].slice(params[index].indexOf('=') + 1);
-    } else {
-        season = await sql.getLatestSeason();
-    }
-
-    index = isSubstringOfElement('region=', params)
-    if(index >= 0) {
-        region = params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        region = 'na';
-    }
-
-    index = isSubstringOfElement('mode=', params)
-    if(index >= 0) {
-        mode = params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        mode = 'fpp';
-    }
+    let season = getParamValue('season=', params, await sql.getLatestSeason());
+    let region = getParamValue('region=', params, 'na');
+    let mode = getParamValue('mode=', params, 'fpp');
     
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
@@ -83,6 +60,15 @@ function isSubstringOfElement(s, arr) {
         }
     }
     return -1;
+}
+
+function getParamValue(search, params, defaultParam) {
+    let index = isSubstringOfElement(search, params)
+    if(index >= 0) {
+        return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
+    } else {
+        return defaultParam;
+    }
 }
 
 
