@@ -5,7 +5,7 @@ exports.run = run;
 
 async function run(bot, msg) {
     let embed = new Discord.RichEmbed()
-        .setTitle('People added')
+        .setTitle('Registered Users')
         .setColor(0x00AE86);
 
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);

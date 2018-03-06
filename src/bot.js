@@ -45,7 +45,6 @@ fs.readdir('./src/cmd/', (err, files) => {
 sqlService.setupTables();
 
 
-
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
 bot.on('ready', () => {
@@ -67,9 +66,9 @@ bot.on('message', msg => {
     }
     if (cmd) {
         if (perms < cmd.conf.permLevel) return;
-        msg.channel.startTyping();
+        //msg.channel.startTyping();
         cmd.run(bot, msg, params, perms);
-        msg.channel.stopTyping();
+        //msg.channel.stopTyping();
     }
 });
 

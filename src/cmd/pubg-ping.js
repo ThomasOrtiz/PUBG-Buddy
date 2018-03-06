@@ -1,5 +1,5 @@
 exports.run = (bot, msg) => {
-    msg.channel.sendMessage('Ping?')
+    msg.channel.send('Ping?')
         .then(message => {
             message.edit(`Pong! (took: ${message.createdTimestamp - msg.createdTimestamp}ms)`);
         });

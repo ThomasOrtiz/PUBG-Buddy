@@ -25,12 +25,12 @@ const apiOptions = '/ranked-stats';
  * @param {string[]} names: array of pubg names
  * @param {json} nameToIdMapping: a dictionary of name:id mappings
  */
-async function aggregateData(players) {
+async function aggregateData(players, season, region, squadSize, mode) {
     let playersInfo = new Array();
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
         let id = await getCharacterID(player.username);
-        let characterInfo = await getPUBGCharacterData(id, player.username);
+        let characterInfo = await getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
         playersInfo.push(characterInfo);
     }
 
@@ -77,6 +77,10 @@ function webScrapeForId(username) {
  * Makes a api call to pubg.op.gg/api/
  * @param {string} id: pubg api id
  * @param {string} username: pubg username
+ * @param {string} season: season of pubg ['2018-01', '2018-02', '2018-03']
+ * @param {string} region: region of play 
+ * @param {string} squadSize: solo, duo, squad [1, 2, 4]
+ * @param {string} mode: [fpp, tpp]
  */
 async function getPUBGCharacterData(id, username, season, region, squadSize, mode) {
     logger.info('\tApi call for ' + username);
@@ -87,15 +91,20 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
             return { 
                 id: id, 
                 nickname: username, 
-                ranking: json.stats.rating, 
+                ranking: json.stats.rating,
+                grade: json.grade || 'N/A',
+                longest_kill: json.stats.longest_kill_max + 'm',
+                average_damage_dealt: Math.round(json.stats.damage_dealt_avg * 100) / 100,
                 topPercent: Math.round((json.ranks.rating/json.max_ranks.rating)*100 * 100) / 100 + '%'
             };
         }, () => {
-            logger.info('\t\tInvalid season data');
             return {
                 id: id,
                 nickname: username,
                 ranking: 0,
+                grade: 'N/A',
+                longest_kill: 0,
+                average_damage_dealt: 0,
                 topPercent: 100 + '%'
             };
         });

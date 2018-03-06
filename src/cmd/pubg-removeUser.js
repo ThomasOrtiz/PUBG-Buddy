@@ -5,8 +5,11 @@ exports.run = run;
 async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
     let player = await sql.getPlayer(username);
-    sql.unRegisterUserToServer(player.pubgId, msg.channel.id);
-    msg.channel.send('Removed ' + username + ' mapping');
+    msg.channel.send('Removing ' + username + ' from server registry')
+        .then((message) => {
+            sql.unRegisterUserToServer(player.pubgId, msg.channel.id);
+            message.edit('Removed ' + username + ' from server registry');
+        });
 }
 
 exports.conf = {

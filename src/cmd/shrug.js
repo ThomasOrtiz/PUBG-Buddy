@@ -1,5 +1,5 @@
 exports.run = (bot, msg) => {
-    msg.channel.sendMessage('¯\\\\_ツ_/¯');
+    msg.channel.send('¯\\\\_ツ_/¯');
 };
 
 exports.conf = {
