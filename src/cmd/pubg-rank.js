@@ -50,7 +50,7 @@ async function run(bot, msg, params) {
                 .setFooter('Data retrieved from https://pubg.op.gg/')
                 .setTimestamp()
                 
-                .addField('Type', 'FPP Solo : ' + soloData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Solo : ' + soloData.grade, true)
                 .addField('Rank', soloData.ranking, true)
                 .addField('Top %', soloData.topPercent, true)
                 .addField('Longest Kill', soloData.longest_kill, true)
@@ -58,7 +58,7 @@ async function run(bot, msg, params) {
                 .addBlankField(true)
                 .addBlankField(false)
 
-                .addField('Type', 'FPP Duo : ' + duoData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Duo : ' + duoData.grade, true)
                 .addField('Rank', duoData.ranking, true)
                 .addField('Top %', duoData.topPercent, true)
                 .addField('Longest Kill', duoData.longest_kill, true)
@@ -66,7 +66,7 @@ async function run(bot, msg, params) {
                 .addBlankField(true)
                 .addBlankField(false)
 
-                .addField('Type', 'FPP Squad : ' + squadData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Squad : ' + squadData.grade, true)
                 .addField('Rank', squadData.ranking, true)
                 .addField('Top %', squadData.topPercent, true)
                 .addField('Longest Kill', squadData.longest_kill, true)
