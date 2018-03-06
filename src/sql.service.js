@@ -62,7 +62,7 @@ async function registerServer(serverId) {
 /** -------------------- players -------------------- */
 async function addPlayer(username, pubgId) {
     const db = await getConnection();
-    db.get('select * from players where username = ?', username)
+    db.get('select * from players where pubgId = ?', pubgId)
         .then((player) => {
             if(!player) {
                 db.run('insert into players (username, pubgId) values (?, ?)', [username, pubgId]);
