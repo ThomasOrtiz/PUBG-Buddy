@@ -23,9 +23,8 @@ pool.on('error', (err) => {
 });
 
 async function setupTables() {
-    //await deleteTable('players');
-    await pool.query('delete from players where 1=1');
-    await pool.query('delete from registery where 1=1');
+    //await pool.query('delete from players where 1=1');
+    //await pool.query('delete from registery where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
