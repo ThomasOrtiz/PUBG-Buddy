@@ -61,13 +61,13 @@ function webScrapeForId(username) {
     logger.info('\tWebscraping for ' + username);
     let url = pubgBaseURL + username + pubgNAServer;
     return new Promise(function(resolve, reject){ 
-        curl.request(url, (err, stdout) => {
+        curl.request(url, async (err, stdout) => {
             if(err) { reject(err); }
 
             let $ = cheerio.load(stdout);
             let id = $('#userNickname').attr('data-user_id');
 
-            sql.addPlayer(username, id);
+            await sql.addPlayer(username, id);
             resolve(id);
         });
     });

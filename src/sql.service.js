@@ -1,97 +1,130 @@
-const sql = require('sqlite');
+const { Pool } = require('pg');
 
 module.exports = {
-    getConnection,
     setupTables,
     registerServer,
     registerUserToServer,
     unRegisterUserToServer,
     getPlayer,
+    getAllPlayers,
     addPlayer,
     getRegisteredPlayersForServer,
-    getLatestSeason
+    getLatestSeason,
+    getAllSeasons
 };
 
-async function getConnection() {
-    return await sql.open('./pubg_data.sqlite');
-}
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: true,
+});
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1);
+});
 
 async function setupTables() {
-    const db = await getConnection();
-    db.run('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
-    db.run('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
-    db.run('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
-    db.run('CREATE TABLE IF NOT EXISTS seasons (season TEXT)').then(() => {
+    //await deleteTable('players');
+    await pool.query('delete from players where 1=1');
+    await pool.query('delete from registery where 1=1');
+    await pool.query('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
+    await pool.query('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
+    await pool.query('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
+    await pool.query('CREATE TABLE IF NOT EXISTS seasons (season TEXT)', () => {
         addSeason('2018-01');
         addSeason('2018-02');
         addSeason('2018-03');
     });
-    
 }
 
 /** -------------------- seasons -------------------- */
 async function addSeason(season) {
-    const db = await getConnection();
-    db.get('select * from seasons where season = ?', season)
-        .then(function(player) {
-            if(!player) {
-                db.run('insert into seasons (season) values (?)', season);
+    pool.query('select * from seasons where season = $1', [season])
+        .then(async (res) => {
+            if(res.rowCount === 0){
+                await pool.query('insert into seasons (season) values ($1)', [season]);
             }
         });
 }
 
+async function getAllSeasons() {
+    return pool.query('select * from seasons').then((res) => {
+        let seasons = [];
+        if(res.rowCount === 0) return seasons;
+        for(let row of res.rows) {
+            seasons.push(row.season);
+        }
+        return seasons;
+    });
+}
+
 async function getLatestSeason() {
-    const db = await getConnection();
-    return db.get('select season from seasons where season = (select max(season) from seasons)')
-        .then((season) => {
-            return season.season;
+    return pool.query('select season from seasons where season = (select max(season) from seasons)')
+        .then((res) => {
+            return res.rows[0].season;
         });
 }
 
 /** -------------------- servers -------------------- */
 async function registerServer(serverId) {
-    const db = await getConnection();
-    db.get('select * from servers where serverId = ?', serverId)
-        .then(function(server) {
-            if(!server) {
-                db.run('insert into servers (serverId) values ("' + serverId + '") ');
+    return pool.query('select * from servers where serverId = $1', [serverId])
+        .then((res) => {
+            if(res.rowCount === 0) {
+                return pool.query('insert into servers (serverId) values ($1)', [serverId]);
             }
         });
 }
 
 /** -------------------- players -------------------- */
 async function addPlayer(username, pubgId) {
-    const db = await getConnection();
-    db.get('select * from players where pubgId = ?', pubgId)
-        .then((player) => {
-            if(!player) {
-                db.run('insert into players (username, pubgId) values (?, ?)', [username, pubgId]);
+    return pool.query('select * from players where pubgId = $1', [pubgId])
+        .then((res) => {
+            if(res.rowCount === 0) {
+                return pool.query('insert into players (username, pubgId) values ($1, $2)', [username, pubgId]);
             }
         });
 }
 
+async function getAllPlayers() {
+    return pool.query('select * from players').then((res) => {
+        let players = [];
+        if(res.rowCount === 0) return players;
+        for(let row of res.rows) {
+            players.push(row.username);
+        }
+        return players;
+    });
+}
+
 async function getPlayer(username) {
-    const db = await getConnection();
-    return db.get('select * from players where username = ?', username);
+    return pool.query('select * from players where username = $1', [username])
+        .then((res) => {
+            if(res.rowCount === 1) {
+                return res.rows[0];
+            }
+        });
 }
 
 /** -------------------- registery -------------------- */
 async function unRegisterUserToServer(pubgId, serverId) {
-    const db = await getConnection();
-    return db.run('delete from registery where serverId = ? and pubgId = ?', [serverId, pubgId]);
+    return pool.query('delete from registery where serverId = $1 and pubgId = $2', [serverId, pubgId]);
 }
 
 async function registerUserToServer(pubgId, serverId) {
-    const db = await getConnection();
-    db.get('select * from registery where serverId = ? and pubgId = ?', [serverId, pubgId])
-        .then(function(player) {
-            if(!player) {
-                db.run('insert into registery (pubgId, serverId) values (?, ?)', [pubgId, serverId]);
+    return pool.query('select * from registery where serverId = $1 and pubgId = $2', [serverId, pubgId])
+        .then((res) => {
+            if(res.rowCount === 0) {
+                return pool.query('insert into registery (pubgId, serverId) values ($1, $2)', [pubgId, serverId]);
             }
         });
 }
 
 async function getRegisteredPlayersForServer(serverId) {
-    const db = await getConnection();
-    return db.all('select * from registery as R left join players as P on R.pubgId = P.pubgId where serverId = ?', serverId);
+    return pool.query('select * from registery as R left join players as P on R.pubgId = P.pubgId where serverId = $1', [serverId])
+        .then((res) => {
+            if(res.rowCount != 0){
+                return res.rows;
+            } else {
+                return [];
+            } 
+        });
 }

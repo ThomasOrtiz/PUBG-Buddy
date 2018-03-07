@@ -11,7 +11,6 @@ async function run(bot, msg, params) {
             let id = await scrape.getCharacterID(username);
         
             if (id && id !== '') {
-                await sql.addPlayer(username, id);
                 await sql.registerUserToServer(id, msg.channel.id);
                 message.edit('Added ' + username);
             } else {

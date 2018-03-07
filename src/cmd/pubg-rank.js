@@ -63,7 +63,7 @@ function isSubstringOfElement(s, arr) {
 }
 
 function getParamValue(search, params, defaultParam) {
-    let index = isSubstringOfElement(search, params)
+    let index = isSubstringOfElement(search, params);
     if(index >= 0) {
         return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
     } else {
@@ -82,6 +82,6 @@ exports.conf = {
 let help = {
     name: 'pubg-rank',
     description: 'Returns ranking details of user.',
-    usage: 'pubg-rank [pubg username] <season=[2018-01 || 2018-02 || 2018-03]> <region=#> <mode=[fpp || tpp]>'
+    usage: 'pubg-rank [pubg username] <season=[2018-01, 2018-02,2018-03]> <region=[na, as, kr/jp, kakao, sa, eu, oc, sea]> <mode=[fpp || tpp]>'
 };
 exports.help = help;
