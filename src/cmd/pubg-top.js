@@ -13,7 +13,7 @@ async function run(bot, msg, params) {
     let season = getParamValue('season=', params, await sql.getLatestSeason());
     let region = getParamValue('region=', params, 'na');
     let mode = getParamValue('mode=', params, 'fpp');
-    let squadSize = getParamValue('squadSize=', params, 4);
+    let squadSize = +getParamValue('squadSize=', params, 4);
     let squadSizeString = '';
 
     switch(squadSize) {

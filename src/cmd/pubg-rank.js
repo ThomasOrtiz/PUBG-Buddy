@@ -21,35 +21,35 @@ async function run(bot, msg, params) {
             let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
             let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
             let embed = new Discord.RichEmbed()
-                .setTitle(username + ' Ranking')
+                .setTitle('Ranking: ' + username)
                 .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
                 .setColor(0x00AE86)
                 .setFooter('Data retrieved from https://pubg.op.gg/')
                 .setTimestamp()
                 
                 .addBlankField(false)
-                .addField('Type', mode.toUpperCase() + ' Solo : ' + soloData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Solo', true)
+                .addField('Grade', soloData.grade, true)
                 .addField('Rank', soloData.ranking, true)
                 .addField('Top %', soloData.topPercent, true)
                 .addField('Longest Kill', soloData.longest_kill, true)
                 .addField('Average Damage', soloData.average_damage_dealt, true)
-                .addBlankField(true)
                 .addBlankField(false)
 
-                .addField('Type', mode.toUpperCase() + ' Duo : ' + duoData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Duo', true)
+                .addField('Grade', duoData.grade, true)
                 .addField('Rank', duoData.ranking, true)
                 .addField('Top %', duoData.topPercent, true)
                 .addField('Longest Kill', duoData.longest_kill, true)
                 .addField('Average Damage', duoData.average_damage_dealt, true)
-                .addBlankField(true)
                 .addBlankField(false)
 
-                .addField('Type', mode.toUpperCase() + ' Squad : ' + squadData.grade, true)
+                .addField('Type', mode.toUpperCase() + ' Squad', true)
+                .addField('Grade', squadData.grade, true)
                 .addField('Rank', squadData.ranking, true)
                 .addField('Top %', squadData.topPercent, true)
                 .addField('Longest Kill', squadData.longest_kill, true)
                 .addField('Average Damage', squadData.average_damage_dealt, true)
-                .addBlankField(true);
             message.edit({embed});
         });
 }
