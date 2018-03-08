@@ -21,12 +21,13 @@ async function run(bot, msg, params) {
             let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
             let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
             let embed = new Discord.RichEmbed()
-                .setTitle('PUBG Stats - ' + username)
-                .setColor(0x00AE86)
+                .setTitle(username + ' Ranking')
                 .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
+                .setColor(0x00AE86)
                 .setFooter('Data retrieved from https://pubg.op.gg/')
                 .setTimestamp()
                 
+                .addBlankField(false)
                 .addField('Type', mode.toUpperCase() + ' Solo : ' + soloData.grade, true)
                 .addField('Rank', soloData.ranking, true)
                 .addField('Top %', soloData.topPercent, true)

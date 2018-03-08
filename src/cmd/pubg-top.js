@@ -6,7 +6,7 @@ exports.run = run;
 
 async function run(bot, msg, params) {
     let amount = 10;
-    if(params[0]) {
+    if(params[0] && !isNaN(params[0])) {
         amount = +params[0];
     }
 
@@ -45,7 +45,8 @@ async function run(bot, msg, params) {
         let fieldOffset = 10;
 
         let embed = new Discord.RichEmbed()
-            .setTitle('PUBG Stats')
+            .setTitle('Top ' + amount + ' local players -- ' + squadSizeString + ' ' + mode.toUpperCase())
+            .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
             .setColor(0x00AE86)
             .setDescription('Top ' + amount + ' local players -- ' + squadSizeString + ' - ' + mode)
             .setFooter('Data retrieved from https://pubg.op.gg/')
