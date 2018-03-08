@@ -17,7 +17,7 @@ module.exports = {
 
 let connectionString;
 if(process.env.DATABASE_URL) {
-    connectionString = process.env.bot_token;
+    connectionString = process.env.DATABASE_URL;
 } else if(config.DATABASE_URL) {
     connectionString = config.DATABASE_URL;
 } else {
