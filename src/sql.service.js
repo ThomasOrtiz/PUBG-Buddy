@@ -29,7 +29,7 @@ const pool = new Pool({
     ssl: true,
 });
 pool.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
+    logger.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
 
