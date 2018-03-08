@@ -6,13 +6,18 @@ exports.run = run;
 async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
 
-    msg.channel.send('Webscraping for ' + username + '\' PUBG Id ... give me a second')
+    msg.channel.send('Checking for ' + username + '\'s PUBG Id ... give me a second')
         .then(async (message) => {
-            let id = await scrape.getCharacterID(username);
+            let pubgId = await scrape.getCharacterID(username);
         
-            if (id && id !== '') {
-                await sql.registerUserToServer(id, msg.channel.id);
-                message.edit('Added ' + username);
+            if (pubgId && pubgId !== '') {
+                let registered = await sql.registerUserToServer(pubgId, message.guild.id);
+                if(registered) {
+                    message.edit('Added ' + username);
+                } else {
+                    message.edit(username + ' already added');
+                }
+                
             } else {
                 message.edit('Invalid username: ' + username);
             }

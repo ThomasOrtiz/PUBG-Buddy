@@ -21,9 +21,9 @@ async function run(bot, msg, params) {
             let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
             let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
             let embed = new Discord.RichEmbed()
-                .setTitle('PUBG Stats')
+                .setTitle('PUBG Stats - ' + username)
                 .setColor(0x00AE86)
-                .setDescription(username + '\nSeason: ' + season + '\nRegion: ' + region.toUpperCase())
+                .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
                 .setFooter('Data retrieved from https://pubg.op.gg/')
                 .setTimestamp()
                 

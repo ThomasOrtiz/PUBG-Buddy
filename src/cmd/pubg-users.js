@@ -8,7 +8,7 @@ async function run(bot, msg) {
         .setTitle('Registered Users')
         .setColor(0x00AE86);
 
-    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
+    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
 
     let players = '';
     for(let i = 0; i < registeredPlayers.length; i++) {

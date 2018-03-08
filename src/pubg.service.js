@@ -49,8 +49,8 @@ async function getCharacterID(username) {
 
     return sql.getPlayer(username)
         .then((player) => {
-            if(player && player.pubgId && player.pubgId !== '') {
-                return player.pubgId;
+            if(player && player.pubgid && player.pubgid !== '') {
+                return player.pubgid;
             } else {
                 return webScrapeForId(username);
             }

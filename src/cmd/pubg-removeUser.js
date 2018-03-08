@@ -1,14 +1,21 @@
 const sql = require('../sql.service');
+const scrape = require('../pubg.service');
 
 exports.run = run;
 
 async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
-    let player = await sql.getPlayer(username);
     msg.channel.send('Removing ' + username + ' from server registry')
-        .then((message) => {
-            sql.unRegisterUserToServer(player.pubgId, msg.channel.id);
-            message.edit('Removed ' + username + ' from server registry');
+        .then(async (message) => {
+            let pubgId = await scrape.getCharacterID(username);
+
+            let unregistered = await sql.unRegisterUserToServer(pubgId, message.guild.id);
+            if(unregistered) {
+                message.edit('Removed ' + username + ' from server registry');
+            } else {
+                message.edit(username + ' did not exist on server registery');
+            }
+            
         });
 }
 

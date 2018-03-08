@@ -30,13 +30,12 @@ async function run(bot, msg, params) {
     
     msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
     
-    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.channel.id);
+    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
     if(registeredPlayers.length === 0) {
         msg.channel.send('No users registered yes. Use `pubg-addUser <username>`');
         return;
     }
     
-    // getPUBGCharacterData(id, username, season, region, 1, mode);
     let playerInfo = await scrape.aggregateData(registeredPlayers, season, region, squadSize, mode);
     let topPlayers = playerInfo.slice(0, amount);
 

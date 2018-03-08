@@ -1,3 +1,5 @@
+const config = require('../config.json');
+const logger = require('winston');
 const { Pool } = require('pg');
 
 module.exports = {
@@ -13,8 +15,17 @@ module.exports = {
     getAllSeasons
 };
 
+let connectionString;
+if(process.env.DATABASE_URL) {
+    connectionString = process.env.bot_token;
+} else if(config.DATABASE_URL) {
+    connectionString = config.DATABASE_URL;
+} else {
+    logger.error('Connection string does not exist - check your config.json file.');
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: connectionString,
     ssl: true,
 });
 pool.on('error', (err) => {
@@ -23,8 +34,10 @@ pool.on('error', (err) => {
 });
 
 async function setupTables() {
-    //await pool.query('delete from players where 1=1');
-    //await pool.query('delete from registery where 1=1');
+    // await pool.query('delete from servers where 1=1');
+    // await pool.query('delete from players where 1=1');
+    // await pool.query('delete from registery where 1=1');
+    // await pool.query('delete from seasons where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS servers (serverId TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS players (username TEXT, pubgId TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS registery (pubgId TEXT, serverId TEXT)');
@@ -105,7 +118,14 @@ async function getPlayer(username) {
 
 /** -------------------- registery -------------------- */
 async function unRegisterUserToServer(pubgId, serverId) {
-    return pool.query('delete from registery where serverId = $1 and pubgId = $2', [serverId, pubgId]);
+    return pool.query('delete from registery where serverId = $1 and pubgId = $2', [serverId, pubgId])
+        .then((res) => {
+            if(res.rowCount === 1){
+                return true;
+            } else {
+                return false;
+            }
+        });
 }
 
 async function registerUserToServer(pubgId, serverId) {
@@ -113,6 +133,8 @@ async function registerUserToServer(pubgId, serverId) {
         .then((res) => {
             if(res.rowCount === 0) {
                 return pool.query('insert into registery (pubgId, serverId) values ($1, $2)', [pubgId, serverId]);
+            } else {
+                return false;
             }
         });
 }
