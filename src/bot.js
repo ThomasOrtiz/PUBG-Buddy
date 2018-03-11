@@ -11,6 +11,7 @@ logger.add(logger.transports.Console, {
 });
 logger.level = 'debug';
 
+// Initialize Bot
 const bot = new Discord.Client();
 let botToken;
 if(process.env.bot_token) {
@@ -41,19 +42,34 @@ fs.readdir('./src/cmd/', (err, files) => {
     });
 });
 
-// set up db
+// Setup DB
 sqlService.setupTables();
-
 
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
+bot.on('guildCreate', guild => {
+    // This event triggers when the bot joins a guild.
+    logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+});  
+bot.on('guildDelete', guild => {
+    // this event triggers when the bot is removed from a guild.
+    sqlService.unRegisterServer(guild.id)
+        .then(() => {
+            logger.info(`I have been removed from: ${guild.name} (id: ${guild.id})`);
+        });
+});
 bot.on('ready', () => {
+    logger.info(`Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`);
     logger.info('Connected');
 });
 bot.on('message', msg => {
+    // Ignore other bots / requests without our prefix
+    if (msg.author.bot || !msg.content.startsWith(config.prefix)) return;
+    
+    // Add server to registered server list
     sqlService.registerServer(msg.guild.id);
 
-    if (!msg.content.startsWith(config.prefix)) return;
+    
     let command = msg.content.split(' ')[0].slice(config.prefix.length);
     let params = msg.content.split(' ').slice(1);
     let perms = bot.elevation(msg);
@@ -70,7 +86,6 @@ bot.on('message', msg => {
         //msg.channel.stopTyping();
     }
 });
-
 bot.reload = function(command) {
     return new Promise((resolve, reject) => {
         try {
@@ -91,7 +106,6 @@ bot.reload = function(command) {
         }
     });
 };
-
 bot.elevation = function (msg) {
     /* This function should resolve to an ELEVATION level which
        is then sent to the command handler for verification*/
