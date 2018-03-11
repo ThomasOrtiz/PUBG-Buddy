@@ -18,12 +18,14 @@ let prefix;
 if(process.env.bot_token) {
     botToken = process.env.bot_token;
 } else {
-    logger.error('Token does not exist - check your .env file.');
+    logger.error('"bot_token" does not exist - check your .env file.');
+    process.exit(-1);
 }
 if(process.env.prefix) {
     prefix = process.env.prefix;
 } else {
-    logger.error('Prefix not set');
+    logger.error('"prefix" does not exist - check your .env file.');
+    process.exit(-1);
 }
 
 

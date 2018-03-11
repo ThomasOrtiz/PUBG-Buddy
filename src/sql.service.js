@@ -25,7 +25,8 @@ let connectionString;
 if(process.env.DATABASE_URL) {
     connectionString = process.env.DATABASE_URL;
 } else {
-    logger.error('Connection string does not exist - check your .env file.');
+    logger.error('"DATABASE_URL" does not exist - check your .env file.');
+    process.exit(-1);
 }
 
 const pool = new Pool({
