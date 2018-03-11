@@ -39,37 +39,29 @@ async function run(bot, msg, params) {
     let playerInfo = await scrape.aggregateData(registeredPlayers, season, region, squadSize, mode);
     let topPlayers = playerInfo.slice(0, amount);
 
-    // Send a message every 5 players processed
-    let amountProcessed = 0;
-    while (amountProcessed < amount) {
-        let fieldOffset = 10;
+    let embed = new Discord.RichEmbed()
+        .setTitle('Top ' + amount + ' local players -- ' + squadSizeString + ' ' + mode.toUpperCase())
+        .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
+        .setColor(0x00AE86)
+        .setFooter('Data retrieved from https://pubg.op.gg/')
+        .setTimestamp();
 
-        let embed = new Discord.RichEmbed()
-            .setTitle('Top ' + amount + ' local players -- ' + squadSizeString + ' ' + mode.toUpperCase())
-            .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase())
-            .setColor(0x00AE86)
-            .setFooter('Data retrieved from https://pubg.op.gg/')
-            .setTimestamp();
+    let names = '';
+    let ranks = '';
+    let topPercents = '';
 
-        let end = amountProcessed + fieldOffset;
-        let names = '';
-        let ranks = '';
-        let topPercents = '';
-
-
-        for (var i = amountProcessed; i < topPlayers.length && i < end; i++) {
-            var character = topPlayers[i];
-            names += character.nickname + '\n';
-            ranks += character.ranking + '\n';
-            topPercents += character.topPercent + '\n';
-        }
-
-        embed.addField('Name', names, true)
-            .addField('Rank', ranks, true)
-            .addField('Top %', topPercents, true);
-        amountProcessed += fieldOffset;
-        msg.channel.send({ embed });
+    // Construct top strings
+    for (var i = 0; i < topPlayers.length; i++) {
+        var character = topPlayers[i];
+        names += character.nickname + '\n';
+        ranks += character.ranking + '\n';
+        topPercents += character.topPercent + '\n';
     }
+
+    embed.addField('Name', names, true)
+        .addField('Rank', ranks, true)
+        .addField('Top %', topPercents, true);
+    msg.channel.send({ embed });
 }
 
 function isSubstringOfElement(s, arr) {
