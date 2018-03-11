@@ -16,12 +16,12 @@ const pubgNAServer = '?server=na';
 // Direct API URL --> apiURL + <id> + apiOptions
 const apiURL = 'https://pubg.op.gg/api/users/'; 
 const apiOptions = '/ranked-stats';
-//const apiOptions = '/ranked-stats?season=2018-02&server=na&queue_size=4&mode=fpp';
 
 /**
  * Aggregates data by either:
- *      (1) Webscraping if we do not have a cached id for the user
- *      (2) Api Call if we DO have the cached id
+ *      (1) Api Call if we DO have the cached id
+ *      (2) Webscraping if we do not have a cached id for the user
+ *          and then performing API call
  * @param {string[]} names: array of pubg names
  * @param {json} nameToIdMapping: a dictionary of name:id mappings
  */
@@ -41,8 +41,8 @@ async function aggregateData(players, season, region, squadSize, mode) {
 }
 
 /**
- * Using curl this scrapes pubg.op.gg for pubg character id.
- * @param {string} username: pubg username 
+ * Returns a pubg character id
+ * @param {string} username 
  */
 async function getCharacterID(username) {
     username = username.toLowerCase();
@@ -57,6 +57,10 @@ async function getCharacterID(username) {
         });
 }
 
+/**
+ * Using curl this scrapes pubg.op.gg for pubg character id.
+ * @param {string} username: pubg username 
+ */
 function webScrapeForId(username) {
     logger.info('\tWebscraping for ' + username);
     let url = pubgBaseURL + username + pubgNAServer;
@@ -103,7 +107,7 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
                 nickname: username,
                 ranking: 0,
                 grade: 'N/A',
-                longest_kill: 0,
+                longest_kill: 0 + 'm',
                 average_damage_dealt: 0,
                 topPercent: 100 + '%'
             };

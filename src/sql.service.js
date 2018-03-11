@@ -4,15 +4,21 @@ const { Pool } = require('pg');
 
 module.exports = {
     setupTables,
+    // Seasons
+    getLatestSeason,
+    getAllSeasons,
+    // Servers
     registerServer,
-    registerUserToServer,
-    unRegisterUserToServer,
+    unRegisterServer,
+    // Players
     getPlayer,
     getAllPlayers,
     addPlayer,
+    //Registery
+    registerUserToServer,
+    unRegisterUserToServer,
     getRegisteredPlayersForServer,
-    getLatestSeason,
-    getAllSeasons
+    purgeServerFromRegistery,
 };
 
 let connectionString;
@@ -33,6 +39,10 @@ pool.on('error', (err) => {
     process.exit(-1);
 });
 
+// -------------------- DB Helpers --------------------
+/**
+ * Adds the required database tables/data on bot run
+ */
 async function setupTables() {
     // await pool.query('delete from servers where 1=1');
     // await pool.query('delete from players where 1=1');
@@ -48,7 +58,11 @@ async function setupTables() {
     });
 }
 
-/** -------------------- seasons -------------------- */
+// -------------------- seasons --------------------
+/**
+ * Adds the specified season
+ * @param season: season in form of year-month --> 2018-01
+ */
 async function addSeason(season) {
     pool.query('select * from seasons where season = $1', [season])
         .then(async (res) => {
@@ -58,6 +72,9 @@ async function addSeason(season) {
         });
 }
 
+/** 
+ *  Return all seasons for PUBG 
+ */
 async function getAllSeasons() {
     return pool.query('select * from seasons').then((res) => {
         let seasons = [];
@@ -69,6 +86,9 @@ async function getAllSeasons() {
     });
 }
 
+/** 
+ * Returns the latest season of PUBG
+ */
 async function getLatestSeason() {
     return pool.query('select season from seasons where season = (select max(season) from seasons)')
         .then((res) => {
@@ -76,7 +96,11 @@ async function getLatestSeason() {
         });
 }
 
-/** -------------------- servers -------------------- */
+// -------------------- servers -------------------- 
+/**
+ * Adds a server to the servers table
+ * @param {string} serverId 
+ */
 async function registerServer(serverId) {
     return pool.query('select * from servers where serverId = $1', [serverId])
         .then((res) => {
@@ -86,7 +110,24 @@ async function registerServer(serverId) {
         });
 }
 
-/** -------------------- players -------------------- */
+/**
+ * Removes a server from the servers table
+ * @param {string} serverId
+ */
+async function unRegisterServer(serverId) {
+    return pool.query('delete from seasons where serverId=$1', [serverId])
+        .then(async () => {
+            await purgeServerFromRegistery(serverId);
+            return true;
+        });
+}
+
+// -------------------- players --------------------
+/**
+ * Adds a player to the player table
+ * @param {string} username 
+ * @param {string} pubgId 
+ */
 async function addPlayer(username, pubgId) {
     return pool.query('select * from players where pubgId = $1', [pubgId])
         .then((res) => {
@@ -96,6 +137,9 @@ async function addPlayer(username, pubgId) {
         });
 }
 
+/**
+ * Gets all players 
+ */
 async function getAllPlayers() {
     return pool.query('select * from players').then((res) => {
         let players = [];
@@ -107,6 +151,10 @@ async function getAllPlayers() {
     });
 }
 
+/**
+ * Gets a player from their username
+ * @param {string} username 
+ */
 async function getPlayer(username) {
     return pool.query('select * from players where username = $1', [username])
         .then((res) => {
@@ -116,7 +164,12 @@ async function getPlayer(username) {
         });
 }
 
-/** -------------------- registery -------------------- */
+// -------------------- registery -------------------- 
+/**
+ * Removes a user from a server's registery
+ * @param {string} pubgId 
+ * @param {string} serverId 
+ */
 async function unRegisterUserToServer(pubgId, serverId) {
     return pool.query('delete from registery where serverId = $1 and pubgId = $2', [serverId, pubgId])
         .then((res) => {
@@ -128,6 +181,11 @@ async function unRegisterUserToServer(pubgId, serverId) {
         });
 }
 
+/**
+ * Adds a user from a server's registery
+ * @param {string} pubgId 
+ * @param {string} serverId 
+ */
 async function registerUserToServer(pubgId, serverId) {
     return pool.query('select * from registery where serverId = $1 and pubgId = $2', [serverId, pubgId])
         .then((res) => {
@@ -139,6 +197,10 @@ async function registerUserToServer(pubgId, serverId) {
         });
 }
 
+/**
+ * Returns all users that are registered to a server's registery
+ * @param {string} serverId 
+ */
 async function getRegisteredPlayersForServer(serverId) {
     return pool.query('select * from registery as R left join players as P on R.pubgId = P.pubgId where serverId = $1', [serverId])
         .then((res) => {
@@ -147,5 +209,16 @@ async function getRegisteredPlayersForServer(serverId) {
             } else {
                 return [];
             } 
+        });
+}
+
+/**
+ * Removes all players that are registered to a server
+ * @param {string} serverId 
+ */
+async function purgeServerFromRegistery(serverId) {
+    return pool.query('delete from registery where serverId = $1', [serverId])
+        .then(() => {
+            return true;
         });
 }
