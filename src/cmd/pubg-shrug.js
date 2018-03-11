@@ -3,6 +3,7 @@ exports.run = (bot, msg, params) => {
     let amount = 1;
     if(params[0] && !isNaN(params[0])) {
         amount = +params[0];
+        if(amount > 15) amount = 15;
     }
 
     for(let i = 0; i < amount; i++){
@@ -23,5 +24,5 @@ exports.conf = {
 exports.help = {
     name: 'pubg-shrug',
     description: 'Get your shrug on',
-    usage: 'pubg-shrug <amount of shrugs>'
+    usage: 'pubg-shrug <amount of shrugs <= 15>'
 };
