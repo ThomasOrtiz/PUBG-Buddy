@@ -6,9 +6,7 @@ require('dotenv').config();
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
-logger.add(logger.transports.Console, {
-    colorize: true
-});
+logger.add(logger.transports.Console, { colorize: true });
 logger.level = 'debug';
 
 // Initialize Bot
@@ -17,9 +15,9 @@ const botToken = getEnviornmentVariable('bot_token');
 const prefix = getEnviornmentVariable('prefix');
 bot.login(botToken);
 
+// Get commands from the cmd folder
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
-// Get commands from the cmd folder
 fs.readdir('./src/cmd/', (err, files) => {
     if (err) logger.error(err);
     logger.info(`Loading a total of ${files.length} commands.`);
