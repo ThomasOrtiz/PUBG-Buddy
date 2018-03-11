@@ -27,7 +27,7 @@ async function run(bot, msg, params) {
 
 exports.conf = {
     enabled: true,
-    guildOnly: false,
+    guildOnly: true,
     aliases: [],
     permLevel: 0
 };

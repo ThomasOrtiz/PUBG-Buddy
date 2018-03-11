@@ -73,27 +73,46 @@ bot.on('ready', () => {
 bot.on('message', msg => {
     // Ignore other bots / requests without our prefix
     if (msg.author.bot || !msg.content.startsWith(prefix)) return;
-    
-    // Add server to registered server list
-    sqlService.registerServer(msg.guild.id);
 
-    
     let command = msg.content.split(' ')[0].slice(prefix.length);
     let params = msg.content.split(' ').slice(1);
-    let perms = bot.elevation(msg);
+    let perms;
+    let isGuildMessage = false;
+    
+    // Grab relevant guild info if not DM
+    if(msg.guild) {
+        isGuildMessage = true;
+        // Add server to registered server list
+        sqlService.registerServer(msg.guild.id);
+        perms = bot.elevation(msg);
+    }
+    
+    // Get command
     let cmd;
     if (bot.commands.has(command)) {
         cmd = bot.commands.get(command);
     } else if (bot.aliases.has(command)) {
         cmd = bot.commands.get(bot.aliases.get(command));
     }
+
+    // Run command
     if (cmd) {
-        if (perms < cmd.conf.permLevel) return;
+        // Check if valid context to run command
+        if (!isGuildMessage && cmd.conf.guildOnly) {
+            msg.channel.send('Guild only command');
+            return;
+        } 
+        // Check permissions
+        if (perms < cmd.conf.permLevel) { 
+            msg.channel.send('Invalid permissions');
+            return;
+        }
         //msg.channel.startTyping();
         cmd.run(bot, msg, params, perms);
         //msg.channel.stopTyping();
     }
 });
+
 bot.reload = function(command) {
     return new Promise((resolve, reject) => {
         try {

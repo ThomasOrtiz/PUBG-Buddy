@@ -84,7 +84,7 @@ function getParamValue(search, params, defaultParam) {
 
 exports.conf = {
     enabled: true,
-    guildOnly: false,
+    guildOnly: true,
     aliases: [],
     permLevel: 0
 };
