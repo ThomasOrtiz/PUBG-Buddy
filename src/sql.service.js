@@ -1,6 +1,6 @@
-const config = require('../config.json');
 const logger = require('winston');
 const { Pool } = require('pg');
+require('dotenv').config();
 
 module.exports = {
     setupTables,
@@ -24,10 +24,8 @@ module.exports = {
 let connectionString;
 if(process.env.DATABASE_URL) {
     connectionString = process.env.DATABASE_URL;
-} else if(config.DATABASE_URL) {
-    connectionString = config.DATABASE_URL;
 } else {
-    logger.error('Connection string does not exist - check your config.json file.');
+    logger.error('Connection string does not exist - check your .env file.');
 }
 
 const pool = new Pool({

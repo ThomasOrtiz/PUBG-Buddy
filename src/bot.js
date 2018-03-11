@@ -1,8 +1,8 @@
 const Discord = require('discord.js');
 const logger = require('winston');
 const fs = require('fs');
-const config = require('../config.json');
 const sqlService = require('./sql.service');
+require('dotenv').config();
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -14,13 +14,18 @@ logger.level = 'debug';
 // Initialize Bot
 const bot = new Discord.Client();
 let botToken;
+let prefix;
 if(process.env.bot_token) {
     botToken = process.env.bot_token;
-} else if(config.botToken) {
-    botToken = config.botToken;
 } else {
-    logger.error('Token does not exist - check your config.json file.');
+    logger.error('Token does not exist - check your .env file.');
 }
+if(process.env.prefix) {
+    prefix = process.env.prefix;
+} else {
+    logger.error('Prefix not set');
+}
+
 
 bot.login(botToken);
 
@@ -45,6 +50,7 @@ fs.readdir('./src/cmd/', (err, files) => {
 // Setup DB
 sqlService.setupTables();
 
+// Setup events
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
@@ -64,13 +70,13 @@ bot.on('ready', () => {
 });
 bot.on('message', msg => {
     // Ignore other bots / requests without our prefix
-    if (msg.author.bot || !msg.content.startsWith(config.prefix)) return;
+    if (msg.author.bot || !msg.content.startsWith(prefix)) return;
     
     // Add server to registered server list
     sqlService.registerServer(msg.guild.id);
 
     
-    let command = msg.content.split(' ')[0].slice(config.prefix.length);
+    let command = msg.content.split(' ')[0].slice(prefix.length);
     let params = msg.content.split(' ').slice(1);
     let perms = bot.elevation(msg);
     let cmd;
@@ -114,6 +120,6 @@ bot.elevation = function (msg) {
     if (mod_role && msg.member.roles.has(mod_role.id)) permlvl = 2;
     let admin_role = msg.guild.roles.find('name', 'Devs');
     if (admin_role && msg.member.roles.has(admin_role.id)) permlvl = 3;
-    if (msg.author.id === config.ownerid) permlvl = 4;
+    if (msg.author.id === process.env.ownerid) permlvl = 4;
     return permlvl;
 };
