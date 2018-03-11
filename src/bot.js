@@ -13,28 +13,12 @@ logger.level = 'debug';
 
 // Initialize Bot
 const bot = new Discord.Client();
-let botToken;
-let prefix;
-if(process.env.bot_token) {
-    botToken = process.env.bot_token;
-} else {
-    logger.error('"bot_token" does not exist - check your .env file.');
-    process.exit(-1);
-}
-if(process.env.prefix) {
-    prefix = process.env.prefix;
-} else {
-    logger.error('"prefix" does not exist - check your .env file.');
-    process.exit(-1);
-}
-
-
+const botToken = getEnviornmentVariable('bot_token');
+const prefix = getEnviornmentVariable('prefix');
 bot.login(botToken);
-
 
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
-
 // Get commands from the cmd folder
 fs.readdir('./src/cmd/', (err, files) => {
     if (err) logger.error(err);
@@ -56,14 +40,12 @@ sqlService.setupTables();
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
-    // This event triggers when the bot joins a guild.
     logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
 });  
 bot.on('guildDelete', guild => {
-    // this event triggers when the bot is removed from a guild.
     sqlService.unRegisterServer(guild.id)
         .then(() => {
-            logger.info(`I have been removed from: ${guild.name} (id: ${guild.id})`);
+            logger.info(`Removed ${guild.name} from database.`);
         });
 });
 bot.on('ready', () => {
@@ -82,34 +64,16 @@ bot.on('message', msg => {
     // Grab relevant guild info if not DM
     if(msg.guild) {
         isGuildMessage = true;
-        // Add server to registered server list
         sqlService.registerServer(msg.guild.id);
         perms = bot.elevation(msg);
     }
     
     // Get command
-    let cmd;
-    if (bot.commands.has(command)) {
-        cmd = bot.commands.get(command);
-    } else if (bot.aliases.has(command)) {
-        cmd = bot.commands.get(bot.aliases.get(command));
-    }
-
+    let cmd = getCommand(command);
+    
     // Run command
-    if (cmd) {
-        // Check if valid context to run command
-        if (!isGuildMessage && cmd.conf.guildOnly) {
-            msg.channel.send('Guild only command');
-            return;
-        } 
-        // Check permissions
-        if (perms < cmd.conf.permLevel) { 
-            msg.channel.send('Invalid permissions');
-            return;
-        }
-        //msg.channel.startTyping();
+    if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
         cmd.run(bot, msg, params, perms);
-        //msg.channel.stopTyping();
     }
 });
 
@@ -144,3 +108,50 @@ bot.elevation = function (msg) {
     if (msg.author.id === process.env.ownerid) permlvl = 4;
     return permlvl;
 };
+
+// ----------------------- Helper Methods -----------------------
+function getEnviornmentVariable(varName) {
+    if(process.env[varName]) {
+        return process.env[varName];
+    } else {
+        logger.error('"' + varName  + '" does not exist - check your .env file.');
+        process.exit(-1);
+    }
+}
+
+/**
+ * Given a command name, return the bot's command object
+ * @param {string} command 
+ * @returns {} command object
+ */
+function getCommand(command) {
+    if (bot.commands.has(command)) {
+        return bot.commands.get(command);
+    } else if (bot.aliases.has(command)) {
+        return bot.commands.get(bot.aliases.get(command));
+    }
+}
+
+/**
+ * Checks if a command is runnable by a user
+ * @param {*} msg 
+ * @param {*} cmd 
+ * @param {*} isGuildMessage 
+ * @param {*} perms 
+ * @returns {boolean} true if runnable, false otherwise
+ */
+function checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms) {
+    // Check if cmd is enabled
+    if(!cmd.conf.enabled) return false;
+    // Check if valid context to run command
+    if (!isGuildMessage && cmd.conf.guildOnly) {
+        msg.channel.send('Guild only command');
+        return false;
+    } 
+    // Check permissions
+    if (perms < cmd.conf.permLevel) { 
+        msg.channel.send('Invalid permissions');
+        return false;
+    }
+    return true;
+}
