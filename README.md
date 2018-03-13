@@ -7,7 +7,7 @@ This bot uses [https://pubg.op.gg/](https://pubg.op.gg/) as a means to get a PUB
 In order to develop we need a test environment. 
 
 ## Create your own Discord Testing Bot
-1. Go here [https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token) and create a new discord bot that you can use on our own personal server for testing.
+1. Go here [Discord Bot Guide](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token) and create a new discord bot that you can use on our own personal server for testing.
 2. Note this is where you can get your discord bot token.
 3. Go ahead and add your bot to your discord server.
 
@@ -15,7 +15,7 @@ In order to develop we need a test environment.
 1. Fork this repo and develop there. When you're ready to merge into the main repo make a pull request.
 
 ## Setting up Heroku
-1. Go to [Heroku](heroku.com).
+1. Go to [Heroku](https://www.heroku.com/).
 2. Create a new Node app.
 3. Go to the `Resources` tab and under `Add-ons` install `Heroku Postgres` (this will add a `DATABASE_URL` config under the `Settings` tabs).
 4. Go to the `Deploy` tab and link your forked version of this repo.
