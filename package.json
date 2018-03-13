@@ -4,6 +4,9 @@
     "description": "A bot that reports PUBG stats",
     "main": "src/bot.js",
     "author": "Thomas Ortiz",
+    "scripts": {
+        "sql": "heroku pg:psql -a pubg-stat-discord-bot"
+    },
     "dependencies": {
         "cheerio": "latest",
         "curlrequest": "^1.0.1",

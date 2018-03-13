@@ -15,7 +15,7 @@ async function run(bot, msg, params) {
                 if(registered) {
                     message.edit('Added ' + username);
                 } else {
-                    message.edit(username + ' already added');
+                    message.edit('Could not add ' + username);
                 }
                 
             } else {
