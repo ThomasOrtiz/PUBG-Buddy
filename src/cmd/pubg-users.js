@@ -9,7 +9,7 @@ async function run(bot, msg) {
     let players = '';
     for(let i = 0; i < registeredPlayers.length; i++) {
         let player = registeredPlayers[i];
-        players += player.username + '\n';
+        players += i + '. ' + player.username + '\n';
     }
     
     if(players === '') {
