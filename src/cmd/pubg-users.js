@@ -4,10 +4,6 @@ const sql = require('../sql.service');
 exports.run = run;
 
 async function run(bot, msg) {
-    let embed = new Discord.RichEmbed()
-        .setTitle('Registered Users')
-        .setColor(0x00AE86);
-
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
 
     let players = '';
@@ -21,7 +17,9 @@ async function run(bot, msg) {
     }
     
 
-    embed
+    let embed = new Discord.RichEmbed()
+        .setTitle(registeredPlayers.length + ' Registered Users')
+        .setColor(0x00AE86)
         .addField('Players', players, true)
         .addBlankField(true);
 
