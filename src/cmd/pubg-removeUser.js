@@ -28,6 +28,6 @@ exports.conf = {
 
 exports.help = {
     name: 'pubg-removeUser',
-    description: 'Removes a user from the list all tracked users.',
+    description: 'Removes a user from the server\'s registery.',
     usage: 'pubg-removeUser [username]'
 };

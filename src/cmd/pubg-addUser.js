@@ -34,6 +34,6 @@ exports.conf = {
 
 exports.help = {
     name: 'pubg-addUser',
-    description: 'Given a pubg username it will add a user to the list of players to track.',
+    description: 'Adds a user to the server\'s registery.',
     usage: 'pubg-addUser [pubg username]'
 };

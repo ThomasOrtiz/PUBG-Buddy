@@ -35,6 +35,6 @@ exports.conf = {
 
 exports.help = {
     name: 'pubg-users',
-    description: 'List all tracked users.',
+    description: 'List all users on this server\'s registery.',
     usage: 'pubg-users'
 };

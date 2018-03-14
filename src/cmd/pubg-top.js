@@ -92,5 +92,5 @@ exports.conf = {
 exports.help = {
     name: 'pubg-top',
     description: 'Gets the top "x" players registered in the server',
-    usage: 'pubg-top [Number-Of-Users] <season=[2018-01, 2018-02, 2018-03]> <region=[na, as, kr/jp, kakao, sa, eu, oc, sea]> <squadSize=#> <mode=[fpp || tpp]>'
+    usage: 'pubg-top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]'
 };
