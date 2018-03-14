@@ -5,7 +5,8 @@
     "main": "src/bot.js",
     "author": "Thomas Ortiz",
     "scripts": {
-        "sql": "heroku pg:psql -a pubg-stat-discord-bot"
+        "sql": "heroku pg:psql -a pubg-stat-discord-bot",
+        "sql-test": "heroku pg:psql -a pubg-stat-discord-bot-dev"
     },
     "dependencies": {
         "cheerio": "latest",
