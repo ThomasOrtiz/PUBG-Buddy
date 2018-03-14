@@ -3,11 +3,11 @@ const cs = require('../services/common.service');
 const sql = require('../services/sql.service');
 
 exports.run = async (bot, msg, params) => {
-    let prefix = getParamValue('prefix=', params, cs.getEnviornmentVariable('prefix'));
-    let season = getParamValue('season=', params, await sql.getLatestSeason());
-    let region = getParamValue('region=', params, 'na');
-    let mode = getParamValue('mode=', params, 'fpp');
-    let squadSize = +getParamValue('squadSize=', params, 4);
+    let prefix = cs.getParamValue('prefix=', params, cs.getEnviornmentVariable('prefix'));
+    let season = cs.getParamValue('season=', params, await sql.getLatestSeason());
+    let region = cs.getParamValue('region=', params, 'na');
+    let mode = cs.getParamValue('mode=', params, 'fpp');
+    let squadSize = +cs.getParamValue('squadSize=', params, 4);
 
     msg.channel.send('Updating this server\'s pubg defaults: prefix=' + prefix + ' season=' + season + ' region=' + region + ' mode=' + mode + ' squadSize=' + squadSize)
         .then(async (msg) => {
@@ -32,24 +32,6 @@ exports.run = async (bot, msg, params) => {
     
 
 };
-
-function isSubstringOfElement(s, arr) {
-    for(let i = 0; i < arr.length; i++) {
-        if(arr[i].indexOf(s) >= 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function getParamValue(search, params, defaultParam) {
-    let index = isSubstringOfElement(search, params);
-    if(index >= 0) {
-        return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        return defaultParam;
-    }
-}
 
 exports.conf = {
     enabled: true,

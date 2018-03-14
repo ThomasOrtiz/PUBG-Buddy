@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
 
@@ -10,10 +11,10 @@ async function run(bot, msg, params) {
         amount = +params[0];
     }
     let serverDefaults = await sql.getServerDefaults(msg.guild.id);
-    let season = getParamValue('season=', params, serverDefaults.default_season);
-    let region = getParamValue('region=', params, serverDefaults.default_region);
-    let mode = getParamValue('mode=', params, serverDefaults.default_mode);
-    let squadSize = +getParamValue('squadSize=', params, serverDefaults.default_squadsize);
+    let season = cs.getParamValue('season=', params, serverDefaults.default_season);
+    let region = cs.getParamValue('region=', params, serverDefaults.default_region);
+    let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
+    let squadSize = +cs.getParamValue('squadSize=', params, serverDefaults.default_squadsize);
     let squadSizeString = '';
 
     switch(squadSize) {
@@ -62,24 +63,6 @@ async function run(bot, msg, params) {
         .addField('Rank', ranks, true)
         .addField('Top %', topPercents, true);
     msg.channel.send({ embed });
-}
-
-function isSubstringOfElement(s, arr) {
-    for(let i = 0; i < arr.length; i++) {
-        if(arr[i].indexOf(s) >= 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function getParamValue(search, params, defaultParam) {
-    let index = isSubstringOfElement(search, params);
-    if(index >= 0) {
-        return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        return defaultParam;
-    }
 }
 
 exports.conf = {

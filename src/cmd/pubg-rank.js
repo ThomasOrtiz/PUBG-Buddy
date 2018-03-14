@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
 
@@ -11,9 +12,9 @@ async function run(bot, msg, params) {
     }
     let username = params[0].toLowerCase();
     let serverDefaults = await sql.getServerDefaults(msg.guild.id);
-    let season = getParamValue('season=', params, serverDefaults.default_season);
-    let region = getParamValue('region=', params, serverDefaults.default_region);
-    let mode = getParamValue('mode=', params, serverDefaults.default_mode);
+    let season = cs.getParamValue('season=', params, serverDefaults.default_season);
+    let region = cs.getParamValue('region=', params, serverDefaults.default_region);
+    let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
     
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
@@ -54,25 +55,6 @@ async function run(bot, msg, params) {
             message.edit({embed});
         });
 }
-
-function isSubstringOfElement(s, arr) {
-    for(let i = 0; i < arr.length; i++) {
-        if(arr[i].indexOf(s) >= 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function getParamValue(search, params, defaultParam) {
-    let index = isSubstringOfElement(search, params);
-    if(index >= 0) {
-        return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
-    } else {
-        return defaultParam;
-    }
-}
-
 
 exports.conf = {
     enabled: true,
