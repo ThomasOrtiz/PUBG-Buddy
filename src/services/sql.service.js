@@ -1,6 +1,6 @@
 const logger = require('winston');
+const cs = require('./common.service');
 const { Pool } = require('pg');
-require('dotenv').config();
 
 module.exports = {
     setupTables,
@@ -22,14 +22,7 @@ module.exports = {
     getRegisteredPlayersForServer
 };
 
-let connectionString;
-if(process.env.DATABASE_URL) {
-    connectionString = process.env.DATABASE_URL;
-} else {
-    logger.error('"DATABASE_URL" does not exist - check your .env file.');
-    process.exit(-1);
-}
-
+let connectionString = cs.getEnviornmentVariable('DATABASE_URL');
 const pool = new Pool({
     connectionString: connectionString,
     ssl: true,

@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
-const scrape = require('../pubg.service');
-const sql = require('../sql.service');
+const scrape = require('../services/pubg.service');
+const sql = require('../services/sql.service');
 
 exports.run = run;
 

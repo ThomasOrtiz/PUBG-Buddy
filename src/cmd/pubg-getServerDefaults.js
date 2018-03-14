@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
-const sql = require('../sql.service');
-require('dotenv').config();
+const sql = require('../services/sql.service');
 
 exports.run = run;
 async function run(bot, msg) {

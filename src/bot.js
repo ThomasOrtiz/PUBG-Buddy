@@ -1,8 +1,8 @@
 const Discord = require('discord.js');
 const logger = require('winston');
 const fs = require('fs');
-const sqlService = require('./sql.service');
-require('dotenv').config();
+const cs = require('./services/common.service');
+const sqlService = require('./services/sql.service');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -11,8 +11,8 @@ logger.level = 'debug';
 
 // Initialize Bot
 const bot = new Discord.Client();
-const botToken = getEnviornmentVariable('bot_token');
-const prefix = getEnviornmentVariable('prefix');
+const botToken = cs.getEnviornmentVariable('bot_token');
+const prefix = cs.getEnviornmentVariable('prefix');
 bot.login(botToken);
 
 // Get commands from the cmd folder
@@ -107,14 +107,6 @@ bot.elevation = function (msg) {
 };
 
 // ----------------------- Helper Methods -----------------------
-function getEnviornmentVariable(varName) {
-    if(process.env[varName]) {
-        return process.env[varName];
-    } else {
-        logger.error('"' + varName  + '" does not exist - check your .env file.');
-        process.exit(-1);
-    }
-}
 
 /**
  * Given a command name, return the bot's command object

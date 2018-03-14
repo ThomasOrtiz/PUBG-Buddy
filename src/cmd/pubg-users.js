@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const sql = require('../sql.service');
+const sql = require('../services/sql.service');
 
 exports.run = run;
 

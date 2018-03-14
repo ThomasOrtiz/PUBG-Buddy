@@ -5,9 +5,9 @@ const curl = require('curlrequest');
 const sql = require('./sql.service');
 
 module.exports = {
-    aggregateData: aggregateData,
-    getPUBGCharacterData: getPUBGCharacterData,
-    getCharacterID: getCharacterID
+    aggregateData,
+    getPUBGCharacterData,
+    getCharacterID
 };
 
 // Webscraping URL --> pubgBaseRL + <nickname> + pubgNAServer

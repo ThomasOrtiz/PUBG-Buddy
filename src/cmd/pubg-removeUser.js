@@ -1,5 +1,5 @@
-const sql = require('../sql.service');
-const scrape = require('../pubg.service');
+const sql = require('../services/sql.service');
+const scrape = require('../services/pubg.service');
 
 exports.run = run;
 

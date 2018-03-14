@@ -1,9 +1,9 @@
 const Discord = require('discord.js');
-const sql = require('../sql.service');
-require('dotenv').config();
+const cs = require('../services/common.service');
+const sql = require('../services/sql.service');
 
 exports.run = async (bot, msg, params) => {
-    let prefix = getParamValue('prefix=', params, process.env.prefix);
+    let prefix = getParamValue('prefix=', params, cs.getEnviornmentVariable('prefix'));
     let season = getParamValue('season=', params, await sql.getLatestSeason());
     let region = getParamValue('region=', params, 'na');
     let mode = getParamValue('mode=', params, 'fpp');
