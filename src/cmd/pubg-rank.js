@@ -10,9 +10,10 @@ async function run(bot, msg, params) {
         return;
     }
     let username = params[0].toLowerCase();
-    let season = getParamValue('season=', params, await sql.getLatestSeason());
-    let region = getParamValue('region=', params, 'na');
-    let mode = getParamValue('mode=', params, 'fpp');
+    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+    let season = getParamValue('season=', params, serverDefaults.default_season);
+    let region = getParamValue('region=', params, serverDefaults.default_region);
+    let mode = getParamValue('mode=', params, serverDefaults.default_mode);
     
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
@@ -49,7 +50,7 @@ async function run(bot, msg, params) {
                 .addField('Rank', squadData.ranking, true)
                 .addField('Top %', squadData.topPercent, true)
                 .addField('Longest Kill', squadData.longest_kill, true)
-                .addField('Average Damage', squadData.average_damage_dealt, true)
+                .addField('Average Damage', squadData.average_damage_dealt, true);
             message.edit({embed});
         });
 }

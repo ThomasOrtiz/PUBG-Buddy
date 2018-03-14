@@ -99,11 +99,10 @@ bot.elevation = function (msg) {
     /* This function should resolve to an ELEVATION level which
        is then sent to the command handler for verification*/
     let permlvl = 0;
-    let mod_role = msg.guild.roles.find('name', 'Mods');
-    if (mod_role && msg.member.roles.has(mod_role.id)) permlvl = 2;
-    let admin_role = msg.guild.roles.find('name', 'Devs');
-    if (admin_role && msg.member.roles.has(admin_role.id)) permlvl = 3;
-    if (msg.author.id === process.env.ownerid) permlvl = 4;
+    
+    let hasAdminPermissions = msg.member.hasPermission('ADMINISTRATOR');
+    if(hasAdminPermissions) permlvl = 4;
+
     return permlvl;
 };
 
@@ -147,6 +146,7 @@ function checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms) {
         return false;
     } 
     // Check permissions
+    //logger.info('user_perms = ' + perms + '; cmd_permission = ' + cmd.conf.permLevel);
     if (perms < cmd.conf.permLevel) { 
         msg.channel.send('Invalid permissions');
         return false;

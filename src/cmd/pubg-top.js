@@ -9,11 +9,11 @@ async function run(bot, msg, params) {
     if(params[0] && !isNaN(params[0])) {
         amount = +params[0];
     }
-
-    let season = getParamValue('season=', params, await sql.getLatestSeason());
-    let region = getParamValue('region=', params, 'na');
-    let mode = getParamValue('mode=', params, 'fpp');
-    let squadSize = +getParamValue('squadSize=', params, 4);
+    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+    let season = getParamValue('season=', params, serverDefaults.default_season);
+    let region = getParamValue('region=', params, serverDefaults.default_region);
+    let mode = getParamValue('mode=', params, serverDefaults.default_mode);
+    let squadSize = +getParamValue('squadSize=', params, serverDefaults.default_squadsize);
     let squadSizeString = '';
 
     switch(squadSize) {
@@ -92,5 +92,5 @@ exports.conf = {
 exports.help = {
     name: 'pubg-top',
     description: 'Gets the top "x" players registered in the server',
-    usage: 'pubg-top [Number-Of-Users] <season=[2018-01, 2018-02,2018-03]> <region=[na, as, kr/jp, kakao, sa, eu, oc, sea]> <squadSize=#> <mode=[fpp || tpp]>'
+    usage: 'pubg-top [Number-Of-Users] <season=[2018-01, 2018-02, 2018-03]> <region=[na, as, kr/jp, kakao, sa, eu, oc, sea]> <squadSize=#> <mode=[fpp || tpp]>'
 };

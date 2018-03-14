@@ -10,6 +10,8 @@ module.exports = {
     // Servers
     registerServer,
     unRegisterServer,
+    getServerDefaults,
+    setServerDefaults,
     // Players
     getPlayer,
     getAllPlayers,
@@ -47,12 +49,19 @@ async function setupTables() {
     // await pool.query('delete from server_registery where 1=1');
     // await pool.query('delete from seasons where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT)');
-    await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)', () => {
-        addSeason('2018-01');
-        addSeason('2018-02');
-        addSeason('2018-03');
-    });
-    await pool.query('CREATE TABLE IF NOT EXISTS servers (id SERIAL PRIMARY KEY, server_id TEXT)');
+    await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)');
+    await addSeason('2018-01');
+    await addSeason('2018-02');
+    await addSeason('2018-03');
+
+    let defaultPrefix = '!';
+    let defaultSeason = await getLatestSeason();
+    let defaultRegion = 'na';
+    let defaultMode = 'fpp';
+    let defaultSquadSize = 4;
+    await pool.query('CREATE TABLE IF NOT EXISTS servers ' +
+                        '(id SERIAL PRIMARY KEY, server_id TEXT, default_bot_prefix TEXT DEFAULT \'' + defaultPrefix + '\', default_season TEXT DEFAULT \'' + defaultSeason + '\', ' + 
+                        'default_region TEXT DEFAULT \'' + defaultRegion + '\', default_mode TEXT DEFAULT \'' + defaultMode + '\', default_squadSize TEXT DEFAULT \'' + defaultSquadSize + '\')');
     await pool.query('CREATE TABLE IF NOT EXISTS server_registery (id SERIAL PRIMARY KEY, fk_players_id integer REFERENCES players (id) ON DELETE CASCADE, fk_servers_id integer REFERENCES servers (id) ON DELETE CASCADE)');
 }
 
@@ -62,10 +71,10 @@ async function setupTables() {
  * @param season: season in form of year-month --> 2018-01
  */
 async function addSeason(season) {
-    pool.query('select * from seasons where season = $1', [season])
+    return pool.query('select * from seasons where season = $1', [season])
         .then(async (res) => {
             if(res.rowCount === 0){
-                await pool.query('insert into seasons (season) values ($1)', [season]);
+                return pool.query('insert into seasons (season) values ($1)', [season]);
             }
         });
 }
@@ -116,6 +125,24 @@ async function unRegisterServer(serverId) {
     return pool.query('delete from servers where server_id=$1', [serverId])
         .then(async () => {
             return true;
+        });
+}
+
+async function getServerDefaults(serverId) {
+    return pool.query('select * from servers where server_id = $1', [serverId])
+        .then((res) => {
+            return res.rows[0];
+        });
+}
+
+async function setServerDefaults(serverId, botPrefix, season, region, mode, squadSize) {
+    return pool.query('select server_id from servers where server_id = $1', [serverId])
+        .then((res) => {
+            if(res.rowCount === 0) {
+                return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode, default_squadsize) values ($1, $2, $3, $4, $5, $6)', [serverId, botPrefix, season, region, mode, squadSize]);
+            } else {
+                return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5, default_squadsize=$6 where server_id = $1', [serverId, botPrefix, season, region, mode, squadSize]);
+            }
         });
 }
 
