@@ -6,6 +6,12 @@ module.exports = {
     getParamValue
 };
 
+/**
+ * Returns index of position of a string if it exists as a
+ * substring in any of the elements in the array.
+ * @param {string} s string to search for
+ * @param {string[]} arr array of string
+ */
 function isSubstringOfElement(s, arr) {
     for(let i = 0; i < arr.length; i++) {
         if(arr[i].indexOf(s) >= 0) {
@@ -15,6 +21,12 @@ function isSubstringOfElement(s, arr) {
     return -1;
 }
 
+/**
+ * Returns the value of the key=value pair. 
+ * @param {string} search parameter to search for
+ * @param {array} params array of parameters to search through
+ * @param {string} defaultParam default return value if search does not exist
+ */
 function getParamValue(search, params, defaultParam) {
     let index = isSubstringOfElement(search, params);
     if(index >= 0) {

@@ -121,6 +121,10 @@ async function unRegisterServer(serverId) {
         });
 }
 
+/**
+ * Get the sever's default settings
+ * @param {string} serverId 
+ */
 async function getServerDefaults(serverId) {
     return pool.query('select * from servers where server_id = $1', [serverId])
         .then((res) => {
@@ -128,6 +132,15 @@ async function getServerDefaults(serverId) {
         });
 }
 
+/**
+ * Sets the server's default settings
+ * @param {string} serverId of server
+ * @param {string} botPrefix for all bot commands
+ * @param {string} season of PUBG
+ * @param {string} region of PUBG
+ * @param {string} mode fpp or tpp
+ * @param {string} squadSize 1, 2, 4
+ */
 async function setServerDefaults(serverId, botPrefix, season, region, mode, squadSize) {
     return pool.query('select server_id from servers where server_id = $1', [serverId])
         .then((res) => {
