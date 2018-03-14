@@ -1,9 +1,7 @@
 const sql = require('../services/sql.service');
 const scrape = require('../services/pubg.service');
 
-exports.run = run;
-
-async function run(bot, msg, params) {
+exports.run = async (bot, msg, params) => {
     let username = params[0].toLowerCase();
     msg.channel.send('Removing ' + username + ' from server registry')
         .then(async (message) => {

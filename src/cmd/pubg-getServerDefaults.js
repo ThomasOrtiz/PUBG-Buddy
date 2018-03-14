@@ -1,8 +1,7 @@
 const Discord = require('discord.js');
 const sql = require('../services/sql.service');
 
-exports.run = run;
-async function run(bot, msg) {
+exports.run = async (bot, msg) => {
     msg.channel.send('Getting server defaults ...')
         .then(async (message) => {
             let server = await sql.getServerDefaults(msg.guild.id);

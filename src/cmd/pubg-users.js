@@ -1,9 +1,7 @@
 const Discord = require('discord.js');
 const sql = require('../services/sql.service');
 
-exports.run = run;
-
-async function run(bot, msg) {
+exports.run = async (bot, msg) => {
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
 
     let players = '';

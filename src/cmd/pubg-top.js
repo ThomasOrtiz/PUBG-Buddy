@@ -3,9 +3,7 @@ const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
 
-exports.run = run;
-
-async function run(bot, msg, params) {
+exports.run = async (bot, msg, params) => {
     let amount = 10;
     if(params[0] && !isNaN(params[0])) {
         amount = +params[0];
