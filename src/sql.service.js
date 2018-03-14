@@ -49,11 +49,10 @@ async function setupTables() {
     // await pool.query('delete from server_registery where 1=1');
     // await pool.query('delete from seasons where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT)');
-    await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)', async () => {
-        await addSeason('2018-01');
-        await addSeason('2018-02');
-        await addSeason('2018-03');
-    });
+    await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)');
+    await addSeason('2018-01');
+    await addSeason('2018-02');
+    await addSeason('2018-03');
 
     let defaultPrefix = '!';
     let defaultSeason = await getLatestSeason();
