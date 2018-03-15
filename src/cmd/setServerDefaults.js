@@ -16,7 +16,7 @@ exports.run = async (bot, msg, params) => {
     let squadSize = +cs.getParamValue('squadSize=', params, false);
 
     if(!prefix || !season || !region || !mode || !squadSize) {
-        msg.channel.send('Error: Must specify a username: ' + help.usage);   
+        msg.channel.send('Error: Must specify all parameters - Usage: ' + help.usage);   
         return;
     }
 

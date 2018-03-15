@@ -11,7 +11,7 @@ let help = exports.help = {
 async function run(bot, msg, params) {
     let username = params[0].toLowerCase();
     if(username === ''){
-        msg.channel.send('Error: Must specify a username: ' + help.usage);   
+        msg.channel.send('Error: Must specify a username - Usage: ' + help.usage);   
         return;
     }
 
