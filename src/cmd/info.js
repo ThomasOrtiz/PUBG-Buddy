@@ -12,5 +12,5 @@ exports.conf = {
 exports.help = {
     name: 'info',
     description: 'Returns details about the bot',
-    usage: '[prefix]info'
+    usage: '<prefix>info'
 };

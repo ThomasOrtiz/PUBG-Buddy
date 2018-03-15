@@ -11,7 +11,7 @@ exports.run = async (bot, msg) => {
     }
     
     if(players === '') {
-        players = 'No users registered yes. Use `[prefix]addUser <username>`';
+        players = 'No users registered yes. Use `<prefix>addUser <username>`';
     }
     
 
@@ -34,5 +34,5 @@ exports.conf = {
 exports.help = {
     name: 'users',
     description: 'List all users on this server\'s registery.',
-    usage: '[prefix]users'
+    usage: '<prefix>users'
 };

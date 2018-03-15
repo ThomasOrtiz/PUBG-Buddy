@@ -64,6 +64,6 @@ exports.conf = {
 let help = {
     name: 'rank',
     description: 'Returns a players solo, duo, and squad ranking details.',
-    usage: '[prefix]rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]'
+    usage: '<prefix>rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]'
 };
 exports.help = help;

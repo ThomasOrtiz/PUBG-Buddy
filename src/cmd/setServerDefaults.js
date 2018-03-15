@@ -2,12 +2,23 @@ const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const sql = require('../services/sql.service');
 
+let help = exports.help = {
+    name: 'setServerDefaults',
+    description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
+    usage: '<prefix>setServerDefaults <season=(2018-01 | 2018-02 | 2018-03)> <region=(na | as | kr/jp | kakao | sa | eu | oc | sea)> <squadSize=(1 | 2 | 4)> <mode=(fpp | tpp)>'
+};
+
 exports.run = async (bot, msg, params) => {
-    let prefix = cs.getParamValue('prefix=', params, cs.getEnviornmentVariable('prefix'));
-    let season = cs.getParamValue('season=', params, await sql.getLatestSeason());
-    let region = cs.getParamValue('region=', params, 'na');
-    let mode = cs.getParamValue('mode=', params, 'fpp');
-    let squadSize = +cs.getParamValue('squadSize=', params, 4);
+    let prefix = cs.getParamValue('prefix=', params, false);
+    let season = cs.getParamValue('season=', params, false);
+    let region = cs.getParamValue('region=', params, false);
+    let mode = cs.getParamValue('mode=', params, false);
+    let squadSize = +cs.getParamValue('squadSize=', params, false);
+
+    if(!prefix || !season || !region || !mode || !squadSize) {
+        msg.channel.send('Error: Must specify a username: ' + help.usage);   
+        return;
+    }
 
     msg.channel.send('Updating this server\'s pubg defaults: prefix=' + prefix + ' season=' + season + ' region=' + region + ' mode=' + mode + ' squadSize=' + squadSize)
         .then(async (msg) => {
@@ -36,10 +47,4 @@ exports.conf = {
     guildOnly: true,
     aliases: [],
     permLevel: 4
-};
-
-exports.help = {
-    name: 'setServerDefaults',
-    description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
-    usage: '[prefix]setServerDefaults [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]'
 };
