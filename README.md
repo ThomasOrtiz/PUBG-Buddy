@@ -2,6 +2,10 @@
 
 This bot uses [https://pubg.op.gg/](https://pubg.op.gg/) as a means to get a PUBG player's stats.
 
+# Bot Usage
+1. Add bot to your server by going to this [url](https://discordapp.com/oauth2/authorize?client_id=417828293019041804&scope=bot&permissions=0)
+2. You can now interact with the bot on your server/direct messages by using the default prefix `!pubg-`.
+3. I recommend running `!pubg-help` to get a good idea of the commands and then once your ready to set up server defaults (prefix, season, region, mode, squad size) you should run `!pubg-setServerDefaults`.
 
 # Developing and Contributing
 In order to develop we need a test environment. 

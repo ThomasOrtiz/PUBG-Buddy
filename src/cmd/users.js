@@ -22,7 +22,7 @@ exports.run = async (bot, msg) => {
         .addBlankField(true);
 
     msg.channel.send({ embed });
-}
+};
 
 exports.conf = {
     enabled: true,
