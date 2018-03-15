@@ -5,7 +5,10 @@ exports.run = run;
 let help = exports.help = {
     name: 'addUser',
     description: 'Adds a user to the server\'s registery.',
-    usage: '<prefix>addUser <pubg username>'
+    usage: '<prefix>addUser <pubg username>',
+    examples: [
+        '!pubg-addUser john'
+    ]
 };
 
 async function run(bot, msg, params) {

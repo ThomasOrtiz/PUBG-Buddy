@@ -27,5 +27,8 @@ exports.conf = {
 exports.help = {
     name: 'removeUser',
     description: 'Removes a user from the server\'s registery.',
-    usage: '<prefix>removeUser <username>'
+    usage: '<prefix>removeUser <username>',
+    examples: [
+        '!pubg-removeUser john',
+    ]
 };

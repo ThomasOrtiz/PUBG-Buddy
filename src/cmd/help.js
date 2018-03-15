@@ -8,13 +8,12 @@ exports.run = async (bot, msg, params) => {
         let server_defaults = await sqlService.getServerDefaults(msg.guild.id);
         prefix = server_defaults.default_bot_prefix;
     }
-
-    let prefix_explanation =    '= Prefix Explanation = \n\n' +
+    
+    if (!params[0]) {
+        let prefix_explanation =    '= Prefix Explanation = \n\n' +
                                 'This bot\'s prefix is configurable if on a server through the `setServerDefaults` command.\n\n' +
                                 'Default Bot Prefix:   \t"' + default_bot_prefix + '"\n' +
                                 'Current Server Prefix:\t "' + prefix + '"';
-    
-    if (!params[0]) {
         let commandList = bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n');
         let parameterExplanation =  '= Parameter Explanation =\n\n' + 
                                     'required:: <parameter> \n' +
@@ -36,7 +35,10 @@ exports.run = async (bot, msg, params) => {
         let command = params[0];
         if (bot.commands.has(command)) {
             command = bot.commands.get(command);
-            msg.channel.send(`${prefix_explanation}\n\n= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}`, { code: 'asciidoc'});
+            let exampleList = command.help.examples.map(e=>`${e}`).join('\n');
+            let examples = `\n\n= Examples =\n\n${exampleList}`;
+
+            msg.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}${examples}`, { code: 'asciidoc'});
         }
     }
 };
@@ -51,5 +53,12 @@ exports.conf = {
 exports.help = {
     name: 'help',
     description: 'Returns page details.',
-    usage: '<prefix>help or <prefix>help [command]'
+    usage: '<prefix>help [command]',
+    examples: [
+        '<prefix>',
+        '!pubg-',
+        '!pubg-help',
+        '!pubg-help rank',
+        '!pubg-help top'
+    ]
 };

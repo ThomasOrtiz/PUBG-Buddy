@@ -73,5 +73,18 @@ exports.conf = {
 exports.help = {
     name: 'top',
     description: 'Gets the top "x" players registered in the server',
-    usage: '<prefix>top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]'
+    usage: '<prefix>top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]',
+    examples: [
+        '!pubg-top',
+        '!pubg-top season=2018-03',
+        '!pubg-top season=2018-03 region=na',
+        '!pubg-top season=2018-03 region=na squadSize=4',
+        '!pubg-top season=2018-03 region=na squadSize=4 mode=tpp',
+        '!pubg-top 5',
+        '!pubg-top 5 season=2018-03',
+        '!pubg-top 5 season=2018-03 region=na', 
+        '!pubg-top 5 season=2018-03 region=na squadSize=4', 
+        '!pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp',
+        
+    ]
 };

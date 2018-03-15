@@ -24,5 +24,9 @@ exports.conf = {
 exports.help = {
     name: 'shrug',
     description: 'Get your shrug on',
-    usage: '<prefix>shrug <amount of shrugs <= 15>'
+    usage: '<prefix>shrug <amount of shrugs <= 15>',
+    examples: [
+        '!pubg-shrug',
+        '!pubg-shrug 5'
+    ]
 };

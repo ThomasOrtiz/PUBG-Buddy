@@ -34,5 +34,8 @@ exports.conf = {
 exports.help = {
     name: 'users',
     description: 'List all users on this server\'s registery.',
-    usage: '<prefix>users'
+    usage: '<prefix>users',
+    examples: [
+        '!pubg-users'
+    ]
 };

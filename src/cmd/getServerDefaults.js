@@ -31,5 +31,8 @@ exports.conf = {
 exports.help = {
     name: 'getServerDefaults',
     description: 'Get the server defaults for pubg commands.',
-    usage: '<prefix>getServerDefaults'
+    usage: '<prefix>getServerDefaults',
+    examples: [
+        '!pubg-getServerDefaults'
+    ]
 };
