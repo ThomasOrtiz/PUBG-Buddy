@@ -47,7 +47,10 @@ async function setupTables() {
     await addSeason('2018-02');
     await addSeason('2018-03');
 
-    let defaultPrefix = '!';
+    // This is the default prefix for the bot. If this is changed the database will need to be manually updated with the following command:
+    // ALTER TABLE ONLY servers ALTER COLUMN default_bot_prefix SET DEFAULT '[new value]';
+    // UPDATE servers SET default_bot_prefix = '[new value]';
+    const defaultPrefix = cs.getEnviornmentVariable('prefix'); 
     let defaultSeason = await getLatestSeason();
     let defaultRegion = 'na';
     let defaultMode = 'fpp';
@@ -98,7 +101,7 @@ async function getLatestSeason() {
 
 // -------------------- servers -------------------- 
 /**
- * Adds a server to the servers table
+ * Adds a server to the servers table if it doesn't exist already
  * @param {string} serverId 
  */
 async function registerServer(serverId) {
@@ -128,6 +131,9 @@ async function unRegisterServer(serverId) {
 async function getServerDefaults(serverId) {
     return pool.query('select * from servers where server_id = $1', [serverId])
         .then((res) => {
+            if(res.rowCount === 0) {
+                return null;
+            }
             return res.rows[0];
         });
 }

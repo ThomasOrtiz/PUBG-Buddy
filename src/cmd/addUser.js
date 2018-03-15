@@ -22,7 +22,6 @@ async function run(bot, msg, params) {
                 message.edit('Invalid username: ' + username);
             }
         });
-    
 }
 
 exports.conf = {
@@ -33,7 +32,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-addUser',
+    name: 'addUser',
     description: 'Adds a user to the server\'s registery.',
-    usage: 'pubg-addUser [pubg username]'
+    usage: '[prefix]addUser [pubg username]'
 };

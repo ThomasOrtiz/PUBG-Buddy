@@ -22,7 +22,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-shrug',
+    name: 'shrug',
     description: 'Get your shrug on',
-    usage: 'pubg-shrug <amount of shrugs <= 15>'
+    usage: '[prefix]shrug <amount of shrugs <= 15>'
 };

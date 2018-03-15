@@ -61,7 +61,7 @@ exports.run = async (bot, msg, params) => {
         .addField('Rank', ranks, true)
         .addField('Top %', topPercents, true);
     msg.channel.send({ embed });
-}
+};
 
 exports.conf = {
     enabled: true,
@@ -71,7 +71,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-top',
+    name: 'top',
     description: 'Gets the top "x" players registered in the server',
-    usage: 'pubg-top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]'
+    usage: '[prefix]top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]'
 };

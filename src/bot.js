@@ -12,7 +12,7 @@ logger.level = 'debug';
 // Initialize Bot
 const bot = new Discord.Client();
 const botToken = cs.getEnviornmentVariable('bot_token');
-const prefix = cs.getEnviornmentVariable('prefix');
+let prefix = cs.getEnviornmentVariable('prefix');
 bot.login(botToken);
 
 // Get commands from the cmd folder
@@ -38,33 +38,40 @@ sqlService.setupTables();
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
-    logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+    sqlService.registerServer(guild.id).then(() => {
+        logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+    });
 });  
 bot.on('guildDelete', guild => {
-    sqlService.unRegisterServer(guild.id)
-        .then(() => {
-            logger.info(`Removed ${guild.name} from database.`);
-        });
+    sqlService.unRegisterServer(guild.id).then(() => {
+        logger.info(`Removed ${guild.name} from database.`);
+    });
 });
 bot.on('ready', () => {
     logger.info(`Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`);
     logger.info('Connected');
 });
-bot.on('message', msg => {
-    // Ignore other bots / requests without our prefix
-    if (msg.author.bot || !msg.content.startsWith(prefix)) return;
+bot.on('message', async msg => {
+    // Ignore other bots 
+    if (msg.author.bot) return;
 
-    let command = msg.content.split(' ')[0].slice(prefix.length);
-    let params = msg.content.split(' ').slice(1);
-    let perms;
     let isGuildMessage = false;
-    
+    let perms;
+    let command;
+    let params;
+
     // Grab relevant guild info if not DM
     if(msg.guild) {
         isGuildMessage = true;
-        sqlService.registerServer(msg.guild.id);
+        let server_defaults = await sqlService.getServerDefaults(msg.guild.id);
+        prefix = server_defaults.default_bot_prefix;
         perms = bot.elevation(msg);
     }
+
+    // Ignore requests without our prefix
+    if (!msg.content.startsWith(prefix)) return;
+    command = msg.content.split(' ')[0].slice(prefix.length);
+    params = msg.content.split(' ').slice(1);
     
     // Get command
     let cmd = getCommand(command);

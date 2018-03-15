@@ -10,7 +10,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-info',
+    name: 'info',
     description: 'Returns details about the bot',
-    usage: 'pubg-info'
+    usage: '[prefix]info'
 };

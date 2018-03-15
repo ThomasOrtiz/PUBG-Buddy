@@ -15,7 +15,7 @@ exports.run = async (bot, msg, params) => {
             }
             
         });
-}
+};
 
 exports.conf = {
     enabled: true,
@@ -25,7 +25,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-removeUser',
+    name: 'removeUser',
     description: 'Removes a user from the server\'s registery.',
-    usage: 'pubg-removeUser [username]'
+    usage: '[prefix]removeUser [username]'
 };

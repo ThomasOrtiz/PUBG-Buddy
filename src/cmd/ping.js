@@ -13,7 +13,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-ping',
+    name: 'ping',
     description: 'Ping/Pong command. I wonder what this does? /sarcasm',
-    usage: 'pubg-ping'
+    usage: '[prefix]ping'
 };

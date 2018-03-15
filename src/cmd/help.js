@@ -1,4 +1,19 @@
-exports.run = (bot, msg, params) => {
+const cs = require('../services/common.service');
+const sqlService = require('../services/sql.service');
+
+exports.run = async (bot, msg, params) => {
+    let default_bot_prefix = cs.getEnviornmentVariable('prefix');
+    let prefix = default_bot_prefix;
+    if(msg.guild) {
+        let server_defaults = await sqlService.getServerDefaults(msg.guild.id);
+        prefix = server_defaults.default_bot_prefix;
+    }
+
+    let prefix_explanation =    '= Prefix Explanation = \n\n' +
+                                'This bot\'s prefix is configurable if on a server through the `setServerDefaults` command.\n\n' +
+                                'Default Bot Prefix:   \t"' + default_bot_prefix + '"\n' +
+                                'Current Server Prefix:\t "' + prefix + '"';
+    
     if (!params[0]) {
         let commandList = bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n');
         let parameterExplanation =  '= Parameter Explanation =\n\n' + 
@@ -15,12 +30,12 @@ exports.run = (bot, msg, params) => {
                                 '\tpubg-rank janedoe season=2018-03 mode=tpp\n' + 
                                 '\tpubg-rank johndoe region=eu mode=fpp\n' +
                                 '\t...';
-        msg.channel.send(`= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${commandList}\n\n${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
+        msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${commandList}\n\n${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
     } else {
         let command = params[0];
         if (bot.commands.has(command)) {
             command = bot.commands.get(command);
-            msg.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}`, { code: 'asciidoc'});
+            msg.channel.send(`${prefix_explanation}\n\n= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}`, { code: 'asciidoc'});
         }
     }
 };
@@ -28,12 +43,12 @@ exports.run = (bot, msg, params) => {
 exports.conf = {
     enabled: true,
     guildOnly: false,
-    aliases: ['pubg'],
+    aliases: [''],
     permLevel: 0
 };
 
 exports.help = {
-    name: 'pubg-help',
+    name: 'help',
     description: 'Returns page details.',
-    usage: 'pubg-help [command]'
+    usage: '[prefix]help [command]'
 };

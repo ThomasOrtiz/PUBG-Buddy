@@ -52,7 +52,7 @@ exports.run = async (bot, msg, params) => {
                 .addField('Average Damage', squadData.average_damage_dealt, true);
             message.edit({embed});
         });
-}
+};
 
 exports.conf = {
     enabled: true,
@@ -62,8 +62,8 @@ exports.conf = {
 };
 
 let help = {
-    name: 'pubg-rank',
+    name: 'rank',
     description: 'Returns a players solo, duo, and squad ranking details.',
-    usage: 'pubg-rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]'
+    usage: '[prefix]rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]'
 };
 exports.help = help;

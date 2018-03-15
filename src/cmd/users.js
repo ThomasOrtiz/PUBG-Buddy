@@ -11,7 +11,7 @@ exports.run = async (bot, msg) => {
     }
     
     if(players === '') {
-        players = 'No users registered yes. Use `pubg-addUser <username>`';
+        players = 'No users registered yes. Use `[prefix]addUser <username>`';
     }
     
 
@@ -32,7 +32,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-users',
+    name: 'users',
     description: 'List all users on this server\'s registery.',
-    usage: 'pubg-users'
+    usage: '[prefix]users'
 };

@@ -9,9 +9,9 @@ exports.run = async (bot, msg) => {
                 .setTitle('Server Defaults')
                 .setDescription('The defaults that a server has when running PUBG Bot commands.')
                 .setColor(0x00AE86)
-                //.addField('Default Prefix', server.default_bot_prefix, true)
-                //.addBlankField(true)
-                //.addBlankField(true)
+                .addField('Bot Prefix', server.default_bot_prefix, true)
+                .addBlankField(true)
+                .addBlankField(true)
                 .addBlankField(false)
                 .addField('Default Season', server.default_season, true)
                 .addField('Default Region', server.default_region, true)
@@ -19,7 +19,7 @@ exports.run = async (bot, msg) => {
                 .addField('Default Squad Size', server.default_squadsize, true);
             message.edit({embed});
         });
-}
+};
 
 exports.conf = {
     enabled: true,
@@ -29,7 +29,7 @@ exports.conf = {
 };
 
 exports.help = {
-    name: 'pubg-getServerDefaults',
+    name: 'getServerDefaults',
     description: 'Get the server defaults for pubg commands.',
-    usage: 'pubg-getServerDefaults'
+    usage: '[prefix]getServerDefaults'
 };
