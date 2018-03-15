@@ -1,17 +1,7 @@
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
 
-exports.run = run;
-let help = exports.help = {
-    name: 'addUser',
-    description: 'Adds a user to the server\'s registery.',
-    usage: '<prefix>addUser <pubg username>',
-    examples: [
-        '!pubg-addUser john'
-    ]
-};
-
-async function run(bot, msg, params) {
+exports.run = async (bot, msg, params) => {
     let username = params[0].toLowerCase();
     if(username === ''){
         msg.channel.send('Error: Must specify a username - Usage: ' + help.usage);   
@@ -34,11 +24,20 @@ async function run(bot, msg, params) {
                 message.edit('Invalid username: ' + username);
             }
         });
-}
+};
 
 exports.conf = {
     enabled: true,
     guildOnly: true,
     aliases: [],
     permLevel: 0
+};
+
+let help = exports.help = {
+    name: 'addUser',
+    description: 'Adds a user to the server\'s registery.',
+    usage: '<prefix>addUser <pubg username>',
+    examples: [
+        '!pubg-addUser john'
+    ]
 };
