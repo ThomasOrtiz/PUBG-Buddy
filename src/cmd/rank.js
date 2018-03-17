@@ -9,10 +9,18 @@ exports.run = async (bot, msg, params) => {
         return;
     }
     let username = params[0].toLowerCase();
-    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
-    let season = cs.getParamValue('season=', params, serverDefaults.default_season);
-    let region = cs.getParamValue('region=', params, serverDefaults.default_region);
-    let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
+    let serverDefaults, season, region, mode;
+    if(msg.guild) {
+        serverDefaults = await sql.getServerDefaults(msg.guild.id);
+        season = cs.getParamValue('season=', params, serverDefaults.default_season);
+        region = cs.getParamValue('region=', params, serverDefaults.default_region);
+        mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
+    } else {
+        season = cs.getParamValue('season=', params, await sql.getLatestSeason());
+        region = cs.getParamValue('region=', params, 'na');
+        mode = cs.getParamValue('mode=', params, 'fpp');
+    }
+    
     
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
