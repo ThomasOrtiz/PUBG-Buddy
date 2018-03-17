@@ -26,16 +26,16 @@ exports.run = async (bot, msg, params) => {
             squadSizeString = 'Squad';
             break;
     }
+
+    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
+    if(registeredPlayers.length === 0) {
+        msg.channel.send('No users registered yet. Use `pubg-addUser <username>`');
+        return;
+    }
     
     msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
     msg.channel.send('Grabbing individual player data')
         .then(async (msg) => {
-            let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
-            if(registeredPlayers.length === 0) {
-                msg.channel.send('No users registered yes. Use `pubg-addUser <username>`');
-                return;
-            }
-            
             let playersInfo = new Array();
             for(let i = 0; i < registeredPlayers.length; i++) {
                 let player = registeredPlayers[i];
