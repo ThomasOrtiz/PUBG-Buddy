@@ -5,7 +5,6 @@ const curl = require('curlrequest');
 const sql = require('./sql.service');
 
 module.exports = {
-    aggregateData,
     getPUBGCharacterData,
     getCharacterID
 };
@@ -16,29 +15,6 @@ const pubgNAServer = '?server=na';
 // Direct API URL --> apiURL + <id> + apiOptions
 const apiURL = 'https://pubg.op.gg/api/users/'; 
 const apiOptions = '/ranked-stats';
-
-/**
- * Aggregates data by either:
- *      (1) Api Call if we DO have the cached id
- *      (2) Webscraping if we do not have a cached id for the user
- *          and then performing API call
- * @param {string[]} names: array of pubg names
- * @param {json} nameToIdMapping: a dictionary of name:id mappings
- */
-async function aggregateData(players, season, region, squadSize, mode) {
-    let playersInfo = new Array();
-    for(let i = 0; i < players.length; i++) {
-        let player = players[i];
-        let id = await getCharacterID(player.username);
-        let characterInfo = await getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
-        playersInfo.push(characterInfo);
-    }
-
-    // Sorting Array based off of ranking (higher ranking is ranking)
-    playersInfo.sort(function(a, b){ return b.ranking - a.ranking; });
-
-    return playersInfo;
-}
 
 /**
  * Returns a pubg character id
