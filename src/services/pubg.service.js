@@ -46,8 +46,10 @@ function webScrapeForId(username) {
 
             let $ = cheerio.load(stdout);
             let id = $('#userNickname').attr('data-user_id');
+            if(id) {
+                await sql.addPlayer(username, id);
+            }
 
-            await sql.addPlayer(username, id);
             resolve(id);
         });
     });
