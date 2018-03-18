@@ -6,7 +6,7 @@ This bot uses [https://pubg.op.gg/](https://pubg.op.gg/) as a means to get a PUB
 1. Add bot to your server by going to this [url](https://discordapp.com/oauth2/authorize?client_id=417828293019041804&scope=bot&permissions=0).
 2. You can now interact with the bot on your server/direct messages by using the default prefix `!pubg-`.
 3. I recommend running `!pubg-help` to list all available commands and running `!pubg-help <command-name>` to understand what each command does.
-4. When/If you want to set up server defaults (prefix, season, region, mode, squad size) you should run `!pubg-setServerDefaults` with its requried parameters.
+4. When/If you want to set up server defaults (prefix, season, region, mode, squad size) you should run `!pubg-setServerDefaults` with its requried parameters which you can read about by running `!pubg-help setServerDefaults`.
 
 # Developing and Contributing
 In order to develop we need a test environment. I'm not sure if this is the preferred way to test a discord bot but I've found it works for me. 
