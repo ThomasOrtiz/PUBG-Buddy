@@ -69,12 +69,10 @@ exports.run = async (bot, msg, params) => {
             for (var i = 0; i < topPlayers.length; i++) {
                 let character = topPlayers[i];
                 let ratingStr = character.rating ? character.rank + ' / ' + character.rating : 'Not available';
-                let kdsStr = character.kd ? character.kd + ' / ' + character.kda : 'Not available';
-                //let topPercentStr = character.topPercent ? character.topPercent + '\n': 'Not available\n';
+                let kdsStr = character.kd || character.kd === 0 ? character.kd + ' / ' + character.kda : 'Not available';
                 names += character.nickname + '\n';
                 ratings += ratingStr + '\n';
                 kds += kdsStr + '\n';
-                //topPercents += topPercentStr;
             }
 
             embed.addField('Name', names, true)
