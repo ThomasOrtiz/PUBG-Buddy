@@ -6,6 +6,10 @@ exports.run = async (bot, msg, params) => {
     msg.channel.send('Removing ' + username + ' from server registry')
         .then(async (message) => {
             let pubgId = await scrape.getCharacterID(username);
+            if(!pubgId) {
+                message.edit('Invalid username: ' + username);
+                return;
+            }
 
             let unregistered = await sql.unRegisterUserToServer(pubgId, message.guild.id);
             if(unregistered) {

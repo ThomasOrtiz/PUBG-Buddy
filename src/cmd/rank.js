@@ -25,6 +25,10 @@ exports.run = async (bot, msg, params) => {
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
             let id = await scrape.getCharacterID(username);
+            if(!id) {
+                message.edit('Invalid username: ' + username);
+                return;
+            }
             let soloData = await scrape.getPUBGCharacterData(id, username, season, region, 1, mode);
             let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
             let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);

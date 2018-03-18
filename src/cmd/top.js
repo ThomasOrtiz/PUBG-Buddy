@@ -41,6 +41,9 @@ exports.run = async (bot, msg, params) => {
                 let player = registeredPlayers[i];
                 msg.edit('(' + (i+1)  + '/' + registeredPlayers.length + '): Getting data for ' + player.username);
                 let id = await scrape.getCharacterID(player.username);
+                if(!id) {
+                    msg.edit('Invalid username: ' + player.username);
+                }
                 let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
                 playersInfo.push(characterInfo);
             }
