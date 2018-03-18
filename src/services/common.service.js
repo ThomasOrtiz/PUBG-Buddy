@@ -3,7 +3,9 @@ require('dotenv').config();
 
 module.exports = {
     getEnviornmentVariable,
-    getParamValue
+    getParamValue,
+    getPercentFromFraction,
+    round
 };
 
 /**
@@ -48,4 +50,23 @@ function getEnviornmentVariable(varName) {
         logger.error('"' + varName  + '" does not exist - check your .env file.');
         process.exit(-1);
     }
+}
+
+/**
+ * Given a fraction it will return the equivalent % with '%' tacked on
+ * @param {*} num 
+ * @param {*} den 
+ */
+function getPercentFromFraction(num, den) {
+    if(num === 0 || den === 0) return '0%';
+    return round((num/den)*100) + '%'; 
+    //Math.round((num/den)*100 * 100) / 100 + '%';
+}
+
+/**
+ * Given a number it will round it to the nearest 100th place
+ * @param {*} num 
+ */
+function round(num) {
+    return Math.round(num * 100) / 100;
 }

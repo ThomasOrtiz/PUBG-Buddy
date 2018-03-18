@@ -3,10 +3,12 @@ const logger = require('winston');
 const cheerio = require('cheerio');
 const curl = require('curlrequest');
 const sql = require('./sql.service');
+const cs = require('./common.service');
 
 module.exports = {
     getPUBGCharacterData,
-    getCharacterID
+    getCharacterID,
+    getSquadSizeString
 };
 
 // Webscraping URL --> pubgBaseRL + <nickname> + pubgNAServer
@@ -70,24 +72,39 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
 
     return rp({ url: url, json: true })
         .then((json) => {
-            return { 
+            return {
                 id: id, 
                 nickname: username, 
-                ranking: json.stats.rating,
-                grade: json.grade || 'N/A',
+                rank: ('#' + json.ranks.rating) || '',
+                rating: json.stats.rating || '',
+                grade: json.grade || '?',
+                headshot_kills: cs.getPercentFromFraction(json.stats.headshot_kills_sum, json.stats.kills_sum),
                 longest_kill: json.stats.longest_kill_max + 'm',
-                average_damage_dealt: Math.round(json.stats.damage_dealt_avg * 100) / 100,
-                topPercent: Math.round((json.ranks.rating/json.max_ranks.rating)*100 * 100) / 100 + '%'
+                average_damage_dealt: cs.round(json.stats.damage_dealt_avg ),
+                topPercent: 'Top ' + cs.getPercentFromFraction(json.ranks.rating, json.max_ranks.rating),
+                winPercent: cs.getPercentFromFraction(json.stats.win_matches_cnt, json.stats.matches_cnt),
+                topTenPercent: cs.getPercentFromFraction(json.stats.topten_matches_cnt, json.stats.matches_cnt),
+                kda: cs.round( (json.stats.kills_sum + json.stats.assists_sum) / json.stats.deaths_sum ),
+                kd: cs.round(json.stats.kills_sum/ json.stats.deaths_sum)
             };
         }, () => {
-            return {
-                id: id,
-                nickname: username,
-                ranking: 0,
-                grade: 'N/A',
-                longest_kill: 0 + 'm',
-                average_damage_dealt: 0,
-                topPercent: 100 + '%'
-            };
+            return null;
         });
+}
+
+/**
+ * Returns the squad size string representation of the int
+ * @param {int} squadSize 
+ */
+function getSquadSizeString(squadSize) {
+    switch(squadSize) {
+        case 1:
+            return 'Solo';
+        case 2:
+            return 'Duo';
+        case 4:
+            return 'Squad';
+        default: 
+            return 'Squad';
+    }
 }
