@@ -46,8 +46,8 @@ exports.conf = {
 let help = exports.help = {
     name: 'setServerDefaults',
     description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
-    usage: '<prefix>setServerDefaults <season=(2018-01 | 2018-02 | 2018-03)> <region=(na | as | kr/jp | kakao | sa | eu | oc | sea)> <squadSize=(1 | 2 | 4)> <mode=(fpp | tpp)>',
+    usage: '<prefix>setServerDefaults <prefix=[prefix]> <season=(2018-01 | 2018-02 | 2018-03)> <region=(na | as | kr/jp | kakao | sa | eu | oc | sea)> <squadSize=(1 | 2 | 4)> <mode=(fpp | tpp)>',
     examples: [
-        '!pubg-setServerDefaults season=2018-03 region=na squadSize=4 mode=tpp',
+        '!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=tpp',
     ]
 };
