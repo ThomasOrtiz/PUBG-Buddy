@@ -11,8 +11,8 @@ logger.level = 'debug';
 
 // Initialize Bot
 const bot = new Discord.Client();
-const botToken = cs.getEnviornmentVariable('bot_token');
-let prefix = cs.getEnviornmentVariable('prefix');
+const botToken = cs.getEnvironmentVariable('bot_token');
+let prefix = cs.getEnvironmentVariable('prefix');
 bot.login(botToken);
 
 // Get commands from the cmd folder

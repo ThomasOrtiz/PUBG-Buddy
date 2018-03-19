@@ -16,7 +16,7 @@ exports.run = async (bot, msg) => {
                 .addField('Default Season', server.default_season, true)
                 .addField('Default Region', server.default_region, true)
                 .addField('Default Mode', server.default_mode, true)
-                .addField('Default Squad Size', server.default_squadsize, true);
+                .addField('Default Squad Size', server.default_squadSize, true);
             message.edit({embed});
         });
 };

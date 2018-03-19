@@ -2,7 +2,7 @@ const logger = require('winston');
 require('dotenv').config();
 
 module.exports = {
-    getEnviornmentVariable,
+    getEnvironmentVariable,
     getParamValue,
     getPercentFromFraction,
     round
@@ -43,7 +43,7 @@ function getParamValue(search, params, defaultParam) {
  * @param {string} varName in an .env file
  * @returns value if exists, errors out otherwise.
  */
-function getEnviornmentVariable(varName) {
+function getEnvironmentVariable(varName) {
     if(process.env[varName]) {
         return process.env[varName];
     } else {

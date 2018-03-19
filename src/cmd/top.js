@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
+const SeasonEnum = require('../models/seasons.enum');
 
 exports.run = async (bot, msg, params) => {
     let amount = 10;
@@ -12,7 +13,11 @@ exports.run = async (bot, msg, params) => {
     let season = cs.getParamValue('season=', params, serverDefaults.default_season);
     let region = cs.getParamValue('region=', params, serverDefaults.default_region);
     let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
-    let squadSize = +cs.getParamValue('squadSize=', params, serverDefaults.default_squadsize);
+    let squadSize = +cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
+    let seasonId = SeasonEnum[season] || season;
+    if(!checkParameters(msg, seasonId, region, mode, squadSize)) {
+        return;
+    }
     let squadSizeString = scrape.getSquadSizeString(squadSize);
 
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
@@ -37,7 +42,7 @@ exports.run = async (bot, msg, params) => {
                 // Check if character info exists for this (it wont if a user hasn't played yet)
                 if(!characterInfo) {
                     characterInfo = {
-                        nickname: player.username,
+                        username: player.username,
                         rank: '',
                         rating: '',
                         topPercent: '',
@@ -70,7 +75,7 @@ exports.run = async (bot, msg, params) => {
                 let character = topPlayers[i];
                 let ratingStr = character.rating ? character.rank + ' / ' + character.rating : 'Not available';
                 let kdsStr = character.kd || character.kd === 0 ? character.kd + ' / ' + character.kda : 'Not available';
-                names += character.nickname + '\n';
+                names += character.username + '\n';
                 ratings += ratingStr + '\n';
                 kds += kdsStr + '\n';
             }
@@ -82,6 +87,30 @@ exports.run = async (bot, msg, params) => {
         });
 };
 
+function handleError(msg, errMessage) {
+    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
+}
+
+function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSquadSize) {
+    if(!scrape.isValidSeason(checkSeason)) {
+        handleError(msg, 'Invalid season parameter');
+        return false;
+    }
+    if(!scrape.isValidRegion(checkRegion)) {
+        handleError(msg, 'Invalid region parameter');
+        return false;
+    }
+    if(!scrape.isValidMode(checkMode)) {
+        handleError(msg, 'Invalid mode parameter');
+        return false;
+    }
+    if(!scrape.isValidSquadSize(checkSquadSize)) {
+        handleError(msg, 'Invalid squadSize parameter');
+        return false;
+    }
+    return true;
+}
+
 exports.conf = {
     enabled: true,
     guildOnly: true,
@@ -89,7 +118,7 @@ exports.conf = {
     permLevel: 0
 };
 
-exports.help = {
+let help = exports.help = {
     name: 'top',
     description: 'Gets the top "x" players registered in the server',
     usage: '<prefix>top [Number-Of-Users] [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [squadSize=(1 | 2 | 4)] [mode=(fpp | tpp)]',
@@ -103,7 +132,6 @@ exports.help = {
         '!pubg-top 5 season=2018-03',
         '!pubg-top 5 season=2018-03 region=na', 
         '!pubg-top 5 season=2018-03 region=na squadSize=4', 
-        '!pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp',
-        
+        '!pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp'
     ]
 };

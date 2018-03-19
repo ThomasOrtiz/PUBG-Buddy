@@ -2,10 +2,11 @@ const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
+const SeasonEnum = require('../models/seasons.enum');
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
-        msg.channel.send('Invalid usage: ' + help.usage);
+        handleError(msg, 'Must specify a username');
         return;
     }
     let username = params[0].toLowerCase();
@@ -20,7 +21,11 @@ exports.run = async (bot, msg, params) => {
         region = cs.getParamValue('region=', params, 'na');
         mode = cs.getParamValue('mode=', params, 'fpp');
     }
-    
+
+    let seasonId = SeasonEnum[season] || season;
+    if(!checkParameters(msg, seasonId, region, mode)) {
+        return;
+    }
     
     msg.channel.send('Getting data for ' + username)
         .then(async (message) => {
@@ -29,9 +34,9 @@ exports.run = async (bot, msg, params) => {
                 message.edit('Invalid username: ' + username);
                 return;
             }
-            let soloData = await scrape.getPUBGCharacterData(id, username, season, region, 1, mode);
-            let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
-            let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
+            let soloData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 1, mode);
+            let duoData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 2, mode);
+            let squadData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 4, mode);
             let embed = new Discord.RichEmbed()
                 .setTitle('Ranking: ' + username)
                 .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
@@ -44,7 +49,6 @@ exports.run = async (bot, msg, params) => {
             if(soloData) {
                 embed.addBlankField(false)
                     .addField('Solo Rank / Rating / Top % / Grade', soloData.rank + ' / ' + soloData.rating + ' / ' + soloData.topPercent + ' / ' + soloData.grade, false)
-                    // .addField('Top %', soloData.topPercent, true)
                     .addField('KD / KDA', soloData.kd + ' / ' + soloData.kda, true)
                     .addField('Win %', soloData.winPercent, true)
                     .addField('Top 10%', soloData.topTenPercent, true)
@@ -58,7 +62,6 @@ exports.run = async (bot, msg, params) => {
             if(duoData) {
                 embed.addBlankField(false)
                     .addField('Duo Rank / Rating / Top % / Grade', duoData.rank + ' / ' + duoData.rating + ' / ' + duoData.topPercent + ' / ' + duoData.grade, false)
-                    // .addField('Top %', duoData.topPercent, true)
                     .addField('KD / KDA', duoData.kd + ' / ' + duoData.kda, true)
                     .addField('Win %', duoData.winPercent, true)
                     .addField('Top 10%', duoData.topTenPercent, true)
@@ -72,7 +75,6 @@ exports.run = async (bot, msg, params) => {
             if(squadData) {
                 embed.addBlankField(false)
                     .addField('Squad Rank / Rating / Top % / Grade', squadData.rank + ' / ' + squadData.rating + ' / ' + squadData.topPercent + ' / ' + squadData.grade, false)
-                    // .addField('Top %', squadData.topPercent, true)
                     .addField('KD / KDA', squadData.kd + ' / ' + squadData.kda, true)
                     .addField('Win %', squadData.winPercent, true)
                     .addField('Top 10%', squadData.topTenPercent, true)
@@ -84,13 +86,29 @@ exports.run = async (bot, msg, params) => {
                 embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
             }
                 
-
-                
-
-                
             message.edit({embed});
         });
 };
+
+function handleError(msg, errMessage) {
+    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
+}
+
+function checkParameters(msg, checkSeason, checkRegion, checkMode) {
+    if(!scrape.isValidSeason(checkSeason)) {
+        handleError(msg, 'Invalid season parameter');
+        return false;
+    }
+    if(!scrape.isValidRegion(checkRegion)) {
+        handleError(msg, 'Invalid region parameter');
+        return false;
+    }
+    if(!scrape.isValidMode(checkMode)) {
+        handleError(msg, 'Invalid mode parameter');
+        return false;
+    }
+    return true;
+}
 
 exports.conf = {
     enabled: true,

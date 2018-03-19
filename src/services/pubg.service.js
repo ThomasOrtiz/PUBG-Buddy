@@ -4,14 +4,24 @@ const cheerio = require('cheerio');
 const curl = require('curlrequest');
 const sql = require('./sql.service');
 const cs = require('./common.service');
+const Player = require('../models/player');
+const SeasonEnum = require('../models/seasons.enum');
+const SquadSizeEnum = require('../models/squadSize.enum');
+const ModeEnum = require('../models/mode.enum');
+const RegionEnum = require('../models/region.enum');
+
 
 module.exports = {
     getPUBGCharacterData,
     getCharacterID,
-    getSquadSizeString
+    getSquadSizeString,
+    isValidMode,
+    isValidRegion,
+    isValidSeason,
+    isValidSquadSize
 };
 
-// Webscraping URL --> pubgBaseRL + <nickname> + pubgNAServer
+// Webscraping URL --> pubgBaseRL + <username> + pubgNAServer
 const pubgBaseURL = 'https://pubg.op.gg/user/';
 const pubgNAServer = '?server=na';
 // Direct API URL --> apiURL + <id> + apiOptions
@@ -65,6 +75,7 @@ function webScrapeForId(username) {
  * @param {string} region: region of play 
  * @param {string} squadSize: solo, duo, squad [1, 2, 4]
  * @param {string} mode: [fpp, tpp]
+ * @returns {Player} player: a player object
  */
 async function getPUBGCharacterData(id, username, season, region, squadSize, mode) {
     logger.info('\tApi call for ' + username);
@@ -72,21 +83,19 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
 
     return rp({ url: url, json: true })
         .then((json) => {
-            return {
-                id: id, 
-                nickname: username, 
-                rank: ('#' + json.ranks.rating) || '',
-                rating: json.stats.rating || '',
-                grade: json.grade || '?',
-                headshot_kills: cs.getPercentFromFraction(json.stats.headshot_kills_sum, json.stats.kills_sum),
-                longest_kill: json.stats.longest_kill_max + 'm',
-                average_damage_dealt: cs.round(json.stats.damage_dealt_avg ),
-                topPercent: 'Top ' + cs.getPercentFromFraction(json.ranks.rating, json.max_ranks.rating),
-                winPercent: cs.getPercentFromFraction(json.stats.win_matches_cnt, json.stats.matches_cnt),
-                topTenPercent: cs.getPercentFromFraction(json.stats.topten_matches_cnt, json.stats.matches_cnt),
-                kda: cs.round( (json.stats.kills_sum + json.stats.assists_sum) / json.stats.deaths_sum ),
-                kd: cs.round(json.stats.kills_sum/ json.stats.deaths_sum)
-            };
+            let player = new Player(id, username);
+            player.rank = '#' + json.ranks.rating;
+            player.rating = json.stats.rating || '';
+            player.grade = json.grade || '?';
+            player.headshot_kills = cs.getPercentFromFraction(json.stats.headshot_kills_sum, json.stats.kills_sum);
+            player.longest_kill = json.stats.longest_kill_max + 'm';
+            player.average_damage_dealt = cs.round(json.stats.damage_dealt_avg );
+            player.topPercent = 'Top ' + cs.getPercentFromFraction(json.ranks.rating, json.max_ranks.rating);
+            player.winPercent = cs.getPercentFromFraction(json.stats.win_matches_cnt, json.stats.matches_cnt);
+            player.topTenPercent = cs.getPercentFromFraction(json.stats.topten_matches_cnt, json.stats.matches_cnt);
+            player.kda = cs.round( (json.stats.kills_sum + json.stats.assists_sum) / json.stats.deaths_sum );
+            player.kd = cs.round(json.stats.kills_sum/ json.stats.deaths_sum);
+            return player;
         }, () => {
             return null;
         });
@@ -97,14 +106,45 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
  * @param {int} squadSize 
  */
 function getSquadSizeString(squadSize) {
-    switch(squadSize) {
-        case 1:
-            return 'Solo';
-        case 2:
-            return 'Duo';
-        case 4:
-            return 'Squad';
-        default: 
-            return 'Squad';
+    return SquadSizeEnum.properties[squadSize].name;
+}
+
+function isValidSeason(checkSeason) {
+    for(let item in SeasonEnum) {
+        let validSeason = SeasonEnum[item];
+        if(checkSeason === validSeason) {
+            return true;
+        }
     }
+    return false;
+}
+
+function isValidRegion(checkRegion) {
+    for(let item in RegionEnum) {
+        let validRegion = RegionEnum[item];
+        if(checkRegion === validRegion) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isValidMode(checkMode) {
+    for(let item in ModeEnum) {
+        let validMode = ModeEnum[item];
+        if(checkMode === validMode) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isValidSquadSize(checkSize) {
+    for(let item in SquadSizeEnum) {
+        let validMode = SquadSizeEnum[item];
+        if(checkSize === validMode) {
+            return true;
+        }
+    }
+    return false;
 }

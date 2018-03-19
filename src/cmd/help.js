@@ -2,7 +2,7 @@ const cs = require('../services/common.service');
 const sqlService = require('../services/sql.service');
 
 exports.run = async (bot, msg, params) => {
-    let default_bot_prefix = cs.getEnviornmentVariable('prefix');
+    let default_bot_prefix = cs.getEnvironmentVariable('prefix');
     let prefix = default_bot_prefix;
     if(msg.guild) {
         let server_defaults = await sqlService.getServerDefaults(msg.guild.id);

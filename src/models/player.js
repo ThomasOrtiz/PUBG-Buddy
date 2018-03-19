@@ -23,8 +23,8 @@ class Player {
     set headshot_kills(headshot_kills) { this._headshot_kills = headshot_kills; }
     get headshot_kills() { return this._headshot_kills; }
 
-    set longest_kill(rank) { this._rank = rank; }
-    get longest_kill() { return this._rank; }
+    set longest_kill(longest_kill) { this._longest_kill = longest_kill; }
+    get longest_kill() { return this._longest_kill; }
 
     set average_damage_dealt(average_damage_dealt) { this._average_damage_dealt = average_damage_dealt; }
     get average_damage_dealt() { return this._average_damage_dealt; }

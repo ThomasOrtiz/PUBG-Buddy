@@ -1,6 +1,8 @@
 const logger = require('winston');
 const cs = require('./common.service');
 const { Pool } = require('pg');
+const Server = require('../models/server');
+const SeasonEnum = require('../models/seasons.enum');
 
 module.exports = {
     setupTables,
@@ -22,7 +24,7 @@ module.exports = {
     getRegisteredPlayersForServer
 };
 
-let connectionString = cs.getEnviornmentVariable('DATABASE_URL');
+let connectionString = cs.getEnvironmentVariable('DATABASE_URL');
 const pool = new Pool({
     connectionString: connectionString,
     ssl: true,
@@ -43,14 +45,16 @@ async function setupTables() {
     // await pool.query('delete from seasons where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)');
-    await addSeason('2018-01');
-    await addSeason('2018-02');
-    await addSeason('2018-03');
+    for(let season in SeasonEnum) {
+        if(isNaN(Number(season))) {
+            await addSeason(SeasonEnum[season]);
+        }
+    }
 
     // This is the default prefix for the bot. If this is changed the database will need to be manually updated with the following command:
     // ALTER TABLE ONLY servers ALTER COLUMN default_bot_prefix SET DEFAULT '[new value]';
     // UPDATE servers SET default_bot_prefix = '[new value]';
-    const defaultPrefix = cs.getEnviornmentVariable('prefix'); 
+    const defaultPrefix = cs.getEnvironmentVariable('prefix'); 
     let defaultSeason = await getLatestSeason();
     let defaultRegion = 'na';
     let defaultMode = 'fpp';
@@ -127,6 +131,7 @@ async function unRegisterServer(serverId) {
 /**
  * Get the sever's default settings
  * @param {string} serverId 
+ * @returns {Server} server: server
  */
 async function getServerDefaults(serverId) {
     return pool.query('select * from servers where server_id = $1', [serverId])
@@ -134,7 +139,13 @@ async function getServerDefaults(serverId) {
             if(res.rowCount === 0) {
                 return null;
             }
-            return res.rows[0];
+            let server = new Server(res.rows[0].id);
+            server.default_bot_prefix = res.rows[0].default_bot_prefix;
+            server.default_season = res.rows[0].default_season;
+            server.default_region = res.rows[0].default_region;
+            server.default_mode = res.rows[0].default_mode;
+            server.default_squadSize = res.rows[0].default_squadsize;
+            return server;
         });
 }
 

@@ -1,6 +1,8 @@
 const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const sql = require('../services/sql.service');
+const scrape = require('../services/pubg.service');
+const SeasonEnum = require('../models/seasons.enum');
 
 exports.run = async (bot, msg, params) => {
     let prefix = cs.getParamValue('prefix=', params, false);
@@ -10,11 +12,16 @@ exports.run = async (bot, msg, params) => {
     let squadSize = +cs.getParamValue('squadSize=', params, false);
 
     if(!prefix || !season || !region || !mode || !squadSize) {
-        msg.channel.send('Error: Must specify all parameters - Usage: ' + help.usage);   
+        handleError(msg, 'Must specify all parameters');
         return;
     }
 
-    msg.channel.send('Updating this server\'s pubg defaults: prefix=' + prefix + ' season=' + season + ' region=' + region + ' mode=' + mode + ' squadSize=' + squadSize)
+    let seasonId = SeasonEnum[season] || season;
+    if(!checkParameters(msg, prefix, seasonId, region, mode, squadSize)) {
+        return;
+    }
+
+    msg.channel.send('Updating this server\'s pubg defaults ...')
         .then(async (msg) => {
             sql.setServerDefaults(msg.guild.id, prefix, season, region, mode, squadSize)
                 .then(async () => {
@@ -30,11 +37,38 @@ exports.run = async (bot, msg, params) => {
                         .addField('Default Season', server.default_season, true)
                         .addField('Default Region', server.default_region, true)
                         .addField('Default Mode', server.default_mode, true)
-                        .addField('Default Squad Size', server.default_squadsize, true);
+                        .addField('Default Squad Size', server.default_squadSize, true);
                     msg.edit({embed});
                 });
         });
 };
+
+function handleError(msg, errMessage) {
+    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
+}
+
+function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode, checkSquadSize) {
+    if(prefix.length === 0) {
+        handleError(msg, 'Custom prefix can\'t be empty')
+    }
+    if(!scrape.isValidSeason(checkSeason)) {
+        handleError(msg, 'Invalid season parameter');
+        return false;
+    }
+    if(!scrape.isValidRegion(checkRegion)) {
+        handleError(msg, 'Invalid region parameter');
+        return false;
+    }
+    if(!scrape.isValidMode(checkMode)) {
+        handleError(msg, 'Invalid mode parameter');
+        return false;
+    }
+    if(!scrape.isValidSquadSize(checkSquadSize)) {
+        handleError(msg, 'Invalid squadSize parameter');
+        return false;
+    }
+    return true;
+}
 
 exports.conf = {
     enabled: true,
