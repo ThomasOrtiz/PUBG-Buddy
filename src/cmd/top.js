@@ -27,7 +27,7 @@ exports.run = async (bot, msg, params) => {
     }
     
     const batchEditAmount = 5;
-    msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
+    msg.channel.send(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
     msg.channel.send('Grabbing player data')
         .then(async (msg) => {
             let playersInfo = new Array();
@@ -35,7 +35,8 @@ exports.run = async (bot, msg, params) => {
                 let player = registeredPlayers[i];
 
                 if(i % batchEditAmount === 0) {
-                    msg.edit(`Grabbing data for players ${i+1} - ${i+batchEditAmount}`);
+                    let max = (i+batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i+batchEditAmount;
+                    msg.edit(`Grabbing data for players ${i+1} - ${max}`);
                 }
                 //msg.edit('(' + (i+1)  + '/' + registeredPlayers.length + '): Getting data for ' + player.username);                
                 
