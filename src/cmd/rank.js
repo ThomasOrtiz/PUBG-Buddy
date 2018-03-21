@@ -44,43 +44,20 @@ exports.run = async (bot, msg, params) => {
                 .setFooter('Retrieved from https://pubg.op.gg/' + username + '?server=' + region)
                 .setTimestamp();
                 
-                
-
             if(soloData) {
-                embed.addBlankField(false)
-                    .addField('Solo Rank / Rating / Top % / Grade', soloData.rank + ' / ' + soloData.rating + ' / ' + soloData.topPercent + ' / ' + soloData.grade, false)
-                    .addField('KD / KDA', soloData.kd + ' / ' + soloData.kda, true)
-                    .addField('Win %', soloData.winPercent, true)
-                    .addField('Top 10%', soloData.topTenPercent, true)
-                    .addField('Headshot Kill %', soloData.headshot_kills, true)
-                    .addField('Longest Kill', soloData.longest_kill, true)
-                    .addField('Average Damage', soloData.average_damage_dealt, true);
+                addEmbedFields(embed, 'Solo', soloData);
             } else {
                 embed.addBlankField(false);
                 embed.addField('Solo Status', 'Player hasn\'t played solo games this season', false);
             }
             if(duoData) {
-                embed.addBlankField(false)
-                    .addField('Duo Rank / Rating / Top % / Grade', duoData.rank + ' / ' + duoData.rating + ' / ' + duoData.topPercent + ' / ' + duoData.grade, false)
-                    .addField('KD / KDA', duoData.kd + ' / ' + duoData.kda, true)
-                    .addField('Win %', duoData.winPercent, true)
-                    .addField('Top 10%', duoData.topTenPercent, true)
-                    .addField('Headshot Kill %', duoData.headshot_kills, true)
-                    .addField('Longest Kill', duoData.longest_kill, true)
-                    .addField('Average Damage', duoData.average_damage_dealt, true);
+                addEmbedFields(embed, 'Duo', duoData);
             } else {
                 embed.addBlankField(false);
                 embed.addField('Duo Status', 'Player hasn\'t played duo games this season', false);
             }
             if(squadData) {
-                embed.addBlankField(false)
-                    .addField('Squad Rank / Rating / Top % / Grade', squadData.rank + ' / ' + squadData.rating + ' / ' + squadData.topPercent + ' / ' + squadData.grade, false)
-                    .addField('KD / KDA', squadData.kd + ' / ' + squadData.kda, true)
-                    .addField('Win %', squadData.winPercent, true)
-                    .addField('Top 10%', squadData.topTenPercent, true)
-                    .addField('Headshot Kill %', squadData.headshot_kills, true)
-                    .addField('Longest Kill', squadData.longest_kill, true)
-                    .addField('Average Damage', squadData.average_damage_dealt, true);
+                addEmbedFields(embed, 'Squad', squadData);
             } else {
                 embed.addBlankField(false);
                 embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
@@ -89,6 +66,17 @@ exports.run = async (bot, msg, params) => {
             message.edit({embed});
         });
 };
+
+function addEmbedFields(embed, squadType, playerData) {
+    embed.addBlankField(false)
+        .addField(squadType + ' Rank / Rating / Top % / Grade', playerData.rank + ' / ' + playerData.rating + ' / ' + playerData.topPercent + ' / ' + playerData.grade, false)
+        .addField('KD / KDA', playerData.kd + ' / ' + playerData.kda, true)
+        .addField('Win %', playerData.winPercent, true)
+        .addField('Top 10%', playerData.topTenPercent, true)
+        .addField('Headshot Kill %', playerData.headshot_kills, true)
+        .addField('Longest Kill', playerData.longest_kill, true)
+        .addField('Average Damage', playerData.average_damage_dealt, true);
+}
 
 function handleError(msg, errMessage) {
     msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
