@@ -26,17 +26,20 @@ exports.run = async (bot, msg, params) => {
         return;
     }
     
+    const batchEditAmount = 5;
     msg.channel.send('Aggregating top ' + amount + ' ... give me a second');
-    msg.channel.send('Grabbing individual player data')
+    msg.channel.send('Grabbing player data')
         .then(async (msg) => {
             let playersInfo = new Array();
             for(let i = 0; i < registeredPlayers.length; i++) {
                 let player = registeredPlayers[i];
-                msg.edit('(' + (i+1)  + '/' + registeredPlayers.length + '): Getting data for ' + player.username);
-                let id = await scrape.getCharacterID(player.username);
-                if(!id) {
-                    msg.edit('Invalid username: ' + player.username);
+
+                if(i % batchEditAmount === 0) {
+                    msg.edit(`Grabbing data for players ${i+1} - ${i+batchEditAmount}`);
                 }
+                //msg.edit('(' + (i+1)  + '/' + registeredPlayers.length + '): Getting data for ' + player.username);                
+                
+                let id = await scrape.getCharacterID(player.username);
                 let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
 
                 // Check if character info exists for this (it wont if a user hasn't played yet)
@@ -51,9 +54,8 @@ exports.run = async (bot, msg, params) => {
                     };
                 }
                 playersInfo.push(characterInfo);
-            }
+            } 
 
-            msg.edit('Sorting players based off rank');
             // Sorting Array based off of ranking (higher ranking is better)
             playersInfo.sort(function(a, b){ return b.rating - a.rating; });
 
@@ -83,7 +85,7 @@ exports.run = async (bot, msg, params) => {
             embed.addField('Name', names, true)
                 .addField('Rank / Rating', ratings, true)
                 .addField('KD / KDA', kds, true);
-            msg.edit({ embed });
+            await msg.edit({ embed });
         });
 };
 
