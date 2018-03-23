@@ -78,7 +78,6 @@ bot.on('message', async msg => {
         cmd.run(bot, msg, params, perms);
     }
 });
-
 bot.reload = function(command) {
     return new Promise((resolve, reject) => {
         try {
