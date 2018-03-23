@@ -31,9 +31,6 @@ fs.readdir('./src/cmd/', (err, files) => {
     });
 });
 
-// Setup DB
-sqlService.setupTables();
-
 // Setup events
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);

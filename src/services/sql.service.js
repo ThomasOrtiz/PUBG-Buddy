@@ -2,10 +2,8 @@ const logger = require('winston');
 const cs = require('./common.service');
 const { Pool } = require('pg');
 const Server = require('../models/server');
-const SeasonEnum = require('../enums/season.enum');
 
 module.exports = {
-    setupTables,
     // Seasons
     getLatestSeason,
     getAllSeasons,
@@ -34,51 +32,7 @@ pool.on('error', (err) => {
     process.exit(-1);
 });
 
-// -------------------- DB Helpers --------------------
-/**
- * Adds the required database tables/data on bot run
- */
-async function setupTables() {
-    // await pool.query('delete from servers where 1=1');
-    // await pool.query('delete from players where 1=1');
-    // await pool.query('delete from server_registery where 1=1');
-    // await pool.query('delete from seasons where 1=1');
-    await pool.query('CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT)');
-    await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)');
-    for(let season in SeasonEnum.SEASONS) {
-        if(isNaN(Number(season))) {
-            await addSeason(SeasonEnum.get(season));
-        }
-    }
-
-    // This is the default prefix for the bot. If this is changed the database will need to be manually updated with the following command:
-    // ALTER TABLE ONLY servers ALTER COLUMN default_bot_prefix SET DEFAULT '[new value]';
-    // UPDATE servers SET default_bot_prefix = '[new value]';
-    const defaultPrefix = cs.getEnvironmentVariable('prefix'); 
-    let defaultSeason = await getLatestSeason();
-    let defaultRegion = 'na';
-    let defaultMode = 'fpp';
-    let defaultSquadSize = 4;
-    await pool.query('CREATE TABLE IF NOT EXISTS servers ' +
-                        '(id SERIAL PRIMARY KEY, server_id TEXT, default_bot_prefix TEXT DEFAULT \'' + defaultPrefix + '\', default_season TEXT DEFAULT \'' + defaultSeason + '\', ' + 
-                        'default_region TEXT DEFAULT \'' + defaultRegion + '\', default_mode TEXT DEFAULT \'' + defaultMode + '\', default_squadSize TEXT DEFAULT \'' + defaultSquadSize + '\')');
-    await pool.query('CREATE TABLE IF NOT EXISTS server_registery (id SERIAL PRIMARY KEY, fk_players_id integer REFERENCES players (id) ON DELETE CASCADE, fk_servers_id integer REFERENCES servers (id) ON DELETE CASCADE)');
-}
-
 // -------------------- seasons --------------------
-/**
- * Adds the specified season
- * @param season: season in form of year-month --> 2018-01
- */
-async function addSeason(season) {
-    return pool.query('select * from seasons where season = $1', [season])
-        .then(async (res) => {
-            if(res.rowCount === 0){
-                return pool.query('insert into seasons (season) values ($1)', [season]);
-            }
-        });
-}
-
 /** 
  *  Return all seasons for PUBG 
  */
