@@ -21,4 +21,8 @@ function getAllValues(){
     return Object.values(REGIONS);
 }
 
-module.exports = { REGIONS, get, getAllValues, getKeyFromValue };
+function isValue(value) {
+    return getKeyFromValue(value) != null;
+}
+
+module.exports = { REGIONS, get, getAllValues, getKeyFromValue, isValue };

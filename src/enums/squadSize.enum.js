@@ -16,4 +16,8 @@ function getAllValues(){
     return Object.values(SQUADSIZE);
 }
 
-module.exports = { SQUADSIZE, get, getAllValues, getKeyFromValue };
+function isValue(value) {
+    return getKeyFromValue(value) != null;
+}
+
+module.exports = { SQUADSIZE, get, getAllValues, getKeyFromValue, isValue };

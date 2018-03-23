@@ -15,4 +15,8 @@ function getAllValues(){
     return Object.values(MODES);
 }
 
-module.exports = { MODES, get, getAllValues, getKeyFromValue };
+function isValue(value) {
+    return getKeyFromValue(value) != null;
+}
+
+module.exports = { MODES, get, getAllValues, getKeyFromValue, isValue };

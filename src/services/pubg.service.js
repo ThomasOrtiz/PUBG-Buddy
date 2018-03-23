@@ -110,41 +110,17 @@ function getSquadSizeString(squadSize) {
 }
 
 function isValidSeason(checkSeason) {
-    for(let season in SeasonEnum.SEASONS) {
-        let validSeason = SeasonEnum.get(season);
-        if(checkSeason === validSeason) {
-            return true;
-        }
-    }
-    return false;
+    return SeasonEnum.isValue(checkSeason);
 }
 
 function isValidRegion(checkRegion) {
-    for(let item in RegionEnum.REGIONS) {
-        let validRegion = RegionEnum.get(item);
-        if(checkRegion === validRegion) {
-            return true;
-        }
-    }
-    return false;
+    return RegionEnum.isValue(checkRegion);
 }
 
 function isValidMode(checkMode) {
-    for(let item in ModeEnum.MODE) {
-        let validMode = ModeEnum.get(item);
-        if(checkMode === validMode) {
-            return true;
-        }
-    }
-    return false;
+    return ModeEnum.isValue(checkMode);
 }
 
 function isValidSquadSize(checkSize) {
-    for(let item in SquadSizeEnum.SQUADSIZE) {
-        let validMode = SquadSizeEnum.get(item);
-        if(checkSize === validMode) {
-            return true;
-        }
-    }
-    return false;
+    return SquadSizeEnum.isValue(checkSize);
 }

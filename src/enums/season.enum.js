@@ -16,5 +16,8 @@ function getAllValues(){
     return Object.values(SEASONS);
 }
 
-module.exports = { SEASONS, get, getAllValues, getKeyFromValue
-};
+function isValue(value) {
+    return getKeyFromValue(value) != null;
+}
+
+module.exports = { SEASONS, get, getAllValues, getKeyFromValue, isValue };
