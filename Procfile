@@ -1,2 +1,2 @@
-release: ./migrate.sh
+release: bash ./migrate.sh
 worker: node src/bot.js
