@@ -2,7 +2,7 @@ const logger = require('winston');
 const cs = require('./common.service');
 const { Pool } = require('pg');
 const Server = require('../models/server');
-const SeasonEnum = require('../models/seasons.enum');
+const SeasonEnum = require('../enums/season.enum');
 
 module.exports = {
     setupTables,
@@ -45,9 +45,9 @@ async function setupTables() {
     // await pool.query('delete from seasons where 1=1');
     await pool.query('CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT)');
     await pool.query('CREATE TABLE IF NOT EXISTS seasons (id SERIAL PRIMARY KEY, season TEXT)');
-    for(let season in SeasonEnum) {
+    for(let season in SeasonEnum.SEASONS) {
         if(isNaN(Number(season))) {
-            await addSeason(SeasonEnum[season]);
+            await addSeason(SeasonEnum.get(season));
         }
     }
 

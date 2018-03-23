@@ -30,7 +30,7 @@ exports.run = async (bot, msg, params) => {
                                 '\tpubg-rank janedoe season=2018-03 mode=tpp\n' + 
                                 '\tpubg-rank johndoe region=eu mode=fpp\n' +
                                 '\t...';
-        msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "pubg-help <commandname>" for details]\n\n${commandList}\n\n${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
+        msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "!pubg-help <commandname>" for details]\n\n${commandList}\n\n${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
     } else {
         let command = params[0];
         if (bot.commands.has(command)) {

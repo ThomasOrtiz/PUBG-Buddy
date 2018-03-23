@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
-const SeasonEnum = require('../models/seasons.enum');
+const SeasonEnum = require('../enums/season.enum');
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
@@ -22,7 +22,7 @@ exports.run = async (bot, msg, params) => {
         mode = cs.getParamValue('mode=', params, 'fpp');
     }
 
-    let seasonId = SeasonEnum[season] || season;
+    let seasonId = SeasonEnum.get(season) || season;
     if(!checkParameters(msg, seasonId, region, mode)) {
         return;
     }

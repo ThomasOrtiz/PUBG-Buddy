@@ -5,10 +5,10 @@ const curl = require('curlrequest');
 const sql = require('./sql.service');
 const cs = require('./common.service');
 const Player = require('../models/player');
-const SeasonEnum = require('../models/seasons.enum');
-const SquadSizeEnum = require('../models/squadSize.enum');
-const ModeEnum = require('../models/mode.enum');
-const RegionEnum = require('../models/region.enum');
+const SeasonEnum = require('../enums/season.enum');
+const SquadSizeEnum = require('../enums/squadSize.enum');
+const ModeEnum = require('../enums/mode.enum');
+const RegionEnum = require('../enums/region.enum');
 
 
 module.exports = {
@@ -106,12 +106,12 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
  * @param {int} squadSize 
  */
 function getSquadSizeString(squadSize) {
-    return SquadSizeEnum.properties[squadSize].name;
+    return SquadSizeEnum.getKeyFromValue(squadSize);
 }
 
 function isValidSeason(checkSeason) {
-    for(let item in SeasonEnum) {
-        let validSeason = SeasonEnum[item];
+    for(let season in SeasonEnum.SEASONS) {
+        let validSeason = SeasonEnum.get(season);
         if(checkSeason === validSeason) {
             return true;
         }
@@ -120,8 +120,8 @@ function isValidSeason(checkSeason) {
 }
 
 function isValidRegion(checkRegion) {
-    for(let item in RegionEnum) {
-        let validRegion = RegionEnum[item];
+    for(let item in RegionEnum.REGIONS) {
+        let validRegion = RegionEnum.get(item);
         if(checkRegion === validRegion) {
             return true;
         }
@@ -130,8 +130,8 @@ function isValidRegion(checkRegion) {
 }
 
 function isValidMode(checkMode) {
-    for(let item in ModeEnum) {
-        let validMode = ModeEnum[item];
+    for(let item in ModeEnum.MODE) {
+        let validMode = ModeEnum.get(item);
         if(checkMode === validMode) {
             return true;
         }
@@ -140,8 +140,8 @@ function isValidMode(checkMode) {
 }
 
 function isValidSquadSize(checkSize) {
-    for(let item in SquadSizeEnum) {
-        let validMode = SquadSizeEnum[item];
+    for(let item in SquadSizeEnum.SQUADSIZE) {
+        let validMode = SquadSizeEnum.get(item);
         if(checkSize === validMode) {
             return true;
         }
