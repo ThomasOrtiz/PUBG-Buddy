@@ -1,5 +1,6 @@
 #!/bin/bash
-heroku run bash
+curl -s https://s3.amazonaws.com/assets.heroku.com/heroku-client/heroku-client.tgz | tar xz
+PATH="/app/heroku-client/bin:$PATH"
 
 find ./migrations -maxdepth 1 -mindepth 1 | while read f; do
     printf 'Migrating: %s\n' $f
