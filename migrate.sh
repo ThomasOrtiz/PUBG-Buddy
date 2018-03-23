@@ -1,4 +1,6 @@
 #!/bin/bash
+# This isn't being used for now but I would like to use heroko directly for migrations instead of node. 
+
 curl -s https://s3.amazonaws.com/assets.heroku.com/heroku-client/heroku-client.tgz | tar xz
 PATH="/app/heroku-client/bin:$PATH"
 
