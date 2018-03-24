@@ -19,6 +19,7 @@ pool.on('error', (err) => {
 
 /** 
  *  Return all seasons for PUBG 
+ * @returns {obj}: { id, name, season }
  */
 async function getAllSeasons() {
     return pool.query('select * from seasons').then((res) => {

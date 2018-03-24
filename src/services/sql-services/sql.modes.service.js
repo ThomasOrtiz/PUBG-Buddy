@@ -18,6 +18,7 @@ pool.on('error', (err) => {
 
 /** 
  *  Return all PUBG modes
+ * @returns {obj}: { id, fullname, shortname }
  */
 async function getAllModes() {
     return pool.query('select * from modes').then((res) => {

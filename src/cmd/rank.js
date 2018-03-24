@@ -87,15 +87,30 @@ function handleError(msg, errMessage, includeHelp) {
 
 async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
     if(!(await scrape.isValidSeason(checkSeason))) {
-        handleError(msg, 'Invalid season parameter', true);
+        let seasons = await sql.getAllSeasons();
+        let availableSeasons = '== Available Seasons ==\n';
+        for(let i = 0; i < seasons.length; i++) {
+            availableSeasons += seasons[i].season + '\n';
+        }
+        handleError(msg, `Invalid season parameter \n\n${availableSeasons}`, true);
         return false;
     }
     if(!(await scrape.isValidRegion(checkRegion))) {
-        handleError(msg, 'Invalid region parameter', true);
+        let regions = await sql.getAllRegions();
+        let availableRegions = '== Available Regions ==\n';
+        for(let i = 0; i < regions.length; i++) {
+            availableRegions += regions[i].shortname + '\n';
+        }
+        handleError(msg, `Invalid region parameter \n\n${availableRegions}`, true);
         return false;
     }
     if(!(await scrape.isValidMode(checkMode))) {
-        handleError(msg, 'Invalid mode parameter', true);
+        let modes = await sql.getAllModes();
+        let availableModes = '== Available Modes ==\n';
+        for(let i = 0; i < modes.length; i++) {
+            availableModes += modes[i].shortname + '\n';
+        }
+        handleError(msg, `Invalid mode parameter \n\n${availableModes}`, true);
         return false;
     }
     return true;
