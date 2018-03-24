@@ -22,7 +22,7 @@ exports.conf = {
 
 exports.help = {
     name: 'getRegions',
-    description: 'Returns all available regions',
+    description: 'Returns all available regions to use as parameters',
     usage: '<prefix>getRegions',
     examples: [
         '!pubg-getRegions'

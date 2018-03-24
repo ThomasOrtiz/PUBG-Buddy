@@ -22,7 +22,7 @@ exports.conf = {
 
 exports.help = {
     name: 'getModes',
-    description: 'Returns all available modes',
+    description: 'Returns all available modes to use as parameters',
     usage: '<prefix>getModes',
     examples: [
         '!pubg-getModes'

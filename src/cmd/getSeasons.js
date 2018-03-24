@@ -22,7 +22,7 @@ exports.conf = {
 
 exports.help = {
     name: 'getSeasons',
-    description: 'Returns all available seasons',
+    description: 'Returns all available seasons to use as parameters',
     usage: '<prefix>getSeasons',
     examples: [
         '!pubg-getSeasons'

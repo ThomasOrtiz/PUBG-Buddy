@@ -22,7 +22,7 @@ exports.conf = {
 
 exports.help = {
     name: 'getSquadSizes',
-    description: 'Returns all available squad sizes',
+    description: 'Returns all available squad sizes to use as parameters',
     usage: '<prefix>getSquadSizes',
     examples: [
         '!pubg-getSquadSizes'
