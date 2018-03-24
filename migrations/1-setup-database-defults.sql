@@ -54,14 +54,13 @@ BEGIN;
     CREATE TABLE IF NOT EXISTS modes (id SERIAL PRIMARY KEY, fullname TEXT unique, shortname text unique);
 
     INSERT INTO modes (fullname, shortname)
-    VALUES ('First Person Perspective', 'FPP')
+    VALUES ('First Person Perspective', 'fpp')
     ON CONFLICT (fullname) do nothing;
 
     INSERT INTO modes (fullname, shortname)
-    VALUES ('Third Person Perspective', 'TPP')
+    VALUES ('Third Person Perspective', 'tpp')
     ON CONFLICT (fullname) do nothing;
 COMMIT;
-
 
 /** Setup regions table */
 BEGIN;
@@ -72,7 +71,7 @@ BEGIN;
     ON CONFLICT (fullname) do nothing;
 
     INSERT INTO regions (fullname, shortname)
-    VALUES ('Asian', 'as')
+    VALUES ('Asia', 'as')
     ON CONFLICT (fullname) do nothing;
 
     INSERT INTO regions (fullname, shortname)
