@@ -1,15 +1,16 @@
-const SquadSizeEnum = require('../enums/squadSize.enum');
+const sql = require('../services/sql.service');
 
 exports.run = async (bot, msg) => {
-    let enumStr = '= Squad Sizes =\n\n';
-    let sizes = SquadSizeEnum.getAllValues();
-    for(let i = 0; i < sizes.length; i++) {
-        enumStr += `${sizes[i]}`;
-        if(i !== sizes.length-1) {
-            enumStr += ', ';
-        }
+    let squadSizes = await sql.getAllSquadSizes();
+
+    let squadSizeStr = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(8)}: = Value =\n`;
+    for(let i = 0; i < squadSizes.length; i++) {
+        let key = squadSizes[i].name;
+        let value = squadSizes[i].size;
+        squadSizeStr += `${key.padEnd(8)}: ${value}\n`;
     }
-    msg.channel.send(enumStr, { code: 'asciidoc'});
+
+    msg.channel.send(squadSizeStr, { code: 'asciidoc'});
 };
 
 exports.conf = {

@@ -1,16 +1,16 @@
-const ModeEnum = require('../enums/mode.enum');
+const sql = require('../services/sql.service');
 
 exports.run = async (bot, msg) => {
-    let enumStr = '= Modes =\n\nUse the value for parameters\n\n= Key =\t: = Value =\n';
-    let modes = ModeEnum.getAllValues();
-    for(let i = 0; i < modes.length; i++) {
-        let value = modes[i];
-        let key = ModeEnum.getKeyFromValue(value);
-        enumStr += `${key}\t\t: ${value}\n`;
-    }
-    
+    let modes = await sql.getAllModes();
 
-    msg.channel.send(enumStr, { code: 'asciidoc'});
+    let modeStr = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(25)}: = Value =\n`;
+    for(let i = 0; i < modes.length; i++) {
+        let key = modes[i].fullname;
+        let value = modes[i].shortname;
+        modeStr += `${key.padEnd(25)}: ${value}\n`;
+    }
+
+    msg.channel.send(modeStr, { code: 'asciidoc'});
 };
 
 exports.conf = {

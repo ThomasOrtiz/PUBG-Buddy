@@ -1,15 +1,16 @@
-const RegionEnum = require('../enums/region.enum');
+const sql = require('../services/sql.service');
 
 exports.run = async (bot, msg) => {
-    let enumStr = '= Regions =\n\n';
-    let regions = RegionEnum.getAllValues();
+    let regions = await sql.getAllRegions();
+
+    let regionStr = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(15)}: = Value =\n`;
     for(let i = 0; i < regions.length; i++) {
-        enumStr += `${regions[i]}`;
-        if(i !== regions.length-1) {
-            enumStr += ', ';
-        }
+        let key = regions[i].fullname;
+        let value = regions[i].shortname;
+        regionStr += `${key.padEnd(15)}: ${value}\n`;
     }
-    msg.channel.send(enumStr, { code: 'asciidoc'});
+    
+    msg.channel.send(regionStr, { code: 'asciidoc'});
 };
 
 exports.conf = {

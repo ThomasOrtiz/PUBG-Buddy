@@ -1,12 +1,12 @@
 const REGIONS = {
-    NA: 'na',
-    AS: 'as',
-    'KR/JP': 'krjp',
-    KAKAO: 'kakao',
-    SA: 'sa',
-    EU: 'eu',
-    OC: 'oc',
-    SEA: 'sea'
+    'na': 'North America',
+    'as': 'Asia',
+    'krjp': 'Korea / Japan',
+    'kakao': 'Korea',
+    'sa': 'South America',
+    'eu': 'Europe',
+    'oc': 'Oceania',
+    'sea': 'South-East Asia'
 };
 
 function get(key){

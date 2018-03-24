@@ -1,5 +1,5 @@
 const logger = require('winston');
-const cs = require('./common.service');
+const cs = require('../common.service');
 const { Pool } = require('pg');
 
 module.exports = {
@@ -21,13 +21,8 @@ pool.on('error', (err) => {
  *  Return all seasons for PUBG 
  */
 async function getAllSeasons() {
-    return pool.query('select season from seasons').then((res) => {
-        let seasons = [];
-        if(res.rowCount === 0) return seasons;
-        for(let row of res.rows) {
-            seasons.push(row.season);
-        }
-        return seasons;
+    return pool.query('select * from seasons').then((res) => {
+        return res.rows;
     });
 }
 
@@ -37,6 +32,6 @@ async function getAllSeasons() {
 async function getLatestSeason() {
     return pool.query('select season from seasons where season = (select max(season) from seasons)')
         .then((res) => {
-            return res.rows[0].season;
+            return res.rows[0];
         });
 }

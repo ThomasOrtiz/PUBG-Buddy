@@ -1,14 +1,13 @@
 const sql = require('../services/sql.service');
-const SeasonEnum = require('../enums/season.enum');
 
 exports.run = async (bot, msg) => {
     let seasons = await sql.getAllSeasons();
 
-    let seasonStr = '= Seasons =\n\nUse the value for parameters\n\n= Key =\t : = Value =\n';
+    let seasonStr = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
     for(let i = 0; i < seasons.length; i++) {
-        let value = seasons[i];
-        let key = SeasonEnum.getKeyFromValue(value);
-        seasonStr += `${key}\t: ${value}\n`;
+        let key = seasons[i].name;
+        let value = seasons[i].season;
+        seasonStr += `${key.padEnd(10)}: ${value}\n`;
     }
     
     msg.channel.send(seasonStr, { code: 'asciidoc'});

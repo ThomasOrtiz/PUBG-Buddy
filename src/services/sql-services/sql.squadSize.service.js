@@ -1,5 +1,5 @@
 const logger = require('winston');
-const cs = require('./common.service');
+const cs = require('../common.service');
 const { Pool } = require('pg');
 
 module.exports = {

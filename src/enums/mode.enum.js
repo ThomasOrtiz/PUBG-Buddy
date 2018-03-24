@@ -1,6 +1,6 @@
 const MODES = {
-    FPP: 'fpp',
-    TPP: 'tpp'
+    fpp: 'First Person Perspective',
+    tpp: 'Third Person Perspective'
 };
 
 function get(key){

@@ -6,7 +6,7 @@ const SeasonEnum = require('../enums/season.enum');
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
-        handleError(msg, 'Must specify a username');
+        handleError(msg, 'Must specify a username', true);
         return;
     }
     let username = params[0].toLowerCase();
@@ -22,8 +22,7 @@ exports.run = async (bot, msg, params) => {
         mode = cs.getParamValue('mode=', params, 'fpp');
     }
 
-    let seasonId = SeasonEnum.get(season) || season;
-    if(!checkParameters(msg, seasonId, region, mode)) {
+    if(!(await checkParameters(msg, season, region, mode))) {
         return;
     }
     
@@ -34,12 +33,12 @@ exports.run = async (bot, msg, params) => {
                 message.edit('Invalid username: ' + username);
                 return;
             }
-            let soloData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 1, mode);
-            let duoData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 2, mode);
-            let squadData = await scrape.getPUBGCharacterData(id, username, seasonId, region, 4, mode);
+            let soloData = await scrape.getPUBGCharacterData(id, username, season, region, 1, mode);
+            let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
+            let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
             let embed = new Discord.RichEmbed()
                 .setTitle('Ranking: ' + username)
-                .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
+                .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
                 .setColor(0x00AE86)
                 .setFooter('Retrieved from https://pubg.op.gg/' + username + '?server=' + region)
                 .setTimestamp();
@@ -76,23 +75,27 @@ function addEmbedFields(embed, squadType, playerData) {
         .addField('Headshot Kill %', playerData.headshot_kills, true)
         .addField('Longest Kill', playerData.longest_kill, true)
         .addField('Average Damage', playerData.average_damage_dealt, true);
+}    
+
+function handleError(msg, errMessage, includeHelp) {
+    let message = `Error:: ${errMessage}\n`;
+    if(includeHelp) {
+        message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`;
+    }
+    msg.channel.send(message, { code: 'asciidoc'});
 }
 
-function handleError(msg, errMessage) {
-    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
-}
-
-function checkParameters(msg, checkSeason, checkRegion, checkMode) {
-    if(!scrape.isValidSeason(checkSeason)) {
-        handleError(msg, 'Invalid season parameter');
+async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
+    if(!(await scrape.isValidSeason(checkSeason))) {
+        handleError(msg, 'Invalid season parameter', true);
         return false;
     }
-    if(!scrape.isValidRegion(checkRegion)) {
-        handleError(msg, 'Invalid region parameter');
+    if(!(await scrape.isValidRegion(checkRegion))) {
+        handleError(msg, 'Invalid region parameter', true);
         return false;
     }
-    if(!scrape.isValidMode(checkMode)) {
-        handleError(msg, 'Invalid mode parameter');
+    if(!(await scrape.isValidMode(checkMode))) {
+        handleError(msg, 'Invalid mode parameter', true);
         return false;
     }
     return true;

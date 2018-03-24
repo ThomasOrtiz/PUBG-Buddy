@@ -1,7 +1,7 @@
 const SQUADSIZE = {
-    'Solo': 1,
-    'Duo': 2,
-    'Squad': 4
+    1: 'Solo',
+    2: 'Duo',
+    4: 'Squad'
 };
 
 function get(key){

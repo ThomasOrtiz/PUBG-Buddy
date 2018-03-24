@@ -1,9 +1,9 @@
 const logger = require('winston');
-const cs = require('./common.service');
+const cs = require('../common.service');
 const { Pool } = require('pg');
 
 module.exports = {
-    getAllRegions,
+    getAllModes,
 };
 
 let connectionString = cs.getEnvironmentVariable('DATABASE_URL');
@@ -19,8 +19,8 @@ pool.on('error', (err) => {
 /** 
  *  Return all PUBG modes
  */
-async function getAllRegions() {
-    return pool.query('select * from regions').then((res) => {
+async function getAllModes() {
+    return pool.query('select * from modes').then((res) => {
         return res.rows;
     });
 }

@@ -1,10 +1,12 @@
 const logger = require('winston');
-const cs = require('./common.service');
+const cs = require('../common.service');
 const { Pool } = require('pg');
-const Server = require('../models/server');
+const Server = require('../../models/server');
 
 module.exports = {
     registerServer,
+    getServer,
+    getOrRegisterServer,
     unRegisterServer,
     getServerDefaults,
     setServerDefaults,
@@ -19,6 +21,34 @@ pool.on('error', (err) => {
     logger.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
+
+/**
+ * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
+ * @param {string} serverId 
+ */
+async function getOrRegisterServer(serverId) {
+    return pool.query('select server_id from servers where server_id = $1', [serverId])
+        .then(async (res) => {
+            if(res.rowCount === 0) {
+                await pool.query('insert into servers (server_id) values ($1)', [serverId]);
+                return getServerDefaults(serverId);
+            } else {
+                return getServerDefaults(serverId);
+            }
+        });
+}
+
+/**
+ * Get a server
+ * @param {string} serverId 
+ */
+async function getServer(serverId) {
+    return pool.query('select * from servers where server_id = $1', [serverId])
+        .then((res) => {
+            if(res.rowCount > 0) return res.rows;
+            else return null;
+        });
+}
 
 /**
  * Adds a server to the servers table if it doesn't exist already
