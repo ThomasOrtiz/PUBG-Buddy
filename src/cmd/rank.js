@@ -6,7 +6,7 @@ const SeasonEnum = require('../enums/season.enum');
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
-        handleError(msg, 'Must specify a username', true);
+        cs.handleError(msg, 'Error:: Must specify a username', help);
         return;
     }
     let username = params[0].toLowerCase();
@@ -22,11 +22,13 @@ exports.run = async (bot, msg, params) => {
         mode = cs.getParamValue('mode=', params, 'fpp');
     }
 
+    let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
     if(!(await checkParameters(msg, season, region, mode))) {
+        checkingParametersMsg.delete();
         return;
     }
     
-    msg.channel.send('Getting data for ' + username)
+    checkingParametersMsg.edit('Getting data for ' + username)
         .then(async (message) => {
             let id = await scrape.getCharacterID(username);
             if(!id) {
@@ -77,42 +79,54 @@ function addEmbedFields(embed, squadType, playerData) {
         .addField('Average Damage', playerData.average_damage_dealt, true);
 }    
 
-function handleError(msg, errMessage, includeHelp) {
-    let message = `Error:: ${errMessage}\n`;
-    if(includeHelp) {
-        message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`;
-    }
-    msg.channel.send(message, { code: 'asciidoc'});
-}
-
 async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
-    if(!(await scrape.isValidSeason(checkSeason))) {
+    let errMessage = '';
+
+    let validSeason = await scrape.isValidSeason(checkSeason);
+    let validRegion = await scrape.isValidRegion(checkRegion);
+    let validMode = await scrape.isValidMode(checkMode);
+    if(!validSeason) {
         let seasons = await sql.getAllSeasons();
         let availableSeasons = '== Available Seasons ==\n';
         for(let i = 0; i < seasons.length; i++) {
-            availableSeasons += seasons[i].season + '\n';
+            if(i < seasons.length-1) {
+                availableSeasons += seasons[i].season + ', ';
+            } else {
+                availableSeasons += seasons[i].season; 
+            }
         }
-        handleError(msg, `Invalid season parameter \n\n${availableSeasons}`, true);
-        return false;
+        errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
     }
-    if(!(await scrape.isValidRegion(checkRegion))) {
+    if(!validRegion) {
         let regions = await sql.getAllRegions();
         let availableRegions = '== Available Regions ==\n';
         for(let i = 0; i < regions.length; i++) {
-            availableRegions += regions[i].shortname + '\n';
+            if(i < regions.length-1) {
+                availableRegions += regions[i].shortname + ', ';
+            } else {
+                availableRegions += regions[i].shortname;
+            }
         }
-        handleError(msg, `Invalid region parameter \n\n${availableRegions}`, true);
-        return false;
+        errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
     }
-    if(!(await scrape.isValidMode(checkMode))) {
+    if(!validMode) {
         let modes = await sql.getAllModes();
         let availableModes = '== Available Modes ==\n';
         for(let i = 0; i < modes.length; i++) {
-            availableModes += modes[i].shortname + '\n';
+            if(i < modes.length-1) {
+                availableModes += modes[i].shortname + ', ';
+            } else {
+                availableModes += modes[i].shortname;
+            }
         }
-        handleError(msg, `Invalid mode parameter \n\n${availableModes}`, true);
+        errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
+    }
+
+    if(!validSeason || !validRegion || !validMode) {
+        cs.handleError(msg, errMessage, help);
         return false;
     }
+
     return true;
 }
 

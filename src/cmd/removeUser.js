@@ -1,9 +1,10 @@
+const cs = require('../services/common.service');
 const sql = require('../services/sql.service');
 const scrape = require('../services/pubg.service');
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
-        handleError(msg, 'Must specify a username');
+        cs.handleError(msg, 'Error:: Must specify a username', help);
         return;
     }
     let username = params[0].toLowerCase();
@@ -25,10 +26,6 @@ exports.run = async (bot, msg, params) => {
             
         });
 };
-
-function handleError(msg, errMessage) {
-    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
-}
 
 exports.conf = {
     enabled: true,
