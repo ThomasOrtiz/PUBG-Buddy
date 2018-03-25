@@ -61,8 +61,13 @@
 !pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp
 
 // Top Failing
-!pubg-top season=2018-032 --> err show all
-!pubg-top region=nax --> err show all
-!pubg-top squadSize=-1 --> err show all
-!pubg-top mode=tppp --> err show all
+!pubg-top season=2018-032 --> err show season
+!pubg-top region=nax --> err show region
+!pubg-top squadSize=-1 --> err show size
+!pubg-top mode=tppp --> err mode
 !pubg-top season=2018-032 region=nax squadSize=-1 mode=tppp --> err show all
+!pubg-top 5 season=2018-032 --> err show season
+!pubg-top 5 region=nax --> err show region
+!pubg-top 5 squadSize=-1 --> err show size
+!pubg-top 5 mode=tppp --> err mode
+!pubg-top 5 season=2018-032 region=nax squadSize=-1 mode=tppp --> err show all
