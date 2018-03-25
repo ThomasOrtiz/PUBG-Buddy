@@ -130,6 +130,10 @@ async function isValidMode(checkMode) {
 }
 
 async function isValidSquadSize(checkSize) {
+    if(!(+checkSize)) {
+        return false;
+    }
+    checkSize = +checkSize;
     let squadSizes = await sql.getAllSquadSizes();
     for(let i = 0; i < squadSizes.length; i++) {
         if(squadSizes[i].size === checkSize) return true;

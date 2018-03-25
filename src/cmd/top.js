@@ -14,7 +14,7 @@ exports.run = async (bot, msg, params) => {
     let season = cs.getParamValue('season=', params, serverDefaults.default_season);
     let region = cs.getParamValue('region=', params, serverDefaults.default_region);
     let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
-    let squadSize = +cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
+    let squadSize = cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
 
     let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
     if(!(await checkParameters(msg, season, region, mode, squadSize))) {
@@ -43,7 +43,7 @@ exports.run = async (bot, msg, params) => {
                 }            
                 
                 let id = await scrape.getCharacterID(player.username);
-                let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
+                let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
 
                 // Check if character info exists for this (it wont if a user hasn't played yet)
                 if(!characterInfo) {

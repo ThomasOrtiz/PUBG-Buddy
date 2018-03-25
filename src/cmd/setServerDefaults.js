@@ -8,7 +8,7 @@ exports.run = async (bot, msg, params) => {
     let season = cs.getParamValue('season=', params, false);
     let region = cs.getParamValue('region=', params, false);
     let mode = cs.getParamValue('mode=', params, false);
-    let squadSize = +cs.getParamValue('squadSize=', params, false);
+    let squadSize = cs.getParamValue('squadSize=', params, false);
 
     let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
     if(!(await checkParameters(msg, prefix, season, region, mode, squadSize))) {
@@ -18,7 +18,7 @@ exports.run = async (bot, msg, params) => {
 
     checkingParametersMsg.edit('Updating this server\'s defaults ...')
         .then(async (msg) => {
-            sql.setServerDefaults(msg.guild.id, prefix, season, region, mode, squadSize)
+            sql.setServerDefaults(msg.guild.id, prefix, season, region, mode, +squadSize)
                 .then(async () => {
                     let server = await sql.getServerDefaults(msg.guild.id);
                     let embed = new Discord.RichEmbed()
@@ -100,7 +100,7 @@ async function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode,
         errMessage += `\nError:: Invalid squad size parameter\n${availableSizes}\n`;
     }
 
-    if(!validPrefix || !validMode || !validRegion || !validMode || !validSquadSize) {
+    if(!validPrefix || !validSeason || !validRegion || !validMode || !validSquadSize) {
         cs.handleError(msg, errMessage, help);
         return false;
     }
