@@ -5,11 +5,7 @@ const curl = require('curlrequest');
 const sql = require('./sql.service');
 const cs = require('./common.service');
 const Player = require('../models/player');
-const SeasonEnum = require('../models/seasons.enum');
-const SquadSizeEnum = require('../models/squadSize.enum');
-const ModeEnum = require('../models/mode.enum');
-const RegionEnum = require('../models/region.enum');
-
+const SquadSizeEnum = require('../enums/squadSize.enum');
 
 module.exports = {
     getPUBGCharacterData,
@@ -106,45 +102,41 @@ async function getPUBGCharacterData(id, username, season, region, squadSize, mod
  * @param {int} squadSize 
  */
 function getSquadSizeString(squadSize) {
-    return SquadSizeEnum.properties[squadSize].name;
+    return SquadSizeEnum.get(squadSize);
 }
 
-function isValidSeason(checkSeason) {
-    for(let item in SeasonEnum) {
-        let validSeason = SeasonEnum[item];
-        if(checkSeason === validSeason) {
-            return true;
-        }
+async function isValidSeason(checkSeason) {
+    let seasons = await sql.getAllSeasons();
+    for(let i = 0; i < seasons.length; i++) {
+        if(seasons[i].season === checkSeason) return true;
     }
     return false;
 }
 
-function isValidRegion(checkRegion) {
-    for(let item in RegionEnum) {
-        let validRegion = RegionEnum[item];
-        if(checkRegion === validRegion) {
-            return true;
-        }
+async function isValidRegion(checkRegion) {
+    let regions = await sql.getAllRegions();
+    for(let i = 0; i < regions.length; i++) {
+        if(regions[i].shortname === checkRegion) return true;
     }
     return false;
 }
 
-function isValidMode(checkMode) {
-    for(let item in ModeEnum) {
-        let validMode = ModeEnum[item];
-        if(checkMode === validMode) {
-            return true;
-        }
+async function isValidMode(checkMode) {
+    let modes = await sql.getAllModes();
+    for(let i = 0; i < modes.length; i++) {
+        if(modes[i].shortname === checkMode) return true;
     }
     return false;
 }
 
-function isValidSquadSize(checkSize) {
-    for(let item in SquadSizeEnum) {
-        let validMode = SquadSizeEnum[item];
-        if(checkSize === validMode) {
-            return true;
-        }
+async function isValidSquadSize(checkSize) {
+    if(!(+checkSize)) {
+        return false;
+    }
+    checkSize = +checkSize;
+    let squadSizes = await sql.getAllSquadSizes();
+    for(let i = 0; i < squadSizes.length; i++) {
+        if(squadSizes[i].size === checkSize) return true;
     }
     return false;
 }

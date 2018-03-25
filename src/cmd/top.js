@@ -2,7 +2,8 @@ const Discord = require('discord.js');
 const cs = require('../services/common.service');
 const scrape = require('../services/pubg.service');
 const sql = require('../services/sql.service');
-const SeasonEnum = require('../models/seasons.enum');
+const SeasonEnum = require('../enums/season.enum');
+const SquadSizeEnum = require('../enums/squadSize.enum');
 
 exports.run = async (bot, msg, params) => {
     let amount = 10;
@@ -13,21 +14,23 @@ exports.run = async (bot, msg, params) => {
     let season = cs.getParamValue('season=', params, serverDefaults.default_season);
     let region = cs.getParamValue('region=', params, serverDefaults.default_region);
     let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
-    let squadSize = +cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
-    let seasonId = SeasonEnum[season] || season;
-    if(!checkParameters(msg, seasonId, region, mode, squadSize)) {
+    let squadSize = cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
+
+    let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
+    if(!(await checkParameters(msg, season, region, mode, squadSize))) {
+        checkingParametersMsg.delete();
         return;
     }
-    let squadSizeString = scrape.getSquadSizeString(squadSize);
+
 
     let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
     if(registeredPlayers.length === 0) {
-        msg.channel.send('No users registered yet. Use `pubg-addUser <username>`');
+        cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command');
         return;
     }
     
     const batchEditAmount = 5;
-    msg.channel.send(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
+    checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
     msg.channel.send('Grabbing player data')
         .then(async (msg) => {
             let playersInfo = new Array();
@@ -37,11 +40,10 @@ exports.run = async (bot, msg, params) => {
                 if(i % batchEditAmount === 0) {
                     let max = (i+batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i+batchEditAmount;
                     msg.edit(`Grabbing data for players ${i+1} - ${max}`);
-                }
-                //msg.edit('(' + (i+1)  + '/' + registeredPlayers.length + '): Getting data for ' + player.username);                
+                }            
                 
                 let id = await scrape.getCharacterID(player.username);
-                let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, squadSize, mode);
+                let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
 
                 // Check if character info exists for this (it wont if a user hasn't played yet)
                 if(!characterInfo) {
@@ -64,7 +66,7 @@ exports.run = async (bot, msg, params) => {
 
             let embed = new Discord.RichEmbed()
                 .setTitle('Top ' + amount + ' local players')
-                .setDescription('Season:\t' + season + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + squadSizeString)
+                .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum.get(squadSize))
                 .setColor(0x00AE86)
                 .setFooter('Data retrieved from https://pubg.op.gg/')
                 .setTimestamp();
@@ -90,27 +92,68 @@ exports.run = async (bot, msg, params) => {
         });
 };
 
-function handleError(msg, errMessage) {
-    msg.channel.send(`Error:: ${errMessage}\n\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`, { code: 'asciidoc'});
-}
+async function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSquadSize) {
+    let errMessage = '';
 
-function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSquadSize) {
-    if(!scrape.isValidSeason(checkSeason)) {
-        handleError(msg, 'Invalid season parameter');
+    let validSeason = await scrape.isValidSeason(checkSeason);
+    let validRegion = await scrape.isValidRegion(checkRegion);
+    let validMode = await scrape.isValidMode(checkMode);
+    let validSquadSize = await scrape.isValidSquadSize(checkSquadSize);
+
+    if(!validSeason) {
+        let seasons = await sql.getAllSeasons();
+        let availableSeasons = '== Available Seasons ==\n';
+        for(let i = 0; i < seasons.length; i++) {
+            if(i < seasons.length-1) {
+                availableSeasons += seasons[i].season + ', ';
+            } else {
+                availableSeasons += seasons[i].season; 
+            }
+        }
+        errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
+    }
+    if(!validRegion) {
+        let regions = await sql.getAllRegions();
+        let availableRegions = '== Available Regions ==\n';
+        for(let i = 0; i < regions.length; i++) {
+            if(i < regions.length-1) {
+                availableRegions += regions[i].shortname + ', ';
+            } else {
+                availableRegions += regions[i].shortname;
+            }
+        }
+        errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
+    }
+    if(!validMode) {
+        let modes = await sql.getAllModes();
+        let availableModes = '== Available Modes ==\n';
+        for(let i = 0; i < modes.length; i++) {
+            if(i < modes.length-1) {
+                availableModes += modes[i].shortname + ', ';
+            } else {
+                availableModes += modes[i].shortname;
+            }
+        }
+        errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
+    }
+    if(!validSquadSize) {
+        let squadSizes = await sql.getAllSquadSizes();
+        let availableSizes = '== Available Squad Sizes ==\n';
+        for(let i = 0; i < squadSizes.length; i++) {
+            if(i < squadSizes.length-1) {
+                availableSizes += squadSizes[i].size + ', ';
+            } else {
+                availableSizes += squadSizes[i].size;
+            }
+        }
+        errMessage += `\nError:: Invalid squad size parameter\n${availableSizes}\n`;
+    }
+
+    if(!validSeason || !validRegion || !validMode || !validSquadSize) {
+        cs.handleError(msg, errMessage, help);
         return false;
     }
-    if(!scrape.isValidRegion(checkRegion)) {
-        handleError(msg, 'Invalid region parameter');
-        return false;
-    }
-    if(!scrape.isValidMode(checkMode)) {
-        handleError(msg, 'Invalid mode parameter');
-        return false;
-    }
-    if(!scrape.isValidSquadSize(checkSquadSize)) {
-        handleError(msg, 'Invalid squadSize parameter');
-        return false;
-    }
+
     return true;
 }
 

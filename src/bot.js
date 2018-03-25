@@ -31,9 +31,6 @@ fs.readdir('./src/cmd/', (err, files) => {
     });
 });
 
-// Setup DB
-sqlService.setupTables();
-
 // Setup events
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
@@ -63,7 +60,7 @@ bot.on('message', async msg => {
     // Grab relevant guild info if not DM
     if(msg.guild) {
         isGuildMessage = true;
-        let server_defaults = await sqlService.getServerDefaults(msg.guild.id);
+        let server_defaults = await sqlService.getOrRegisterServer(msg.guild.id);
         prefix = server_defaults.default_bot_prefix;
         perms = bot.elevation(msg);
     }
@@ -81,7 +78,6 @@ bot.on('message', async msg => {
         cmd.run(bot, msg, params, perms);
     }
 });
-
 bot.reload = function(command) {
     return new Promise((resolve, reject) => {
         try {

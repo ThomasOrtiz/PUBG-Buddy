@@ -1,0 +1,72 @@
+!pubg-info
+!pubg-ping
+!pubg-shrug 
+!pubg-shrug 5
+!pubg-getModes
+!pubg-getSeasons
+!pubg-getRegions
+!pubg-getSquadSizes
+
+!pubg-help
+!pubg-help setServerDefaults
+
+!pubg-getServerDefaults
+!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=tpp
+!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=fpp
+
+// getServerDefaults ERRORS
+!pubg-setServerDefaults                                                             --> err specify all
+!pubg-setServerDefaults prefix= season=2018-03 region=na squadSize=4 mode=tpp       --> err specify all
+!pubg-setServerDefaults prefix=!pubg- season=2018--1 region=no squadSize=no mode=no --> err show all error
+!pubg-setServerDefaults prefix=!pubg- season=2018-04 region=na squadSize=4 mode=tpp  --> err season
+!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=naa squadSize=4 mode=tpp --> err region
+!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=3 mode=tpp  --> err squadSize
+!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=tppf --> err mode
+
+
+!pubg-users
+!pubg-removeUser thomas-o
+!pubg-users --> thomas-o should be gone
+!pubg-addUser thomas-o
+!pubg-users --> thomas-o should appear
+
+// RANK passing
+!pubg-rank thomas-o
+!pubg-rank thomas-o season=2018-03
+!pubg-rank thomas-o season=2018-03 region=eu
+!pubg-rank thomas-o season=2018-03 region=na mode=tpp
+!pubg-rank thomas-o region=eu mode=tpp season=2018-02
+
+// Rank Failing
+!pubg-rank --> err specify username
+!pubg-rank thomas-o region=naa --> err region
+!pubg-rank thomas-o mode=fppa  --> err mode
+!pubg-rank thomas-o season=2018-03a --> err season
+!pubg-rank thomas-o region=naa mode=fppa season=2018-03a --> err show all
+
+!pubg-addUser sharp_sack
+!pubg-users
+
+// TOP Passing
+!pubg-top
+!pubg-top season=2018-03
+!pubg-top season=2018-03 region=na
+!pubg-top season=2018-03 region=na squadSize=4
+!pubg-top season=2018-03 region=na squadSize=4 mode=tpp
+!pubg-top 5
+!pubg-top 5 season=2018-03
+!pubg-top 5 season=2018-03 region=na
+!pubg-top 5 season=2018-03 region=na squadSize=4
+!pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp
+
+// Top Failing
+!pubg-top season=2018-032 --> err show season
+!pubg-top region=nax --> err show region
+!pubg-top squadSize=-1 --> err show size
+!pubg-top mode=tppp --> err mode
+!pubg-top season=2018-032 region=nax squadSize=-1 mode=tppp --> err show all
+!pubg-top 5 season=2018-032 --> err show season
+!pubg-top 5 region=nax --> err show region
+!pubg-top 5 squadSize=-1 --> err show size
+!pubg-top 5 mode=tppp --> err mode
+!pubg-top 5 season=2018-032 region=nax squadSize=-1 mode=tppp --> err show all

@@ -14,7 +14,7 @@ exports.conf = {
 
 exports.help = {
     name: 'ping',
-    description: 'Ping/Pong command. I wonder what this does? /sarcasm',
+    description: 'Check your ping to the bot',
     usage: '<prefix>ping',
     examples: [
         '!pubg-ping'

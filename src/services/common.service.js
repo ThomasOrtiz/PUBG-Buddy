@@ -5,8 +5,23 @@ module.exports = {
     getEnvironmentVariable,
     getParamValue,
     getPercentFromFraction,
+    handleError,
     round
 };
+
+/**
+ * 
+ * @param {discord.client} msg: discord client
+ * @param {string} errMessage: error string
+ * @param {obj} help: command help object 
+ */
+function handleError(msg, errMessage, help) {
+    let message = `${errMessage}\n`;
+    if(help) {
+        message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`;
+    }
+    msg.channel.send(message, { code: 'asciidoc'});
+}
 
 /**
  * Returns index of position of a string if it exists as a
