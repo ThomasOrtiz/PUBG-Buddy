@@ -12,7 +12,6 @@
 
 !pubg-getServerDefaults
 !pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=tpp
-!pubg-getServerDefaults --> confirm above is outputed
 !pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na squadSize=4 mode=fpp
 
 // getServerDefaults ERRORS
@@ -36,7 +35,7 @@
 !pubg-rank thomas-o season=2018-03
 !pubg-rank thomas-o season=2018-03 region=eu
 !pubg-rank thomas-o season=2018-03 region=na mode=tpp
-!pubg-rank thomas-o region=na mode=fpp season=2018-03
+!pubg-rank thomas-o region=eu mode=tpp season=2018-02
 
 // Rank Failing
 !pubg-rank --> err specify username
