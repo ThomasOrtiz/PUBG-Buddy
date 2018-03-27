@@ -4,7 +4,7 @@ BEGIN;
 
     CREATE TABLE IF NOT EXISTS servers
         (id SERIAL PRIMARY KEY, server_id TEXT, default_bot_prefix TEXT DEFAULT '!pubg-', 
-        default_season TEXT DEFAULT '2018-03',  default_region TEXT DEFAULT 'na', 
+        default_season TEXT DEFAULT '2018-04',  default_region TEXT DEFAULT 'na', 
         default_mode TEXT DEFAULT 'fpp', default_squadSize TEXT DEFAULT '4');
 
     CREATE TABLE IF NOT EXISTS server_registery 
@@ -28,6 +28,10 @@ BEGIN;
 
     INSERT INTO seasons (name, season)
     VALUES ('Season 3', '2018-03')
+    ON CONFLICT (season) do nothing;
+
+    INSERT INTO seasons (name, season)
+    VALUES ('Season 4', '2018-04')
     ON CONFLICT (season) do nothing;
 COMMIT;
 
@@ -74,7 +78,11 @@ BEGIN;
     ON CONFLICT (fullname) do nothing;
 
     INSERT INTO regions (fullname, shortname)
-    VALUES ('Korea / Japan', 'kr/jp')
+    VALUES ('Korea', 'kr')
+    ON CONFLICT (fullname) do nothing;
+
+    INSERT INTO regions (fullname, shortname)
+    VALUES ('Japan', 'jp')
     ON CONFLICT (fullname) do nothing;
 
     INSERT INTO regions (fullname, shortname)
