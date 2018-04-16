@@ -42,7 +42,7 @@ exports.run = async (bot, msg, params) => {
                     msg.edit(`Grabbing data for players ${i+1} - ${max}`);
                 }            
                 
-                let id = await scrape.getCharacterID(player.username);
+                let id = await scrape.getCharacterID(player.username, region);
                 let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
 
                 // Check if character info exists for this (it wont if a user hasn't played yet)

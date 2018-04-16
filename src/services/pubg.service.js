@@ -17,9 +17,9 @@ module.exports = {
     isValidSquadSize
 };
 
-// Webscraping URL --> pubgBaseRL + <username> + pubgNAServer
+// Webscraping URL --> pubgBaseRL + <username> + pubgServer
 const pubgBaseURL = 'https://pubg.op.gg/user/';
-const pubgNAServer = '?server=na';
+const pubgServer = '?server=';
 // Direct API URL --> apiURL + <id> + apiOptions
 const apiURL = 'https://pubg.op.gg/api/users/'; 
 const apiOptions = '/ranked-stats';
@@ -28,7 +28,7 @@ const apiOptions = '/ranked-stats';
  * Returns a pubg character id
  * @param {string} username 
  */
-async function getCharacterID(username) {
+async function getCharacterID(username, region) {
     username = username.toLowerCase();
 
     return sql.getPlayer(username)
@@ -36,7 +36,7 @@ async function getCharacterID(username) {
             if(player && player.pubg_id && player.pubg_id !== '') {
                 return player.pubg_id;
             } else {
-                return webScrapeForId(username);
+                return webScrapeForId(username, region);
             }
         });
 }
@@ -45,9 +45,9 @@ async function getCharacterID(username) {
  * Using curl this scrapes pubg.op.gg for pubg character id.
  * @param {string} username: pubg username 
  */
-function webScrapeForId(username) {
-    logger.info('\tWebscraping for ' + username);
-    let url = pubgBaseURL + username + pubgNAServer;
+function webScrapeForId(username, region) {
+    logger.info(`\tWebscraping for ${username} on the ${region} region`);
+    let url = pubgBaseURL + username + pubgServer + region;
     return new Promise(function(resolve, reject){ 
         curl.request(url, async (err, stdout) => {
             if(err) { reject(err); }

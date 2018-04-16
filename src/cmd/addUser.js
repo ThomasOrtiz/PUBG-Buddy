@@ -9,20 +9,22 @@ exports.run = async (bot, msg, params) => {
     }
     let username = params[0].toLowerCase();
 
-    msg.channel.send('Checking for ' + username + '\'s PUBG Id ... give me a second')
+    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+    let region = cs.getParamValue('region=', params, serverDefaults.default_region);
+
+    msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`)
         .then(async (message) => {
-            let pubgId = await scrape.getCharacterID(username);
+            let pubgId = await scrape.getCharacterID(username, region);
         
             if (pubgId && pubgId !== '') {
                 let registered = await sql.registerUserToServer(pubgId, message.guild.id);
                 if(registered) {
-                    message.edit('Added ' + username);
+                    message.edit(`Added ${username}`);
                 } else {
-                    message.edit('Could not add ' + username);
+                    message.edit(`Could not add ${username}`);
                 }
-                
             } else {
-                message.edit('Invalid username: ' + username);
+                message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
             }
         });
 };
@@ -37,8 +39,9 @@ exports.conf = {
 let help = exports.help = {
     name: 'addUser',
     description: 'Adds a user to the server\'s registery.',
-    usage: '<prefix>addUser <pubg username>',
+    usage: '<prefix>addUser <pubg username> [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)]',
     examples: [
-        '!pubg-addUser john'
+        '!pubg-addUser john',
+        '!pubg-addUser john region=eu'
     ]
 };

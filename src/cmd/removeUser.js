@@ -8,20 +8,22 @@ exports.run = async (bot, msg, params) => {
         return;
     }
     let username = params[0].toLowerCase();
+    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+    let region = cs.getParamValue('region=', params, serverDefaults.default_region);
 
-    msg.channel.send('Removing ' + username + ' from server registry')
+    msg.channel.send(`Removing ${username} from server registry`)
         .then(async (message) => {
-            let pubgId = await scrape.getCharacterID(username);
+            let pubgId = await scrape.getCharacterID(username, region);
             if(!pubgId) {
-                message.edit('Invalid username: ' + username);
+                message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                 return;
             }
 
             let unregistered = await sql.unRegisterUserToServer(pubgId, message.guild.id);
             if(unregistered) {
-                message.edit('Removed ' + username + ' from server registry');
+                message.edit(`Removed ${username} from server registry`);
             } else {
-                message.edit(username + ' did not exist on server registery');
+                message.edit(`${username} does not exist on server registery`);
             }
             
         });
@@ -37,8 +39,9 @@ exports.conf = {
 let help = exports.help = {
     name: 'removeUser',
     description: 'Removes a user from the server\'s registery.',
-    usage: '<prefix>removeUser <username>',
+    usage: '<prefix>removeUser <username> [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)]',
     examples: [
         '!pubg-removeUser john',
+        '!pubg-removeUser john region=na'
     ]
 };
