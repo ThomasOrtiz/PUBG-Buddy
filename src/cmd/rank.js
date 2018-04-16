@@ -28,11 +28,11 @@ exports.run = async (bot, msg, params) => {
         return;
     }
     
-    checkingParametersMsg.edit('Getting data for ' + username)
+    checkingParametersMsg.edit(`Getting data for ${username}`)
         .then(async (message) => {
-            let id = await scrape.getCharacterID(username);
+            let id = await scrape.getCharacterID(username, region);
             if(!id) {
-                message.edit('Invalid username: ' + username);
+                message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                 return;
             }
             let soloData = await scrape.getPUBGCharacterData(id, username, season, region, 1, mode);
