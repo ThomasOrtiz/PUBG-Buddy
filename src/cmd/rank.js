@@ -42,7 +42,7 @@ exports.run = async (bot, msg, params) => {
                 .setTitle('Ranking: ' + username)
                 .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
                 .setColor(0x00AE86)
-                .setFooter('Retrieved from https://pubg.op.gg/' + username + '?server=' + region)
+                .setFooter(`https://pubg.op.gg/user/${username}?server=${region}`)
                 .setTimestamp();
                 
             if(soloData) {
