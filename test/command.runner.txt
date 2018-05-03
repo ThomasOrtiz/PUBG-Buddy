@@ -30,6 +30,9 @@
 !pubg-addUser thomas-o
 !pubg-users --> thomas-o should appear
 
+!pubg-addUser BrainBlow --> this is a check for adding user that has never played on na. Make sure player doesn't exist in db either
+!pubg-addUser BrainBlow region=eu
+
 // RANK passing
 !pubg-rank thomas-o
 !pubg-rank thomas-o season=2018-03
@@ -38,7 +41,7 @@
 !pubg-rank thomas-o region=eu mode=tpp season=2018-02
 
 // Rank Failing
-!pubg-rank --> err specify username
+!pubg-rank  --> err specify username
 !pubg-rank thomas-o region=naa --> err region
 !pubg-rank thomas-o mode=fppa  --> err mode
 !pubg-rank thomas-o season=2018-03a --> err season
