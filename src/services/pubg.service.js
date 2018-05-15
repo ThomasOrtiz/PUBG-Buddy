@@ -27,6 +27,7 @@ const apiOptions = '/ranked-stats';
 /**
  * Returns a pubg character id
  * @param {string} username 
+ * @param {string} region: region
  */
 async function getCharacterID(username, region) {
     username = username.toLowerCase();
@@ -44,6 +45,7 @@ async function getCharacterID(username, region) {
 /**
  * Using curl this scrapes pubg.op.gg for pubg character id.
  * @param {string} username: pubg username 
+ * @param {string} region: region
  */
 function webScrapeForId(username, region) {
     logger.info(`\tWebscraping for ${username} on the ${region} region`);

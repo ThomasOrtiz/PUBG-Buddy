@@ -10,6 +10,9 @@ exports.run = async (bot, msg, params) => {
 
     for(let i=0; i < params.length; i++) {
         let username = params[i].toLowerCase();
+        if(username.indexOf('region=') >= 0){
+            continue;
+        }
         let serverDefaults = await sql.getServerDefaults(msg.guild.id);
         let region = cs.getParamValue('region=', params, serverDefaults.default_region);
 
