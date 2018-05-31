@@ -37,6 +37,10 @@ BEGIN;
     INSERT INTO seasons (name, season)
     VALUES ('Season 5', '2018-05')
     ON CONFLICT (season) do nothing;
+
+    INSERT INTO seasons (name, season)
+    VALUES ('Season 6', '2018-06')
+    ON CONFLICT (season) do nothing;
 COMMIT;
 
 /** Setup squad_sizes table */
