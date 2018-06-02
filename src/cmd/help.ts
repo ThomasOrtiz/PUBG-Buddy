@@ -1,5 +1,5 @@
-const cs = require('../services/common.service');
-const sqlService = require('../services/sql.service');
+import { CommonService as cs } from '../services/common.service';
+import {SqlServerService as sqlService} from '../services/sql.service';
 
 exports.run = async (bot, msg, params) => {
     let default_bot_prefix = cs.getEnvironmentVariable('prefix');

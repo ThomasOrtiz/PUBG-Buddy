@@ -1,12 +1,12 @@
-const sql = require('../services/sql.service');
+import { SqlSeasonsService as sqlSeasonsService } from '../services/sql.service';
 
 exports.run = async (bot, msg) => {
-    let seasons = await sql.getAllSeasons();
+    let seasons = await sqlSeasonsService.getAllSeasons();
 
-    let seasonStr = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
+    let seasonStr: string = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
     for(let i = 0; i < seasons.length; i++) {
-        let key = seasons[i].name;
-        let value = seasons[i].season;
+        let key: string = seasons[i].name;
+        let value: string = seasons[i].season;
         seasonStr += `${key.padEnd(10)}: ${value}\n`;
     }
     

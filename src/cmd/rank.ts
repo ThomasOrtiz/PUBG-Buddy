@@ -1,7 +1,12 @@
-const Discord = require('discord.js');
-const cs = require('../services/common.service');
-const scrape = require('../services/pubg.service');
-const sql = require('../services/sql.service');
+import * as Discord from 'discord.js';
+import { CommonService as cs } from '../services/common.service';
+import { PubgService as pubgService } from '../services/pubg.service';
+import {
+    SqlServerService as sqlServerService,
+    SqlSeasonsService as sqlSeasonsService,
+    SqlRegionsService as sqlRegionsService,
+    SqlModesService as sqlModesService
+} from '../services/sql.service';
 const SeasonEnum = require('../enums/season.enum');
 
 exports.run = async (bot, msg, params) => {
@@ -12,12 +17,12 @@ exports.run = async (bot, msg, params) => {
     let username = params[0].toLowerCase();
     let serverDefaults, season, region, mode;
     if(msg.guild) {
-        serverDefaults = await sql.getServerDefaults(msg.guild.id);
+        serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
         season = cs.getParamValue('season=', params, serverDefaults.default_season);
         region = cs.getParamValue('region=', params, serverDefaults.default_region);
         mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
     } else {
-        season = cs.getParamValue('season=', params, await sql.getLatestSeason());
+        season = cs.getParamValue('season=', params, await sqlSeasonsService.getLatestSeason());
         region = cs.getParamValue('region=', params, 'na');
         mode = cs.getParamValue('mode=', params, 'fpp');
     }
@@ -30,14 +35,14 @@ exports.run = async (bot, msg, params) => {
     
     checkingParametersMsg.edit(`Getting data for ${username}`)
         .then(async (message) => {
-            let id = await scrape.getCharacterID(username, region);
+            let id = await pubgService.getCharacterID(username, region);
             if(!id) {
                 message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                 return;
             }
-            let soloData = await scrape.getPUBGCharacterData(id, username, season, region, 1, mode);
-            let duoData = await scrape.getPUBGCharacterData(id, username, season, region, 2, mode);
-            let squadData = await scrape.getPUBGCharacterData(id, username, season, region, 4, mode);
+            let soloData = await pubgService.getPUBGCharacterData(id, username, season, region, 1, mode);
+            let duoData = await pubgService.getPUBGCharacterData(id, username, season, region, 2, mode);
+            let squadData = await pubgService.getPUBGCharacterData(id, username, season, region, 4, mode);
             let embed = new Discord.RichEmbed()
                 .setTitle('Ranking: ' + username)
                 .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
@@ -82,11 +87,11 @@ function addEmbedFields(embed, squadType, playerData) {
 async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
     let errMessage = '';
 
-    let validSeason = await scrape.isValidSeason(checkSeason);
-    let validRegion = await scrape.isValidRegion(checkRegion);
-    let validMode = await scrape.isValidMode(checkMode);
+    let validSeason = await pubgService.isValidSeason(checkSeason);
+    let validRegion = await pubgService.isValidRegion(checkRegion);
+    let validMode = await pubgService.isValidMode(checkMode);
     if(!validSeason) {
-        let seasons = await sql.getAllSeasons();
+        let seasons = await sqlSeasonsService.getAllSeasons();
         let availableSeasons = '== Available Seasons ==\n';
         for(let i = 0; i < seasons.length; i++) {
             if(i < seasons.length-1) {
@@ -98,7 +103,7 @@ async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
         errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
     }
     if(!validRegion) {
-        let regions = await sql.getAllRegions();
+        let regions = await sqlRegionsService.getAllRegions();
         let availableRegions = '== Available Regions ==\n';
         for(let i = 0; i < regions.length; i++) {
             if(i < regions.length-1) {
@@ -110,7 +115,7 @@ async function checkParameters(msg, checkSeason, checkRegion, checkMode) {
         errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
     }
     if(!validMode) {
-        let modes = await sql.getAllModes();
+        let modes = await sqlModesService.getAllModes();
         let availableModes = '== Available Modes ==\n';
         for(let i = 0; i < modes.length; i++) {
             if(i < modes.length-1) {

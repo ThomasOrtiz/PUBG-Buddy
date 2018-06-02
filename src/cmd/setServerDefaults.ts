@@ -1,7 +1,13 @@
-const Discord = require('discord.js');
-const cs = require('../services/common.service');
-const sql = require('../services/sql.service');
-const scrape = require('../services/pubg.service');
+import * as Discord from 'discord.js';
+import { CommonService as cs } from '../services/common.service';
+import { PubgService as pubgService } from '../services/pubg.service';
+import {
+    SqlServerService as sqlServerService,
+    SqlSeasonsService as sqlSeasonsService,
+    SqlRegionsService as sqlRegionsService,
+    SqlModesService as sqlModesService,
+    SqlSqaudSizeService as sqlSqaudSizeService
+} from '../services/sql.service';
 
 exports.run = async (bot, msg, params) => {
     let prefix = cs.getParamValue('prefix=', params, false);
@@ -18,9 +24,9 @@ exports.run = async (bot, msg, params) => {
 
     checkingParametersMsg.edit('Updating this server\'s defaults ...')
         .then(async (msg) => {
-            sql.setServerDefaults(msg.guild.id, prefix, season, region, mode, +squadSize)
+            sqlServerService.setServerDefaults(msg.guild.id, prefix, season, region, mode, +squadSize)
                 .then(async () => {
-                    let server = await sql.getServerDefaults(msg.guild.id);
+                    let server = await sqlServerService.getServerDefaults(msg.guild.id);
                     let embed = new Discord.RichEmbed()
                         .setTitle('Server Defaults')
                         .setDescription('The defaults that a server has when running PUBG Bot commands.')
@@ -46,13 +52,13 @@ async function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode,
     let errMessage = '';
 
     let validPrefix = prefix.length > 0;
-    let validSeason = await scrape.isValidSeason(checkSeason);
-    let validRegion = await scrape.isValidRegion(checkRegion);
-    let validMode = await scrape.isValidMode(checkMode);
-    let validSquadSize = await scrape.isValidSquadSize(checkSquadSize);
+    let validSeason = await pubgService.isValidSeason(checkSeason);
+    let validRegion = await pubgService.isValidRegion(checkRegion);
+    let validMode = await pubgService.isValidMode(checkMode);
+    let validSquadSize = await pubgService.isValidSquadSize(checkSquadSize);
 
     if(!validSeason) {
-        let seasons = await sql.getAllSeasons();
+        let seasons = await sqlSeasonsService.getAllSeasons();
         let availableSeasons = '== Available Seasons ==\n';
         for(let i = 0; i < seasons.length; i++) {
             if(i < seasons.length-1) {
@@ -64,7 +70,7 @@ async function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode,
         errMessage += `\nError:: Invalid season parameter\n${availableSeasons}\n`;
     }
     if(!validRegion) {
-        let regions = await sql.getAllRegions();
+        let regions = await sqlRegionsService.getAllRegions();
         let availableRegions = '== Available Regions ==\n';
         for(let i = 0; i < regions.length; i++) {
             if(i < regions.length-1) {
@@ -76,7 +82,7 @@ async function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode,
         errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
     }
     if(!validMode) {
-        let modes = await sql.getAllModes();
+        let modes = await sqlModesService.getAllModes();
         let availableModes = '== Available Modes ==\n';
         for(let i = 0; i < modes.length; i++) {
             if(i < modes.length-1) {
@@ -88,7 +94,7 @@ async function checkParameters(msg, prefix, checkSeason, checkRegion, checkMode,
         errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
     }
     if(!validSquadSize) {
-        let squadSizes = await sql.getAllSquadSizes();
+        let squadSizes = await sqlSqaudSizeService.getAllSquadSizes();
         let availableSizes = '== Available Squad Sizes ==\n';
         for(let i = 0; i < squadSizes.length; i++) {
             if(i < squadSizes.length-1) {

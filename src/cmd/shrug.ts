@@ -7,7 +7,7 @@ exports.run = (bot, msg, params) => {
     }
 
     for(let i = 0; i < amount; i++){
-        let backslash = '\\';
+        let backslash: string = '\\';
         shrugString += '¯' + backslash.repeat(3) + '_ツ' + backslash + '_/¯\t';
     }
 

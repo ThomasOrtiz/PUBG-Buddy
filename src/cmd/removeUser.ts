@@ -1,6 +1,9 @@
-const cs = require('../services/common.service');
-const sql = require('../services/sql.service');
-const scrape = require('../services/pubg.service');
+import { CommonService as cs } from '../services/common.service';
+import { PubgService as pubgService } from '../services/pubg.service';
+import {
+    SqlServerService as sqlServerService,
+    SqlServerRegisteryService as sqlServerRegisteryService
+} from '../services/sql.service';
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
@@ -13,18 +16,18 @@ exports.run = async (bot, msg, params) => {
         if(username.indexOf('region=') >= 0){
             continue;
         }
-        let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+        let serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
         let region = cs.getParamValue('region=', params, serverDefaults.default_region);
 
         msg.channel.send(`Removing ${username} from server registry`)
             .then(async (message) => {
-                let pubgId = await scrape.getCharacterID(username, region);
+                let pubgId = await pubgService.getCharacterID(username, region);
                 if(!pubgId) {
                     message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                     return;
                 }
 
-                let unregistered = await sql.unRegisterUserToServer(pubgId, message.guild.id);
+                let unregistered = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
                 if(unregistered) {
                     message.edit(`Removed ${username} from server registry`);
                 } else {

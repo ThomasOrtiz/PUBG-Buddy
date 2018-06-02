@@ -1,19 +1,19 @@
-const Discord = require('discord.js');
-const sql = require('../services/sql.service');
+import * as Discord from 'discord.js';
+import { SqlServerRegisteryService as sqlServerRegisteryService } from '../services/sql.service';
+import { Player } from '../models/player';
 
 exports.run = async (bot, msg) => {
-    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
+    let registeredPlayers: Player[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
 
-    let players = '';
+    let players: string = '';
     for(let i = 0; i < registeredPlayers.length; i++) {
         let player = registeredPlayers[i];
         players += (i+1) + '.\t' + player.username + '\n';
     }
-    
+
     if(players === '') {
         players = 'No users registered yes. Use `<prefix>addUser <username>`';
     }
-    
 
     let embed = new Discord.RichEmbed()
         .setTitle(registeredPlayers.length + ' Registered Users')

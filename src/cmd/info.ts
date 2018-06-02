@@ -1,4 +1,4 @@
-const { version } = require('discord.js');
+import { version } from 'discord.js';
 
 exports.run = (bot, msg) => {
     msg.channel.send(`= PUBG Bot Information =

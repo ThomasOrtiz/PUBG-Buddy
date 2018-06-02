@@ -1,12 +1,12 @@
-const sql = require('../services/sql.service');
+import { SqlModesService as sqlModesService } from '../services/sql.service';
 
 exports.run = async (bot, msg) => {
-    let modes = await sql.getAllModes();
+    let modes = await sqlModesService.getAllModes();
 
-    let modeStr = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(25)}: = Value =\n`;
+    let modeStr: string = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(25)}: = Value =\n`;
     for(let i = 0; i < modes.length; i++) {
-        let key = modes[i].fullname;
-        let value = modes[i].shortname;
+        let key: string = modes[i].fullname;
+        let value: string = modes[i].shortname;
         modeStr += `${key.padEnd(25)}: ${value}\n`;
     }
 

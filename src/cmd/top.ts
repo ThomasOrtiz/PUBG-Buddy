@@ -1,7 +1,15 @@
-const Discord = require('discord.js');
-const cs = require('../services/common.service');
-const scrape = require('../services/pubg.service');
-const sql = require('../services/sql.service');
+import * as Discord from 'discord.js';
+import { CommonService as cs } from '../services/common.service';
+import { PubgService as pubgService } from '../services/pubg.service';
+import {
+    SqlServerService as sqlServerService,
+    SqlSeasonsService as sqlSeasonsService,
+    SqlRegionsService as sqlRegionsService,
+    SqlModesService as sqlModesService,
+    SqlServerRegisteryService as sqlServerRegisteryService,
+    SqlSqaudSizeService as sqlSqaudSizeService
+} from '../services/sql.service';
+import { Player } from '../models/player';
 const SeasonEnum = require('../enums/season.enum');
 const SquadSizeEnum = require('../enums/squadSize.enum');
 
@@ -10,7 +18,7 @@ exports.run = async (bot, msg, params) => {
     if(params[0] && !isNaN(params[0])) {
         amount = +params[0];
     }
-    let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+    let serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
     let season = cs.getParamValue('season=', params, serverDefaults.default_season);
     let region = cs.getParamValue('region=', params, serverDefaults.default_region);
     let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
@@ -23,12 +31,12 @@ exports.run = async (bot, msg, params) => {
     }
 
 
-    let registeredPlayers = await sql.getRegisteredPlayersForServer(msg.guild.id);
+    let registeredPlayers = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
     if(registeredPlayers.length === 0) {
-        cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command');
+        cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', help);
         return;
     }
-    
+
     const batchEditAmount = 5;
     checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
     msg.channel.send('Grabbing player data')
@@ -40,24 +48,32 @@ exports.run = async (bot, msg, params) => {
                 if(i % batchEditAmount === 0) {
                     let max = (i+batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i+batchEditAmount;
                     msg.edit(`Grabbing data for players ${i+1} - ${max}`);
-                }            
-                
-                let id = await scrape.getCharacterID(player.username, region);
-                let characterInfo = await scrape.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
+                }
+
+                let id: string = await pubgService.getCharacterID(player.username, region);
+                let characterInfo: Player = await pubgService.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
 
                 // Check if character info exists for this (it wont if a user hasn't played yet)
                 if(!characterInfo) {
                     characterInfo = {
+                        id: '',
+                        pubg_id: id,
                         username: player.username,
                         rank: '',
                         rating: '',
+                        grade: '',
+                        headshot_kills: '',
+                        longest_kill: '',
+                        average_damage_dealt: 0,
                         topPercent: '',
-                        kd: '',
-                        kda: ''
+                        winPercent: '',
+                        topTenPercent: '',
+                        kda: 0,
+                        kd: 0,
                     };
                 }
                 playersInfo.push(characterInfo);
-            } 
+            }
 
             // Sorting Array based off of ranking (higher ranking is better)
             playersInfo.sort(function(a, b){ return b.rating - a.rating; });
@@ -95,25 +111,25 @@ exports.run = async (bot, msg, params) => {
 async function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSquadSize) {
     let errMessage = '';
 
-    let validSeason = await scrape.isValidSeason(checkSeason);
-    let validRegion = await scrape.isValidRegion(checkRegion);
-    let validMode = await scrape.isValidMode(checkMode);
-    let validSquadSize = await scrape.isValidSquadSize(checkSquadSize);
+    let validSeason = await pubgService.isValidSeason(checkSeason);
+    let validRegion = await pubgService.isValidRegion(checkRegion);
+    let validMode = await pubgService.isValidMode(checkMode);
+    let validSquadSize = await pubgService.isValidSquadSize(checkSquadSize);
 
     if(!validSeason) {
-        let seasons = await sql.getAllSeasons();
+        let seasons = await sqlSeasonsService.getAllSeasons();
         let availableSeasons = '== Available Seasons ==\n';
         for(let i = 0; i < seasons.length; i++) {
             if(i < seasons.length-1) {
                 availableSeasons += seasons[i].season + ', ';
             } else {
-                availableSeasons += seasons[i].season; 
+                availableSeasons += seasons[i].season;
             }
         }
         errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
     }
     if(!validRegion) {
-        let regions = await sql.getAllRegions();
+        let regions = await sqlRegionsService.getAllRegions();
         let availableRegions = '== Available Regions ==\n';
         for(let i = 0; i < regions.length; i++) {
             if(i < regions.length-1) {
@@ -125,7 +141,7 @@ async function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSq
         errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
     }
     if(!validMode) {
-        let modes = await sql.getAllModes();
+        let modes = await sqlModesService.getAllModes();
         let availableModes = '== Available Modes ==\n';
         for(let i = 0; i < modes.length; i++) {
             if(i < modes.length-1) {
@@ -137,7 +153,7 @@ async function checkParameters(msg, checkSeason, checkRegion, checkMode, checkSq
         errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
     }
     if(!validSquadSize) {
-        let squadSizes = await sql.getAllSquadSizes();
+        let squadSizes = await sqlSqaudSizeService.getAllSquadSizes();
         let availableSizes = '== Available Squad Sizes ==\n';
         for(let i = 0; i < squadSizes.length; i++) {
             if(i < squadSizes.length-1) {
@@ -176,8 +192,8 @@ let help = exports.help = {
         '!pubg-top season=2018-03 region=na squadSize=4 mode=tpp',
         '!pubg-top 5',
         '!pubg-top 5 season=2018-03',
-        '!pubg-top 5 season=2018-03 region=na', 
-        '!pubg-top 5 season=2018-03 region=na squadSize=4', 
+        '!pubg-top 5 season=2018-03 region=na',
+        '!pubg-top 5 season=2018-03 region=na squadSize=4',
         '!pubg-top 5 season=2018-03 region=na squadSize=4 mode=tpp'
     ]
 };

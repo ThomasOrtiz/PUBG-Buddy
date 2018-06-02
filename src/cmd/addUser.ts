@@ -1,6 +1,9 @@
-const cs = require('../services/common.service');
-const scrape = require('../services/pubg.service');
-const sql = require('../services/sql.service');
+import { CommonService as cs } from '../services/common.service';
+import { PubgService as pubgService } from '../services/pubg.service';
+import {
+    SqlServerService as sqlServerService,
+    SqlServerRegisteryService as sqlServerRegisteryService
+} from '../services/sql.service';
 
 exports.run = async (bot, msg, params) => {
     if(!params[0]) {
@@ -14,15 +17,15 @@ exports.run = async (bot, msg, params) => {
             continue;
         }
 
-        let serverDefaults = await sql.getServerDefaults(msg.guild.id);
+        let serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
         let region = cs.getParamValue('region=', params, serverDefaults.default_region);
 
         msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`)
             .then(async (message) => {
-                let pubgId = await scrape.getCharacterID(username, region);
-            
+                let pubgId = await pubgService.getCharacterID(username, region);
+
                 if (pubgId && pubgId !== '') {
-                    let registered = await sql.registerUserToServer(pubgId, message.guild.id);
+                    let registered = await sqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
                     if(registered) {
                         message.edit(`Added ${username}`);
                     } else {

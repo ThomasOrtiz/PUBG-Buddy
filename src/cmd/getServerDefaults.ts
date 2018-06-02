@@ -1,11 +1,11 @@
-const Discord = require('discord.js');
-const sql = require('../services/sql.service');
+import * as Discord from 'discord.js';
+import { SqlServerService as sqlServerService } from '../services/sql.service';
 
 exports.run = async (bot, msg) => {
     msg.channel.send('Getting server defaults ...')
         .then(async (message) => {
-            let server = await sql.getServerDefaults(msg.guild.id);
-            let embed = new Discord.RichEmbed()
+            let server = await sqlServerService.getServerDefaults(msg.guild.id);
+            let embed: Discord.RichEmbed = new Discord.RichEmbed()
                 .setTitle('Server Defaults')
                 .setDescription('The defaults that a server has when running PUBG Bot commands.')
                 .setColor(0x00AE86)

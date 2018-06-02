@@ -1,12 +1,12 @@
-const sql = require('../services/sql.service');
+import { SqlRegionsService as sqlRegionsService } from '../services/sql.service';
 
 exports.run = async (bot, msg) => {
-    let regions = await sql.getAllRegions();
+    let regions = await sqlRegionsService.getAllRegions();
 
-    let regionStr = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(15)}: = Value =\n`;
+    let regionStr: string = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(15)}: = Value =\n`;
     for(let i = 0; i < regions.length; i++) {
-        let key = regions[i].fullname;
-        let value = regions[i].shortname;
+        let key: string = regions[i].fullname;
+        let value: string = regions[i].shortname;
         regionStr += `${key.padEnd(15)}: ${value}\n`;
     }
     
