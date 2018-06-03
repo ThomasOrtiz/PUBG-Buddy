@@ -52,8 +52,9 @@ exports.run = async (bot, msg, params) => {
                         rank: '',
                         rating: '',
                         topPercent: '',
-                        kd: '',
-                        kda: ''
+                        kd: '0.00',
+                        kda: '0.00',
+                        average_damage_dealt: '0.00'
                     };
                 }
                 playersInfo.push(characterInfo);
@@ -76,10 +77,11 @@ exports.run = async (bot, msg, params) => {
             let kds = '';
 
             // Construct top strings
-            for (var i = 0; i < topPlayers.length; i++) {
+            for (let i = 0; i < topPlayers.length; i++) {
                 let character = topPlayers[i];
-                let ratingStr = character.rating ? character.rank + ' / ' + character.rating : 'Not available';
-                let kdsStr = character.kd || character.kd === 0 ? character.kd + ' / ' + character.kda : 'Not available';
+                let ratingStr = character.rating ? `${character.rank} / ${character.rating}` : 'Not available';
+                let kdsStr = `${character.kd} / ${character.kda} / ${character.average_damage_dealt}`;
+
                 names += character.username + '\n';
                 ratings += ratingStr + '\n';
                 kds += kdsStr + '\n';
@@ -87,7 +89,7 @@ exports.run = async (bot, msg, params) => {
 
             embed.addField('Name', names, true)
                 .addField('Rank / Rating', ratings, true)
-                .addField('KD / KDA', kds, true);
+                .addField('KD / KDA / Avg Dmg', kds, true);
             await msg.edit({ embed });
         });
 };

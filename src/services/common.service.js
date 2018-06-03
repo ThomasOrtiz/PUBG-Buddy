@@ -83,5 +83,6 @@ function getPercentFromFraction(num, den) {
  * @param {*} num 
  */
 function round(num) {
-    return Math.round(num * 100) / 100;
+    //return Math.round(num * 100) / 100;
+    return num.toFixed(2);
 }
