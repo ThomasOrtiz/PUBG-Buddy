@@ -11,8 +11,8 @@ import {
 } from '../../services/sql.service';
 import { Player } from '../../models/player';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
-const SeasonEnum = require('../../enums/season.enum');
-const SquadSizeEnum = require('../../enums/squadSize.enum');
+import { Seasons as SeasonEnum } from '../../enums/season.enum';
+import { SquadSize as SquadSizeEnum } from '../../enums/squadSize.enum';
 
 
 export class Top extends Command {
@@ -101,7 +101,7 @@ export class Top extends Command {
                 let topPlayers = playersInfo.slice(0, amount);
                 let embed = new Discord.RichEmbed()
                     .setTitle('Top ' + amount + ' local players')
-                    .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum.get(squadSize))
+                    .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum[squadSize])
                     .setColor(0x00AE86)
                     .setFooter('Data retrieved from https://pubg.op.gg/')
                     .setTimestamp();

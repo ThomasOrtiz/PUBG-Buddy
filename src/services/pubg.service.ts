@@ -11,7 +11,6 @@ import {
  } from './sql.service';
 import { Player } from '../models/player';
 const curl = require('curlrequest');
-const SquadSizeEnum = require('../enums/squadSize.enum');
 
 // Webscraping URL --> pubgBaseRL + <username> + pubgServer
 const pubgBaseURL: string = 'https://pubg.op.gg/user/';
@@ -104,15 +103,6 @@ export class PubgService {
             }, () => {
                 return null;
             });
-    }
-
-    /**
-     * Returns the squad size string representation of the int
-     * @param {number} squadSize
-     * @returns {string}
-     */
-    static getSquadSizeString(squadSize: number): string {
-        return SquadSizeEnum.get(squadSize);
     }
 
     static async isValidSeason(checkSeason): Promise<boolean> {

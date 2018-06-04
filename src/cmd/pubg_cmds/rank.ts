@@ -8,7 +8,7 @@ import {
     SqlModesService as sqlModesService
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
-const SeasonEnum = require('../../enums/season.enum');
+import { Seasons as SeasonEnum } from '../../enums/season.enum';
 
 
 export class Rank extends Command {
@@ -69,7 +69,7 @@ export class Rank extends Command {
                 let squadData = await pubgService.getPUBGCharacterData(id, username, season, region, 4, mode);
                 let embed = new Discord.RichEmbed()
                     .setTitle('Ranking: ' + username)
-                    .setDescription('Season:\t' + SeasonEnum.get(season) + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
+                    .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
                     .setColor(0x00AE86)
                     .setFooter(`https://pubg.op.gg/user/${username}?server=${region}`)
                     .setTimestamp();
