@@ -1,2 +1,2 @@
-release: tsc && node ./migrate.js
+release: npm run tsc && node ./migrate.js
 worker: node dist/bot.js
