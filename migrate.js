@@ -1,4 +1,4 @@
-const cs = require('./src/services/common.service');
+const cs = require('./dist/services/common.service');
 const fs = require('fs');
 const { Pool } = require('pg');
 const logger = require('winston');
