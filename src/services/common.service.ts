@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from '../discord-client';
+import { DiscordClientWrapper } from '../DiscordClientWrapper';
 require('dotenv').config();
 
 export class CommonService {

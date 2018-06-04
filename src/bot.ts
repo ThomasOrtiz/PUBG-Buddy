@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from './discord-client';
+import { DiscordClientWrapper } from './DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
