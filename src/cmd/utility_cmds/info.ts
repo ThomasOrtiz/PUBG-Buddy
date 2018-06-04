@@ -29,6 +29,7 @@ export class Info extends Command {
 • Servers     :: ${bot.guilds.size.toLocaleString()}
 • Channels    :: ${bot.channels.size.toLocaleString()}
 • Discord.js  :: v${version}
+• Typescript  :: v2.8.3
 • Node        :: ${process.version}`, { code: 'asciidoc' });
     };
 
