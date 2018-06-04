@@ -153,7 +153,7 @@ function getCommand(command: string): Command {
 
 /**
  * Checks if a command is runnable by a user
- * @param {Discord.Client} msg
+ * @param {Discord.Message} msg
  * @param {any} cmd
  * @param {boolean} isGuildMessage
  * @param {any} perms

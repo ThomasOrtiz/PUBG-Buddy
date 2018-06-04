@@ -1,15 +1,15 @@
-import * as Discord from 'discord.js';
+import { DiscordClientWrapper } from '../discord-client';
 require('dotenv').config();
 
 export class CommonService {
-    
+
     /**
-     * 
+     *
      * @param {discord.client} msg: discord client
      * @param {string} errMessage: error string
-     * @param {obj} help: command help object 
+     * @param {obj} help: command help object
      */
-    static handleError(msg: Discord.Client, errMessage: string, help: any): void {
+    static handleError(msg: DiscordClientWrapper, errMessage: string, help: any): void {
         let message = `${errMessage}\n`;
         if(help) {
             message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`;
@@ -33,7 +33,7 @@ export class CommonService {
     }
 
     /**
-     * Returns the value of the key=value pair. 
+     * Returns the value of the key=value pair.
      * @param {string} search parameter to search for
      * @param {array} params array of parameters to search through
      * @param {string} defaultParam default return value if search does not exist
@@ -62,18 +62,18 @@ export class CommonService {
 
     /**
      * Given a fraction it will return the equivalent % with '%' tacked on
-     * @param {*} num 
-     * @param {*} den 
+     * @param {*} num
+     * @param {*} den
      */
     static getPercentFromFraction(num: any, den: any): string {
         if(num === 0 || den === 0) return '0%';
-        return this.round((num/den)*100) + '%'; 
+        return this.round((num/den)*100) + '%';
         //Math.round((num/den)*100 * 100) / 100 + '%';
     }
 
     /**
      * Given a number it will round it to the nearest 100th place
-     * @param {*} num 
+     * @param {*} num
      */
     static round(num: any): number {
         return Math.round(num * 100) / 100;
