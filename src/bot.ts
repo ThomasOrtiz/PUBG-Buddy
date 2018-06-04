@@ -1,3 +1,4 @@
+import { DiscordClientWrapper } from './discord-client';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
@@ -20,7 +21,7 @@ logger.configure({
 // Initialize Bot
 const botToken: string = cs.getEnvironmentVariable('bot_token');
 let prefix: string = cs.getEnvironmentVariable('prefix');
-const bot: Discord.Client = new Discord.Client();
+const bot: DiscordClientWrapper = new DiscordClientWrapper();
 bot.login(botToken);
 
 // Get commands from the cmd folder
