@@ -1,8 +1,11 @@
 import * as Discord from 'discord.js';
-import * as logger from 'winston';
 import * as fs from 'fs';
+import { join } from 'path';
+import * as logger from 'winston';
 import { CommonService as cs } from './services/common.service';
 import { SqlServerService as sqlService } from './services/sql.service';
+import { Command } from './models/command';
+import * as commands from './cmd/command_module';
 
 // Configure logger settings
 logger.configure({
@@ -15,26 +18,16 @@ logger.configure({
 });
 
 // Initialize Bot
-const bot: Discord.Client = new Discord.Client();
 const botToken: string = cs.getEnvironmentVariable('bot_token');
 let prefix: string = cs.getEnvironmentVariable('prefix');
+const bot: Discord.Client = new Discord.Client();
 bot.login(botToken);
 
 // Get commands from the cmd folder
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
-fs.readdir('./src/cmd/', (err, files: string[]) => {
-    if (err) logger.error(err.message);
-    logger.info(`Loading a total of ${files.length} commands.`);
-    files.forEach(f => {
-        let props = require(`./cmd/${f.replace('.ts', '.js')}`);
-        logger.info(`Loading Command: ${props.help.name}. :ok_hand:`);
-        bot.commands.set(props.help.name, props);
-        props.conf.aliases.forEach(alias => {
-            bot.aliases.set(alias, props.help.name);
-        });
-    });
-});
+RegisterCommands();
+
 
 // Setup events
 bot.on('error', logger.error);
@@ -76,7 +69,7 @@ bot.on('message', async (msg: Discord.Message) => {
     params = msg.content.split(' ').slice(1);
 
     // Get command
-    let cmd: any = getCommand(command);
+    let cmd: Command = getCommand(command);
 
     // Run command
     if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
@@ -116,13 +109,40 @@ bot.elevation = function (msg): number {
 };
 
 // ----------------------- Helper Methods -----------------------
+/**
+ * Registers the commands in the src/cmd folder
+ */
+function RegisterCommands() {
+    const isDirectory = source => fs.lstatSync(source).isDirectory();
+    const getDirectories = source => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory);
+    const dirs: string[] = getDirectories('./src/cmd/');
+
+    // Loop through cmd/<cmd-type> folders to grab commands
+    dirs.forEach((folder: string) => {
+        fs.readdir(folder, (err: NodeJS.ErrnoException, files: string[]) => {
+            if (err) { logger.error(err.message); }
+
+            files.forEach((f: string) => {
+                let fileName: string = f.split('.')[0];
+                let uppercaseName: string = fileName.charAt(0).toUpperCase() + fileName.slice(1);
+                let commandClass: any = commands[uppercaseName];
+                let command: Command = new commandClass();
+                logger.info(`Loading Command: ${command.help.name}.`);
+                bot.commands.set(command.help.name, command);
+                command.conf.aliases.forEach(alias => {
+                    bot.aliases.set(alias, command.help.name);
+                });
+            });
+        });
+    });
+}
 
 /**
  * Given a command name, return the bot's command object
  * @param {string} command
  * @returns {} command object
  */
-function getCommand(command: string): any {
+function getCommand(command: string): Command {
     if (bot.commands.has(command)) {
         return bot.commands.get(command);
     } else if (bot.aliases.has(command)) {

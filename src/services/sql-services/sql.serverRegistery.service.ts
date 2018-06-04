@@ -20,7 +20,7 @@ export class SqlServerRegisteryService {
      * Adds a user from a server's registery
      * @param {string} pubgId
      * @param {string} serverId
-     * @returns boolean if add was successful
+     * @returns {Promise<boolean>} if add was successful
      */
     static async registerUserToServer(pubgId: string, serverId: string): Promise<boolean> {
         return pool.query('select fk_servers_id from server_registery where fk_players_id=(select id from players where pubg_id=$1) and fk_servers_id=(select id from servers where server_id=$2)', [pubgId, serverId])

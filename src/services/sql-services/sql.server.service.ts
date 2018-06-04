@@ -1,6 +1,6 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 import { Server } from '../../models/server';
 
 
@@ -20,7 +20,7 @@ export class SqlServerService {
      * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
      * @param {string} serverId
      */
-    static async getOrRegisterServer(serverId: string): Promise<any> {
+    static async getOrRegisterServer(serverId: string): Promise<Server> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
             .then(async (res) => {
                 if(res.rowCount === 0) {
@@ -48,7 +48,7 @@ export class SqlServerService {
      * Adds a server to the servers table if it doesn't exist already
      * @param {string} serverId
      */
-    static async registerServer(serverId: string): Promise<any> {
+    static async registerServer(serverId: string): Promise<QueryResult> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
             .then((res) => {
                 if(res.rowCount === 0) {
@@ -60,8 +60,9 @@ export class SqlServerService {
     /**
      * Removes a server from the servers table
      * @param {string} serverId
+     * @returns {boolean}
      */
-    static async unRegisterServer(serverId: string): Promise<any> {
+    static async unRegisterServer(serverId: string): Promise<boolean> {
         return pool.query('delete from servers where server_id=$1', [serverId])
             .then(async () => {
                 return true;
@@ -73,7 +74,7 @@ export class SqlServerService {
      * @param {string} serverId
      * @returns {Server} server: server
      */
-    static async getServerDefaults(serverId: string): Promise<any> {
+    static async getServerDefaults(serverId: string): Promise<Server> {
         return pool.query('select * from servers where server_id = $1', [serverId])
             .then((res) => {
                 if(res.rowCount === 0) {
@@ -102,7 +103,7 @@ export class SqlServerService {
      * @param {string} mode fpp or tpp
      * @param {string} squadSize 1, 2, 4
      */
-    static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string, squadSize: number): Promise<any> {
+    static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string, squadSize: number): Promise<QueryResult> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
             .then((res) => {
                 if(res.rowCount === 0) {
