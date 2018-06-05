@@ -19,7 +19,7 @@ export class SqlRegionsService {
      * @returns {obj}: { id, fullname, shortname }
      */
     static async getAllRegions(): Promise<any> {
-        return pool.query('select * from regions').then((res) => {
+        return pool.query('select * from regions').then((res: QueryResult) => {
             return res.rows;
         });
     }

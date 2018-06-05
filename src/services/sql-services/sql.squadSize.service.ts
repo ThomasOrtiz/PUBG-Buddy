@@ -1,6 +1,6 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 import { SquadSize } from '../../models/squadSize';
 
 
@@ -22,7 +22,7 @@ export class SqlSqaudSizeService {
      * @returns {Promise<any>}: { id, name, size }
      */
     static async getAllSquadSizes(): Promise<any> {
-        return pool.query('select * from squad_sizes').then((res) => {
+        return pool.query('select * from squad_sizes').then((res: QueryResult) => {
             return res.rows as SquadSize[];
         });
     }

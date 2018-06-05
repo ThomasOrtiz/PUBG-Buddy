@@ -10,7 +10,7 @@ import {
     SqlSeasonsService as sqlSeasonService
  } from './sql.service';
 import { Player } from '../models/player';
-const curl = require('curlrequest');
+import * as curl from 'curlrequest';
 
 // Webscraping URL --> pubgBaseRL + <username> + pubgServer
 const pubgBaseURL: string = 'https://pubg.op.gg/user/';
@@ -32,7 +32,7 @@ export class PubgService {
         username = username.toLowerCase();
 
         return sqlPlayersService.getPlayer(username)
-            .then((player) => {
+            .then((player: Player) => {
                 if(player && player.pubg_id && player.pubg_id !== '') {
                     return player.pubg_id;
                 } else {
@@ -81,7 +81,7 @@ export class PubgService {
 
         const url = apiURL + id + apiOptions + '?season=' + season + '&server=' + region + '&queue_size=' + squadSize + '&mode=' + mode;
         return rp({ url: url, json: true })
-            .then((json) => {
+            .then((json: any) => {
                 let player: Player = {
                     id: '',
                     pubg_id: id,

@@ -81,7 +81,7 @@ bot.reload = function(command): Promise<any> {
     return new Promise((resolve, reject) => {
         try {
             delete require.cache[require.resolve(`./cmd/${command}`)];
-            let cmd = require(`./cmd/${command}`);
+            let cmd: any = require(`./cmd/${command}`);
             bot.commands.delete(command);
             bot.aliases.forEach((cmd, alias) => {
                 if (cmd === command) bot.aliases.delete(alias);

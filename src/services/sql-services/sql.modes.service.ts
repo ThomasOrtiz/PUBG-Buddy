@@ -19,7 +19,7 @@ export class SqlModesService {
      * @returns {obj}: { id, fullname, shortname }
      */
     static async getAllModes(): Promise<any> {
-        return pool.query('select * from modes').then((res) => {
+        return pool.query('select * from modes').then((res: QueryResult) => {
             return res.rows;
         });
     }

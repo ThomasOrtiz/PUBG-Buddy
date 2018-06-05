@@ -1,7 +1,7 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
 import { Player } from '../../models/player';
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
@@ -24,7 +24,7 @@ export class SqlServerRegisteryService {
      */
     static async registerUserToServer(pubgId: string, serverId: string): Promise<boolean> {
         return pool.query('select fk_servers_id from server_registery where fk_players_id=(select id from players where pubg_id=$1) and fk_servers_id=(select id from servers where server_id=$2)', [pubgId, serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount === 0) {
                     return pool.query('insert into server_registery (fk_players_id, fk_servers_id) values ((select id from players where pubg_id=$1), (select id from servers where server_id=$2))', [pubgId, serverId])
                         .then(() => {
@@ -46,7 +46,7 @@ export class SqlServerRegisteryService {
      */
     static async unRegisterUserToServer(pubgId: string, serverId: string): Promise<boolean> {
         return pool.query('delete from server_registery where fk_players_id=(select id from players where pubg_id=$1) and fk_servers_id=(select id from servers where server_id=$2)', [pubgId, serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount === 1){
                     return true;
                 } else {
@@ -62,7 +62,7 @@ export class SqlServerRegisteryService {
      */
     static async getRegisteredPlayersForServer(serverId: string): Promise<Player[]> {
         return pool.query('select P.pubg_id, P.username from server_registery as R left join players as P on R.fk_players_id = P.id where fk_servers_id = (select id from servers where server_id=$1)', [serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount != 0){
                     return res.rows as Player[];
                 } else {

@@ -22,7 +22,7 @@ export class SqlServerService {
      */
     static async getOrRegisterServer(serverId: string): Promise<Server> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then(async (res) => {
+            .then(async (res: QueryResult) => {
                 if(res.rowCount === 0) {
                     await pool.query('insert into servers (server_id) values ($1)', [serverId]);
                     return this.getServerDefaults(serverId);
@@ -38,7 +38,7 @@ export class SqlServerService {
      */
     static async getServer(serverId: string): Promise<any> {
         return pool.query('select * from servers where server_id = $1', [serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount > 0) return res.rows;
                 else return null;
             });
@@ -50,7 +50,7 @@ export class SqlServerService {
      */
     static async registerServer(serverId: string): Promise<QueryResult> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount === 0) {
                     return pool.query('insert into servers (server_id) values ($1)', [serverId]);
                 }
@@ -76,7 +76,7 @@ export class SqlServerService {
      */
     static async getServerDefaults(serverId: string): Promise<Server> {
         return pool.query('select * from servers where server_id = $1', [serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount === 0) {
                     return null;
                 }
@@ -105,7 +105,7 @@ export class SqlServerService {
      */
     static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string, squadSize: number): Promise<QueryResult> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then((res) => {
+            .then((res: QueryResult) => {
                 if(res.rowCount === 0) {
                     return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode, default_squadsize) values ($1, $2, $3, $4, $5, $6)', [serverId, botPrefix, season, region, mode, squadSize]);
                 } else {

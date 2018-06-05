@@ -61,7 +61,7 @@ export class Rank extends Command {
             return;
         }
         checkingParametersMsg.edit(`Getting data for ${username}`)
-            .then(async (message) => {
+            .then(async (message: Discord.Message) => {
                 const id: string = await pubgService.getCharacterID(username, region);
                 if (!id) {
                     message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);

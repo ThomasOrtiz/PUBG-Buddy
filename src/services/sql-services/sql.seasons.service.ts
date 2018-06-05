@@ -1,6 +1,6 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
@@ -20,7 +20,7 @@ export class SqlSeasonsService {
      * @returns {obj}: { id, name, season }
      */
     static async getAllSeasons(): Promise<any> {
-        return pool.query('select * from seasons').then((res) => {
+        return pool.query('select * from seasons').then((res: QueryResult) => {
             return res.rows;
         });
     }
@@ -31,7 +31,7 @@ export class SqlSeasonsService {
      */
     static async getLatestSeason(): Promise<any> {
         return pool.query('select season from seasons where season = (select max(season) from seasons)')
-            .then((res) => {
+            .then((res: QueryResult) => {
                 return res.rows[0];
             });
     }
