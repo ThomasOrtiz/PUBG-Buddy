@@ -1,3 +1,5 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import { PubgService as pubgService } from '../../services/pubg.service';
 import {
@@ -5,6 +7,7 @@ import {
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Server } from '../../models/server';
 
 
 export class RemoveUser extends Command {
@@ -27,26 +30,26 @@ export class RemoveUser extends Command {
         ]
     };
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
             cs.handleError(msg, 'Error:: Must specify at least one username', this.help);
             return;
         }
         for (let i = 0; i < params.length; i++) {
-            let username = params[i].toLowerCase();
+            let username: string = params[i].toLowerCase();
             if (username.indexOf('region=') >= 0) {
                 continue;
             }
-            let serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
-            let region = cs.getParamValue('region=', params, serverDefaults.default_region);
+            let serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+            let region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
             msg.channel.send(`Removing ${username} from server registry`)
-                .then(async (message) => {
-                    let pubgId = await pubgService.getCharacterID(username, region);
+                .then(async (message: Discord.Message) => {
+                    let pubgId: string = await pubgService.getCharacterID(username, region);
                     if (!pubgId) {
                         message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                         return;
                     }
-                    let unregistered = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
+                    let unregistered: boolean = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
                     if (unregistered) {
                         message.edit(`Removed ${username} from server registry`);
                     }

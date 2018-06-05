@@ -1,3 +1,5 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 
 
@@ -19,9 +21,9 @@ export class Ping extends Command {
         ]
     };
 
-    run(bot: any, msg: any, params: string[], perms: number) {
+    run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         msg.channel.send('Ping?')
-            .then(message => {
+            .then((message: Discord.Message) => {
                 message.edit(`Pong! (took: ${message.createdTimestamp - msg.createdTimestamp}ms)`);
             });
     };

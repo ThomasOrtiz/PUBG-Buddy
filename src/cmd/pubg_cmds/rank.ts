@@ -1,3 +1,4 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import { PubgService as pubgService } from '../../services/pubg.service';
@@ -9,6 +10,8 @@ import {
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { Seasons as SeasonEnum } from '../../enums/season.enum';
+import { Server } from '../../models/server';
+import { Player } from '../../models/player';
 
 
 export class Rank extends Command {
@@ -34,13 +37,13 @@ export class Rank extends Command {
     };
 
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
             cs.handleError(msg, 'Error:: Must specify a username', this.help);
             return;
         }
-        let username = params[0].toLowerCase();
-        let serverDefaults, season, region, mode;
+        let username: string = params[0].toLowerCase();
+        let serverDefaults: Server, season: string, region: string, mode: string;
         if (msg.guild) {
             serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
             season = cs.getParamValue('season=', params, serverDefaults.default_season);
@@ -52,22 +55,22 @@ export class Rank extends Command {
             region = cs.getParamValue('region=', params, 'na');
             mode = cs.getParamValue('mode=', params, 'fpp');
         }
-        let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
+        let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
         if (!(await this.checkParameters(msg, season, region, mode))) {
             checkingParametersMsg.delete();
             return;
         }
         checkingParametersMsg.edit(`Getting data for ${username}`)
             .then(async (message) => {
-                let id = await pubgService.getCharacterID(username, region);
+                const id: string = await pubgService.getCharacterID(username, region);
                 if (!id) {
                     message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
                     return;
                 }
-                let soloData = await pubgService.getPUBGCharacterData(id, username, season, region, 1, mode);
-                let duoData = await pubgService.getPUBGCharacterData(id, username, season, region, 2, mode);
-                let squadData = await pubgService.getPUBGCharacterData(id, username, season, region, 4, mode);
-                let embed = new Discord.RichEmbed()
+                const soloData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 1, mode);
+                const duoData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 2, mode);
+                const squadData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 4, mode);
+                let embed: Discord.RichEmbed = new Discord.RichEmbed()
                     .setTitle('Ranking: ' + username)
                     .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
                     .setColor(0x00AE86)
@@ -99,7 +102,7 @@ export class Rank extends Command {
     };
 
 
-    addEmbedFields(embed, squadType, playerData) {
+    addEmbedFields(embed: Discord.RichEmbed, squadType, playerData): void {
         embed.addBlankField(false)
             .addField(squadType + ' Rank / Rating / Top % / Grade', playerData.rank + ' / ' + playerData.rating + ' / ' + playerData.topPercent + ' / ' + playerData.grade, false)
             .addField('KD / KDA', playerData.kd + ' / ' + playerData.kda, true)
@@ -110,14 +113,14 @@ export class Rank extends Command {
             .addField('Average Damage', playerData.average_damage_dealt, true);
     }
 
-    async checkParameters(msg, checkSeason, checkRegion, checkMode): Promise<boolean> {
-        let errMessage = '';
-        let validSeason = await pubgService.isValidSeason(checkSeason);
-        let validRegion = await pubgService.isValidRegion(checkRegion);
-        let validMode = await pubgService.isValidMode(checkMode);
+    async checkParameters(msg: Discord.Message, checkSeason: string, checkRegion: string, checkMode: string): Promise<boolean> {
+        let errMessage: string = '';
+        let validSeason: boolean = await pubgService.isValidSeason(checkSeason);
+        let validRegion: boolean = await pubgService.isValidRegion(checkRegion);
+        let validMode: boolean = await pubgService.isValidMode(checkMode);
         if (!validSeason) {
-            let seasons = await sqlSeasonsService.getAllSeasons();
-            let availableSeasons = '== Available Seasons ==\n';
+            let seasons: any = await sqlSeasonsService.getAllSeasons();
+            let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
                 if (i < seasons.length - 1) {
                     availableSeasons += seasons[i].season + ', ';
@@ -129,8 +132,8 @@ export class Rank extends Command {
             errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
         }
         if (!validRegion) {
-            let regions = await sqlRegionsService.getAllRegions();
-            let availableRegions = '== Available Regions ==\n';
+            let regions: any = await sqlRegionsService.getAllRegions();
+            let availableRegions: string = '== Available Regions ==\n';
             for (let i = 0; i < regions.length; i++) {
                 if (i < regions.length - 1) {
                     availableRegions += regions[i].shortname + ', ';
@@ -142,8 +145,8 @@ export class Rank extends Command {
             errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
         }
         if (!validMode) {
-            let modes = await sqlModesService.getAllModes();
-            let availableModes = '== Available Modes ==\n';
+            let modes: any = await sqlModesService.getAllModes();
+            let availableModes: string = '== Available Modes ==\n';
             for (let i = 0; i < modes.length; i++) {
                 if (i < modes.length - 1) {
                     availableModes += modes[i].shortname + ', ';

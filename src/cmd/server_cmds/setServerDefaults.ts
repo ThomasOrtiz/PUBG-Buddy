@@ -1,3 +1,4 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import { PubgService as pubgService } from '../../services/pubg.service';
@@ -9,6 +10,7 @@ import {
     SqlSqaudSizeService as sqlSqaudSizeService
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Server } from '../../models/server';
 
 
 export class SetServerDefaults extends Command {
@@ -29,23 +31,23 @@ export class SetServerDefaults extends Command {
         ]
     };
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
-        let prefix = cs.getParamValue('prefix=', params, false);
-        let season = cs.getParamValue('season=', params, false);
-        let region = cs.getParamValue('region=', params, false);
-        let mode = cs.getParamValue('mode=', params, false);
-        let squadSize = cs.getParamValue('squadSize=', params, false);
-        let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        let prefix: string = cs.getParamValue('prefix=', params, false);
+        let season: string = cs.getParamValue('season=', params, false);
+        let region: string = cs.getParamValue('region=', params, false);
+        let mode: string = cs.getParamValue('mode=', params, false);
+        let squadSize: string = cs.getParamValue('squadSize=', params, false);
+        let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
         if (!(await this.checkParameters(msg, prefix, season, region, mode, squadSize))) {
             checkingParametersMsg.delete();
             return;
         }
         checkingParametersMsg.edit('Updating this server\'s defaults ...')
-            .then(async (msg) => {
+            .then(async (msg: Discord.Message) => {
                 sqlServerService.setServerDefaults(msg.guild.id, prefix, season, region, mode, +squadSize)
                     .then(async () => {
-                        let server = await sqlServerService.getServerDefaults(msg.guild.id);
-                        let embed = new Discord.RichEmbed()
+                        let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+                        let embed: Discord.RichEmbed = new Discord.RichEmbed()
                             .setTitle('Server Defaults')
                             .setDescription('The defaults that a server has when running PUBG Bot commands.')
                             .setColor(0x00AE86)
@@ -62,20 +64,20 @@ export class SetServerDefaults extends Command {
             });
     };
 
-    async checkParameters(msg, prefix, checkSeason, checkRegion, checkMode, checkSquadSize) {
+    async checkParameters(msg: Discord.Message, prefix: string, checkSeason: string, checkRegion: string, checkMode: string, checkSquadSize: string): Promise<boolean> {
         if (!prefix || !checkSeason || !checkRegion || !checkMode || !checkSquadSize) {
             cs.handleError(msg, 'Error:: Must specify all parameters', this.help);
             return;
         }
-        let errMessage = '';
-        let validPrefix = prefix.length > 0;
-        let validSeason = await pubgService.isValidSeason(checkSeason);
-        let validRegion = await pubgService.isValidRegion(checkRegion);
-        let validMode = await pubgService.isValidMode(checkMode);
-        let validSquadSize = await pubgService.isValidSquadSize(checkSquadSize);
+        let errMessage: string = '';
+        let validPrefix: boolean = prefix.length > 0;
+        let validSeason: boolean = await pubgService.isValidSeason(checkSeason);
+        let validRegion: boolean = await pubgService.isValidRegion(checkRegion);
+        let validMode: boolean = await pubgService.isValidMode(checkMode);
+        let validSquadSize: boolean = await pubgService.isValidSquadSize(checkSquadSize);
         if (!validSeason) {
-            let seasons = await sqlSeasonsService.getAllSeasons();
-            let availableSeasons = '== Available Seasons ==\n';
+            let seasons: any = await sqlSeasonsService.getAllSeasons();
+            let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
                 if (i < seasons.length - 1) {
                     availableSeasons += seasons[i].season + ', ';
@@ -87,8 +89,8 @@ export class SetServerDefaults extends Command {
             errMessage += `\nError:: Invalid season parameter\n${availableSeasons}\n`;
         }
         if (!validRegion) {
-            let regions = await sqlRegionsService.getAllRegions();
-            let availableRegions = '== Available Regions ==\n';
+            let regions: any = await sqlRegionsService.getAllRegions();
+            let availableRegions: string = '== Available Regions ==\n';
             for (let i = 0; i < regions.length; i++) {
                 if (i < regions.length - 1) {
                     availableRegions += regions[i].shortname + ', ';
@@ -100,8 +102,8 @@ export class SetServerDefaults extends Command {
             errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
         }
         if (!validMode) {
-            let modes = await sqlModesService.getAllModes();
-            let availableModes = '== Available Modes ==\n';
+            let modes: any = await sqlModesService.getAllModes();
+            let availableModes: string = '== Available Modes ==\n';
             for (let i = 0; i < modes.length; i++) {
                 if (i < modes.length - 1) {
                     availableModes += modes[i].shortname + ', ';
@@ -113,8 +115,8 @@ export class SetServerDefaults extends Command {
             errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
         }
         if (!validSquadSize) {
-            let squadSizes = await sqlSqaudSizeService.getAllSquadSizes();
-            let availableSizes = '== Available Squad Sizes ==\n';
+            let squadSizes: any = await sqlSqaudSizeService.getAllSquadSizes();
+            let availableSizes: string = '== Available Squad Sizes ==\n';
             for (let i = 0; i < squadSizes.length; i++) {
                 if (i < squadSizes.length - 1) {
                     availableSizes += squadSizes[i].size + ', ';

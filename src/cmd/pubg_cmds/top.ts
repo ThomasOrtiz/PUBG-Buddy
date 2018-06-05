@@ -13,6 +13,7 @@ import { Player } from '../../models/player';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { Seasons as SeasonEnum } from '../../enums/season.enum';
 import { SquadSize as SquadSizeEnum } from '../../enums/squadSize.enum';
+import { Server } from '../../models/server';
 
 
 export class Top extends Command {
@@ -43,34 +44,36 @@ export class Top extends Command {
     };
 
     async run(bot: any, msg: any, params: string[], perms: number) {
-        let amount = 10;
+        let amount: number = 10;
         if (params[0] && !isNaN(+params[0])) {
             amount = +params[0];
         }
-        let serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
-        let season = cs.getParamValue('season=', params, serverDefaults.default_season);
-        let region = cs.getParamValue('region=', params, serverDefaults.default_region);
-        let mode = cs.getParamValue('mode=', params, serverDefaults.default_mode);
-        let squadSize = cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
-        let checkingParametersMsg = await msg.channel.send('Checking for valid parameters ...');
+        let serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        let season: string = cs.getParamValue('season=', params, serverDefaults.default_season);
+        let region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
+        let mode: string = cs.getParamValue('mode=', params, serverDefaults.default_mode);
+        let squadSize: string = cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
+        let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
+
         if (!(await this.checkParameters(msg, season, region, mode, squadSize))) {
             checkingParametersMsg.delete();
             return;
         }
-        let registeredPlayers = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        let registeredPlayers: Player[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         if (registeredPlayers.length === 0) {
             cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
             return;
         }
-        const batchEditAmount = 5;
+
+        const batchEditAmount: number = 5;
         checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
         msg.channel.send('Grabbing player data')
             .then(async (msg) => {
-                let playersInfo = new Array();
+                let playersInfo: Player[] = new Array();
                 for (let i = 0; i < registeredPlayers.length; i++) {
-                    let player = registeredPlayers[i];
+                    let player: Player = registeredPlayers[i];
                     if (i % batchEditAmount === 0) {
-                        let max = (i + batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i + batchEditAmount;
+                        let max: number = (i + batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i + batchEditAmount;
                         msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
                     }
                     let id: string = await pubgService.getCharacterID(player.username, region);
@@ -86,52 +89,52 @@ export class Top extends Command {
                             grade: '',
                             headshot_kills: '',
                             longest_kill: '',
-                            average_damage_dealt: 0,
                             topPercent: '',
                             winPercent: '',
                             topTenPercent: '',
                             kda: 0,
                             kd: 0,
+                            average_damage_dealt: 0,
                         };
                     }
                     playersInfo.push(characterInfo);
                 }
                 // Sorting Array based off of ranking (higher ranking is better)
-                playersInfo.sort(function (a, b) { return b.rating - a.rating; });
-                let topPlayers = playersInfo.slice(0, amount);
-                let embed = new Discord.RichEmbed()
+                playersInfo.sort(function (a: Player, b: Player) { return (+b.rating) - (+a.rating); });
+                let topPlayers: Player[] = playersInfo.slice(0, amount);
+                let embed: Discord.RichEmbed = new Discord.RichEmbed()
                     .setTitle('Top ' + amount + ' local players')
                     .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum[squadSize])
                     .setColor(0x00AE86)
                     .setFooter('Data retrieved from https://pubg.op.gg/')
                     .setTimestamp();
-                let names = '';
-                let ratings = '';
-                let kds = '';
+                let names: string = '';
+                let ratings: string = '';
+                let kds: string = '';
                 // Construct top strings
                 for (var i = 0; i < topPlayers.length; i++) {
-                    let character = topPlayers[i];
-                    let ratingStr = character.rating ? character.rank + ' / ' + character.rating : 'Not available';
-                    let kdsStr = character.kd || character.kd === 0 ? character.kd + ' / ' + character.kda : 'Not available';
+                    let character: Player = topPlayers[i];
+                    let ratingStr: string = character.rating ? `${character.rank} / ${character.rating}` : 'Not available';
+                    let kdsStr: string = `${character.kd} / ${character.kda} / ${character.average_damage_dealt}`;
                     names += character.username + '\n';
                     ratings += ratingStr + '\n';
                     kds += kdsStr + '\n';
                 }
                 embed.addField('Name', names, true)
                     .addField('Rank / Rating', ratings, true)
-                    .addField('KD / KDA', kds, true);
+                    .addField('KD / KDA / Avg Dmg', kds, true);
                 await msg.edit({ embed });
             });
     };
 
-    async checkParameters(msg, checkSeason, checkRegion, checkMode, checkSquadSize): Promise<boolean> {
-        let errMessage = '';
-        let validSeason = await pubgService.isValidSeason(checkSeason);
-        let validRegion = await pubgService.isValidRegion(checkRegion);
-        let validMode = await pubgService.isValidMode(checkMode);
-        let validSquadSize = await pubgService.isValidSquadSize(checkSquadSize);
+    async checkParameters(msg: Discord.Message, checkSeason: string, checkRegion: string, checkMode: string, checkSquadSize: string): Promise<boolean> {
+        let errMessage: string = '';
+        let validSeason: boolean = await pubgService.isValidSeason(checkSeason);
+        let validRegion: boolean = await pubgService.isValidRegion(checkRegion);
+        let validMode: boolean = await pubgService.isValidMode(checkMode);
+        let validSquadSize: boolean = await pubgService.isValidSquadSize(checkSquadSize);
         if (!validSeason) {
-            let seasons = await sqlSeasonsService.getAllSeasons();
+            let seasons: any = await sqlSeasonsService.getAllSeasons();
             let availableSeasons = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
                 if (i < seasons.length - 1) {
@@ -144,8 +147,8 @@ export class Top extends Command {
             errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
         }
         if (!validRegion) {
-            let regions = await sqlRegionsService.getAllRegions();
-            let availableRegions = '== Available Regions ==\n';
+            let regions: any = await sqlRegionsService.getAllRegions();
+            let availableRegions: string = '== Available Regions ==\n';
             for (let i = 0; i < regions.length; i++) {
                 if (i < regions.length - 1) {
                     availableRegions += regions[i].shortname + ', ';
@@ -157,8 +160,8 @@ export class Top extends Command {
             errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
         }
         if (!validMode) {
-            let modes = await sqlModesService.getAllModes();
-            let availableModes = '== Available Modes ==\n';
+            let modes: any = await sqlModesService.getAllModes();
+            let availableModes: string = '== Available Modes ==\n';
             for (let i = 0; i < modes.length; i++) {
                 if (i < modes.length - 1) {
                     availableModes += modes[i].shortname + ', ';
@@ -170,8 +173,8 @@ export class Top extends Command {
             errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
         }
         if (!validSquadSize) {
-            let squadSizes = await sqlSqaudSizeService.getAllSquadSizes();
-            let availableSizes = '== Available Squad Sizes ==\n';
+            let squadSizes: any = await sqlSqaudSizeService.getAllSquadSizes();
+            let availableSizes: string = '== Available Squad Sizes ==\n';
             for (let i = 0; i < squadSizes.length; i++) {
                 if (i < squadSizes.length - 1) {
                     availableSizes += squadSizes[i].size + ', ';

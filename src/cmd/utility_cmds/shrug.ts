@@ -1,3 +1,6 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
+
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 
 
@@ -20,13 +23,14 @@ export class Shrug extends Command {
         ]
     };
 
-    run(bot: any, msg: any, params: string[], perms: number) {
-        let shrugString = '';
-        let amount = 1;
+    run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        let shrugString: string = '';
+        let amount: number = 1;
         if (params[0] && !isNaN(+params[0])) {
             amount = +params[0];
-            if (amount > 15)
+            if (amount > 15) {
                 amount = 15;
+            }
         }
         for (let i = 0; i < amount; i++) {
             let backslash: string = '\\';

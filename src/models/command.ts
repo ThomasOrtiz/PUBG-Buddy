@@ -1,3 +1,6 @@
+import { DiscordClientWrapper } from './../DiscordClientWrapper';
+import * as Discord from 'discord.js';
+
 export interface CommandHelp {
     name: string;
     description: string;
@@ -13,7 +16,7 @@ export interface CommandConfiguration {
 }
 
 export abstract class Command {
-    abstract run(bot: any, msg: any, params: string[], perms: number);
+    abstract run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number);
     conf: CommandConfiguration;
     help: CommandHelp;
 }

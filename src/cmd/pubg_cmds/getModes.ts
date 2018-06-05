@@ -1,6 +1,9 @@
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { CommandConfiguration, CommandHelp } from '../../models/command';
 import { SqlModesService as sqlModesService } from '../../services/sql.service';
 import { Command } from '../../models/command';
+
 
 
 export class GetModes extends Command {
@@ -21,8 +24,8 @@ export class GetModes extends Command {
         ]
     }
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
-        let modes = await sqlModesService.getAllModes();
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        let modes: any = await sqlModesService.getAllModes();
         let modeStr: string = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(25)}: = Value =\n`;
         for (let i = 0; i < modes.length; i++) {
             let key: string = modes[i].fullname;

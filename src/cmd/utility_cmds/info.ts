@@ -1,3 +1,5 @@
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { version } from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 
@@ -20,7 +22,7 @@ export class Info extends Command {
         ]
     };
 
-    run(bot: any, msg: any, params: string[], perms: number) {
+    run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         msg.channel.send(`= PUBG Bot Information =
 • Owner       :: Thomas Ortiz
 • Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot

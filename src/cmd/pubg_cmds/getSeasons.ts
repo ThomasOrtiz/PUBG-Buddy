@@ -1,3 +1,5 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { SqlSeasonsService as sqlSeasonsService } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 
@@ -20,8 +22,8 @@ export class GetSeasons extends Command {
         ]
     }
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
-        let seasons = await sqlSeasonsService.getAllSeasons();
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        let seasons: any = await sqlSeasonsService.getAllSeasons();
         let seasonStr: string = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
         for (let i = 0; i < seasons.length; i++) {
             let key: string = seasons[i].name;

@@ -1,3 +1,5 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 import { SqlSqaudSizeService as sqlSqaudSizeService } from '../../services/sql.service';
 import { SquadSize } from '../../models/squadSize';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
@@ -21,10 +23,10 @@ export class GetSquadSizes extends Command {
         ]
     }
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         let squadSizes: SquadSize[] = await sqlSqaudSizeService.getAllSquadSizes();
-
         let squadSizeStr: string = `= Regions =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(8)}: = Value =\n`;
+
         for(let i = 0; i < squadSizes.length; i++) {
             const key: string = squadSizes[i].name;
             const value: number = squadSizes[i].size;

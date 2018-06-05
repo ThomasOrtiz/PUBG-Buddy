@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from '../DiscordClientWrapper';
+import * as Discord from 'discord.js';
 require('dotenv').config();
 
 export class CommonService {
@@ -9,7 +9,7 @@ export class CommonService {
      * @param {string} errMessage: error string
      * @param {obj} help: command help object
      */
-    static handleError(msg: DiscordClientWrapper, errMessage: string, help: any): void {
+    static handleError(msg: Discord.Message, errMessage: string, help: any): void {
         let message = `${errMessage}\n`;
         if(help) {
             message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e=>`${e}`).join('\n')}`;

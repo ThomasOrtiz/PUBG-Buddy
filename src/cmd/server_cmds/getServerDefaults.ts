@@ -1,3 +1,5 @@
+import { Server } from './../../models/server';
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { SqlServerService as sqlServerService } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
@@ -21,10 +23,10 @@ export class GetServerDefaults extends Command {
         ]
     };
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         msg.channel.send('Getting server defaults ...')
-            .then(async (message) => {
-                let server = await sqlServerService.getServerDefaults(msg.guild.id);
+            .then(async (message: Discord.Message) => {
+                let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
                 let embed: Discord.RichEmbed = new Discord.RichEmbed()
                     .setTitle('Server Defaults')
                     .setDescription('The defaults that a server has when running PUBG Bot commands.')
