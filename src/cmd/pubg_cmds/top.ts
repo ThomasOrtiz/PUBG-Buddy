@@ -92,9 +92,9 @@ export class Top extends Command {
                             topPercent: '',
                             winPercent: '',
                             topTenPercent: '',
-                            kda: 0,
-                            kd: 0,
-                            average_damage_dealt: 0,
+                            kda: '0.00',
+                            kd: '0.00',
+                            average_damage_dealt: '0.00',
                         };
                     }
                     playersInfo.push(characterInfo);

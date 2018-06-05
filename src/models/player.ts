@@ -7,10 +7,10 @@ export interface Player {
     grade: string;
     headshot_kills: string;
     longest_kill: string;
-    average_damage_dealt: number;
     topPercent: string;
     winPercent: string;
     topTenPercent: string;
-    kda: number;
-    kd: number;
+    kda: string;
+    kd: string;
+    average_damage_dealt: string;
 }

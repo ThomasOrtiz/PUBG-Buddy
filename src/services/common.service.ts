@@ -1,11 +1,12 @@
 import * as Discord from 'discord.js';
 require('dotenv').config();
 
+
 export class CommonService {
 
     /**
      *
-     * @param {discord.client} msg: discord client
+     * @param {Discord.Message} msg: Discord.Message
      * @param {string} errMessage: error string
      * @param {obj} help: command help object
      */
@@ -62,10 +63,10 @@ export class CommonService {
 
     /**
      * Given a fraction it will return the equivalent % with '%' tacked on
-     * @param {*} num
-     * @param {*} den
+     * @param {number} num
+     * @param {number} den
      */
-    static getPercentFromFraction(num: any, den: any): string {
+    static getPercentFromFraction(num: number, den: number): string {
         if(num === 0 || den === 0) return '0%';
         return this.round((num/den)*100) + '%';
         //Math.round((num/den)*100 * 100) / 100 + '%';
@@ -73,9 +74,10 @@ export class CommonService {
 
     /**
      * Given a number it will round it to the nearest 100th place
-     * @param {*} num
+     * @param {number} num
      */
-    static round(num: any): number {
-        return Math.round(num * 100) / 100;
+    static round(num: number): string {
+        //return Math.round(num * 100) / 100;
+        return num.toFixed(2);
     }
 }
