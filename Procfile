@@ -1,2 +1,2 @@
-release: node ./migrate.js
-worker: node src/bot.js
+release: tsc && node ./dist/migrate.js
+worker: tsc && node dist/bot.js
