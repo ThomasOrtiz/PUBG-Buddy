@@ -1,6 +1,6 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
