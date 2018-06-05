@@ -1,3 +1,4 @@
+import { Season } from './../../models/season';
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
@@ -19,9 +20,9 @@ export class SqlSeasonsService {
      *  Return all seasons for PUBG
      * @returns {obj}: { id, name, season }
      */
-    static async getAllSeasons(): Promise<any> {
+    static async getAllSeasons(): Promise<Season[]> {
         return pool.query('select * from seasons').then((res: QueryResult) => {
-            return res.rows;
+            return res.rows as Season[];
         });
     }
 
@@ -29,10 +30,10 @@ export class SqlSeasonsService {
      * Returns the latest season of PUBG
      * @returns {obj}: { id, name, season }
      */
-    static async getLatestSeason(): Promise<any> {
+    static async getLatestSeason(): Promise<Season> {
         return pool.query('select season from seasons where season = (select max(season) from seasons)')
             .then((res: QueryResult) => {
-                return res.rows[0];
+                return res.rows[0] as Season;
             });
     }
 }

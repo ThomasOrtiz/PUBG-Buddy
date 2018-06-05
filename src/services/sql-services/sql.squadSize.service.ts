@@ -19,9 +19,9 @@ export class SqlSqaudSizeService {
 
     /**
      *  Return all PUBG modes
-     * @returns {Promise<any>}: { id, name, size }
+     * @returns {Promise<SquadSize[]>}: { id, name, size }
      */
-    static async getAllSquadSizes(): Promise<any> {
+    static async getAllSquadSizes(): Promise<SquadSize[]> {
         return pool.query('select * from squad_sizes').then((res: QueryResult) => {
             return res.rows as SquadSize[];
         });

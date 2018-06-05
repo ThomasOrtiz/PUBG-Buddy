@@ -1,3 +1,4 @@
+import { Mode } from './../../models/mode';
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
@@ -16,11 +17,11 @@ pool.on('error', (err) => {
 export class SqlModesService {
     /**
      *  Return all PUBG modes
-     * @returns {obj}: { id, fullname, shortname }
+     * @returns {Mode[]}: { id, fullname, shortname }
      */
     static async getAllModes(): Promise<any> {
         return pool.query('select * from modes').then((res: QueryResult) => {
-            return res.rows;
+            return res.rows as Mode[];
         });
     }
 }

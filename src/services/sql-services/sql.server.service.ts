@@ -16,6 +16,7 @@ pool.on('error', (err) => {
 
 
 export class SqlServerService {
+
     /**
      * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
      * @param {string} serverId
@@ -35,12 +36,24 @@ export class SqlServerService {
     /**
      * Get a server
      * @param {string} serverId
+     * @returns {Server} server id
      */
-    static async getServer(serverId: string): Promise<any> {
+    static async getServer(serverId: string): Promise<Server> {
         return pool.query('select * from servers where server_id = $1', [serverId])
             .then((res: QueryResult) => {
-                if(res.rowCount > 0) return res.rows;
-                else return null;
+                if(res.rowCount === 0) { return null; }
+
+                let server: Server = {
+                    id: '',
+                    serverId: res.rows[0].id,
+                    default_bot_prefix: res.rows[0].default_bot_prefix,
+                    default_season: res.rows[0].default_season,
+                    default_region: res.rows[0].default_region,
+                    default_mode: res.rows[0].default_mode,
+                    default_squadSize: res.rows[0].default_squadsize
+                }
+
+                return server;
             });
     }
 
@@ -60,7 +73,7 @@ export class SqlServerService {
     /**
      * Removes a server from the servers table
      * @param {string} serverId
-     * @returns {boolean}
+     * @returns {boolean} server unregistered successfully
      */
     static async unRegisterServer(serverId: string): Promise<boolean> {
         return pool.query('delete from servers where server_id=$1', [serverId])

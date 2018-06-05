@@ -1,6 +1,7 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
+import { Region } from '../../models/region';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
@@ -16,11 +17,11 @@ pool.on('error', (err) => {
 export class SqlRegionsService {
     /**
      *  Return all PUBG modes
-     * @returns {obj}: { id, fullname, shortname }
+     * @returns {Region[]}: { id, fullname, shortname }
      */
-    static async getAllRegions(): Promise<any> {
+    static async getAllRegions(): Promise<Region[]> {
         return pool.query('select * from regions').then((res: QueryResult) => {
-            return res.rows;
+            return res.rows as Region[];
         });
     }
 }

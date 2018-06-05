@@ -1,4 +1,4 @@
 export interface Mode {
-    squadSize: any;
-    name: string;
+    fullname: string;
+    shortname: string;
 }
