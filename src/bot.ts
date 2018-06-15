@@ -31,6 +31,7 @@ RegisterCommands();
 
 
 // Setup events
+bot.on('unhandledRejection', error => { logger.error(`Uncaught Promise Rejection:\n${error}`); });
 bot.on('error', logger.error);
 bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
