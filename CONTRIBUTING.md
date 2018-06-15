@@ -21,6 +21,9 @@ In order to develop we need a test environment. I'm not sure if this is the pref
     * bot_token=`<discord bot user's token> - refer to above documentation`
     * prefix=`!pubg-`
     * DATABASE_URL=`<Heroku supplied Database Url> - this should already exist if not refer to below documentation`
+10. On the top right click `More ^` and select `Restart all dynos`.
+11. If you want to see the progress of your app starting up on the top right click `More ^` and select `View Logs`.
+
 
 ## Install PsSql CLI tools
 In order to interact with the postgres database you will need to install the PsSql commandline tools.
