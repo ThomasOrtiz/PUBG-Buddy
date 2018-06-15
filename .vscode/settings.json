@@ -2,6 +2,7 @@
     "files.exclude": {
         "node_modules/": true,
         "**/._*": true,
-        "dist": true
+        "dist": true,
+        ".github": true
     }
 }
