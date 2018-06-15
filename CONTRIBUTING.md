@@ -22,6 +22,10 @@ In order to develop we need a test environment. I'm not sure if this is the pref
     prefix=`!pubg-`
     DATABASE_URL=`this should already exist if not refer to below documentation`
 
+## Install PsSql CLI tools
+In order to interact with the postgres database you will need to install the PsSql commandline tools.
+1. Follow the [PsSql install guide](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup).
+
 ### How to get DATABASE_URL
 1. Click the `Resources` tab.
 2. Under the `Add-ons` section click `Heroku Postgres:: Database`.
