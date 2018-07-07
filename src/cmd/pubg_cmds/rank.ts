@@ -74,7 +74,7 @@ export class Rank extends Command {
                     .setTitle('Ranking: ' + username)
                     .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
                     .setColor(0x00AE86)
-                    .setFooter(`https://pubg.op.gg/user/${username}?server=${region}`)
+                    .setFooter(`Retrieved from https://pubg.op.gg/`)
                     .setTimestamp();
                 if (soloData) {
                     this.addEmbedFields(embed, 'Solo', soloData);

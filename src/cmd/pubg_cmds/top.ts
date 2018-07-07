@@ -106,7 +106,7 @@ export class Top extends Command {
                     .setTitle('Top ' + amount + ' local players')
                     .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum[squadSize])
                     .setColor(0x00AE86)
-                    .setFooter('Data retrieved from https://pubg.op.gg/')
+                    .setFooter('Retrieved from https://pubg.op.gg/')
                     .setTimestamp();
                 let names: string = '';
                 let ratings: string = '';
