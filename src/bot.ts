@@ -7,6 +7,12 @@ import { CommonService as cs } from './services/common.service';
 import { SqlServerService as sqlService } from './services/sql.service';
 import { Command } from './models/command';
 import * as commands from './cmd/command_module';
+import { PlatformRegion, PubgAPI } from 'pubg-typescript-api';
+import { PubgService as pubgService } from './services/pubg.api.service';
+import { Server } from './models/server';
+
+const API_KEY = cs.getEnvironmentVariable('pubg_api_key');
+pubgService.getPlayerStatsByName(new PubgAPI(API_KEY, PlatformRegion.PC_NA), ['thomas-o']);
 
 // Configure logger settings
 logger.configure({
@@ -60,7 +66,7 @@ bot.on('message', async (msg: Discord.Message) => {
     // Grab relevant guild info if not DM
     if(msg.guild) {
         isGuildMessage = true;
-        let server_defaults: any = await sqlService.getOrRegisterServer(msg.guild.id);
+        let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
         prefix = server_defaults.default_bot_prefix;
         perms = bot.elevation(msg);
     }
@@ -98,6 +104,7 @@ bot.reload = function(command): Promise<any> {
         }
     });
 };
+
 /**
  * This function should resolve to an ELEVATION level which
  * is then sent to the command handler for verification
