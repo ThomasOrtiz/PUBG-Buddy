@@ -48,6 +48,7 @@ export class PubgService {
      * @returns {Promise<any>}
      */
     static async webScrapeForId(username: string, region: string): Promise<any> {
+        region.indexOf('pc-') >= 0 ? region : `pc-${region}`;
         logger.info(`\tWebscraping for ${username} on the ${region} region`);
 
         let url: string = pubgBaseURL + username + pubgServer + region;
@@ -77,6 +78,7 @@ export class PubgService {
      * @returns {Promise<Player>} A promise that resolves to a player
      */
     static async getPUBGCharacterData(id: string, username: string, season: string, region: string, squadSize: number, mode: string): Promise<Player> {
+        region.indexOf('pc-') >= 0 ? region : `pc-${region}`;
         logger.info('\tApi call for ' + username);
 
         const url = apiURL + id + apiOptions + '?season=' + season + '&server=' + region + '&queue_size=' + squadSize + '&mode=' + mode;
