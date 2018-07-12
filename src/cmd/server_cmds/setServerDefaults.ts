@@ -38,10 +38,10 @@ export class SetServerDefaults extends Command {
         let mode: string = cs.getParamValue('mode=', params, false);
         let squadSize: string = cs.getParamValue('squadSize=', params, false);
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        if (!(await this.checkParameters(msg, prefix, season, region, mode, squadSize))) {
-            checkingParametersMsg.delete();
-            return;
-        }
+        // if (!(await this.checkParameters(msg, prefix, season, region, mode, squadSize))) {
+        //     checkingParametersMsg.delete();
+        //     return;
+        // }
         checkingParametersMsg.edit('Updating this server\'s defaults ...')
             .then(async (msg: Discord.Message) => {
                 sqlServerService.setServerDefaults(msg.guild.id, prefix, season, region, mode, +squadSize)

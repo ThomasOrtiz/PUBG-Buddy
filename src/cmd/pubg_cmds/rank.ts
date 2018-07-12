@@ -1,7 +1,6 @@
 import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
-import { PubgService as pubgService } from '../../services/pubg.service';
 import {
     SqlServerService as sqlServerService,
     SqlSeasonsService as sqlSeasonsService,
@@ -11,7 +10,9 @@ import {
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { Seasons as SeasonEnum } from '../../enums/season.enum';
 import { Server } from '../../models/server';
-import { Player } from '../../models/player';
+
+import { PubgService as pubgApiService } from '../../services/pubg.api.service';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../../node_modules/pubg-typescript-api';
 
 
 export class Rank extends Command {
@@ -25,7 +26,7 @@ export class Rank extends Command {
 
     help: CommandHelp = {
         name: 'rank',
-        description: 'Returns a players solo, duo, and squad ranking details.',
+        description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
         usage: '<prefix>rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]',
         examples: [
             '!pubg-rank john',
@@ -42,7 +43,8 @@ export class Rank extends Command {
             cs.handleError(msg, 'Error:: Must specify a username', this.help);
             return;
         }
-        let username: string = params[0].toLowerCase();
+
+        let username: string = params[0];
         let serverDefaults: Server, season: string, region: string, mode: string;
         if (msg.guild) {
             serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
@@ -52,72 +54,118 @@ export class Rank extends Command {
         }
         else {
             season = cs.getParamValue('season=', params, await sqlSeasonsService.getLatestSeason());
-            region = cs.getParamValue('region=', params, 'na');
+            region = cs.getParamValue('region=', params, 'pc-na');
             mode = cs.getParamValue('mode=', params, 'fpp');
         }
-        let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        if (!(await this.checkParameters(msg, season, region, mode))) {
-            checkingParametersMsg.delete();
+
+        const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
+        const pubg_region: string = pubgApiService.getPubgRegionFromInput(region);
+        // if (!(await this.checkParameters(msg, season, region, mode))) {
+        //     checkingParametersMsg.delete();
+        //     return;
+        // }
+
+        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${username}`);
+        const api: PubgAPI      = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_region]);
+        const players: Player[] = await pubgApiService.getPlayerByName(api, [username])
+        const player: Player    = players[0];
+
+        if (!player.id) {
+            message.edit(`Could not find \`${username}\` on the \`${region}\` region. Double check the username and region.`);
             return;
         }
-        checkingParametersMsg.edit(`Getting data for ${username}`)
-            .then(async (message: Discord.Message) => {
-                const id: string = await pubgService.getCharacterID(username, region);
-                if (!id) {
-                    message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
-                    return;
-                }
-                const soloData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 1, mode);
-                const duoData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 2, mode);
-                const squadData: Player = await pubgService.getPUBGCharacterData(id, username, season, region, 4, mode);
-                let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                    .setTitle('Ranking: ' + username)
-                    .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
-                    .setColor(0x00AE86)
-                    .setFooter(`https://pubg.op.gg/user/${username}?server=${region}`)
-                    .setTimestamp();
-                if (soloData) {
-                    this.addEmbedFields(embed, 'Solo', soloData);
-                }
-                else {
-                    embed.addBlankField(false);
-                    embed.addField('Solo Status', 'Player hasn\'t played solo games this season', false);
-                }
-                if (duoData) {
-                    this.addEmbedFields(embed, 'Duo', duoData);
-                }
-                else {
-                    embed.addBlankField(false);
-                    embed.addField('Duo Status', 'Player hasn\'t played duo games this season', false);
-                }
-                if (squadData) {
-                    this.addEmbedFields(embed, 'Squad', squadData);
-                }
-                else {
-                    embed.addBlankField(false);
-                    embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
-                }
-                message.edit({ embed });
-            });
+
+        // Get Player Data
+        const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, season);
+
+        // Create embed to send
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle('Ranking: ' + username)
+            .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase())
+            .setColor(0x00AE86)
+            .setFooter(`Using PUBG's official API`)
+            .setTimestamp();
+
+        if(mode === 'fpp') {
+            this.addFppDataToEmbed(embed, seasonData);
+        } else {
+            this.addDataToEmbed(embed, seasonData);
+        }
+
+        message.edit({ embed });
     };
 
+    addFppDataToEmbed(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
+        if (seasonData.soloFPPStats) {
+            this.addEmbedFields(embed, 'Solo', seasonData.soloFPPStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Solo Status', 'Player hasn\'t played solo games this season', false);
+        }
 
-    addEmbedFields(embed: Discord.RichEmbed, squadType, playerData): void {
+        if (seasonData.duoFPPStats) {
+            this.addEmbedFields(embed, 'Duo', seasonData.duoFPPStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Duo Status', 'Player hasn\'t played duo games this season', false);
+        }
+
+        if (seasonData.squadFPPStats) {
+            this.addEmbedFields(embed, 'Squad', seasonData.squadFPPStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
+        }
+    }
+
+    addDataToEmbed(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
+        if (seasonData.soloStats) {
+            this.addEmbedFields(embed, 'Solo', seasonData.soloStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Solo Status', 'Player hasn\'t played solo games this season', false);
+        }
+
+        if (seasonData.duoStats) {
+            this.addEmbedFields(embed, 'Duo', seasonData.duoStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Duo Status', 'Player hasn\'t played duo games this season', false);
+        }
+
+        if (seasonData.squadStats) {
+            this.addEmbedFields(embed, 'Squad', seasonData.squadStats);
+        } else {
+            embed.addBlankField(false);
+            embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
+        }
+    }
+
+    addEmbedFields(embed: Discord.RichEmbed, squadType, playerData: GameModeStats): void {
+        const overallRating = pubgApiService.calculateOverallRating(playerData.winPoints, playerData.killPoints);
+        const kd = cs.round(playerData.kills / playerData.losses);
+        const kda = cs.round((playerData.kills + playerData.assists) / playerData.losses);
+        const winPercent = cs.getPercentFromFraction(playerData.wins, playerData.roundsPlayed);
+        const topTenPercent = cs.getPercentFromFraction(playerData.top10s, playerData.roundsPlayed);
+        const headshotKills = cs.getPercentFromFraction(playerData.headshotKills, playerData.roundsPlayed);
+        const averageDamageDealt = cs.round(playerData.damageDealt / playerData.roundsPlayed);
+
         embed.addBlankField(false)
-            .addField(squadType + ' Rank / Rating / Top % / Grade', playerData.rank + ' / ' + playerData.rating + ' / ' + playerData.topPercent + ' / ' + playerData.grade, false)
-            .addField('KD / KDA', playerData.kd + ' / ' + playerData.kda, true)
-            .addField('Win %', playerData.winPercent, true)
-            .addField('Top 10%', playerData.topTenPercent, true)
-            .addField('Headshot Kill %', playerData.headshot_kills, true)
-            .addField('Longest Kill', playerData.longest_kill, true)
-            .addField('Average Damage', playerData.average_damage_dealt, true);
+            .addField(`${squadType} Rating`, cs.round(overallRating), false)
+            .addField('KD / KDA', `${kd} / ${kda}`, true)
+            .addField('Win %', winPercent, true)
+            .addField('Top 10%', topTenPercent, true)
+            .addField('Headshot Kill %', headshotKills, true)
+            .addField('Longest Kill', cs.round(playerData.longestKill) + 'm', true)
+            .addField('Average Damage', averageDamageDealt, true);
     }
 
     async checkParameters(msg: Discord.Message, checkSeason: string, checkRegion: string, checkMode: string): Promise<boolean> {
-        let errMessage: string = '';
-        let validSeason: boolean = await pubgService.isValidSeason(checkSeason);
-        let validRegion: boolean = await pubgService.isValidRegion(checkRegion);
-        let validMode: boolean = await pubgService.isValidMode(checkMode);
+        let errMessage: string   = '';
+        let validSeason: boolean = await pubgApiService.isValidSeason(checkSeason);
+        let validRegion: boolean = await pubgApiService.isValidRegion(checkRegion);
+        let validMode: boolean   = await pubgApiService.isValidMode(checkMode);
+
         if (!validSeason) {
             let seasons: any = await sqlSeasonsService.getAllSeasons();
             let availableSeasons: string = '== Available Seasons ==\n';

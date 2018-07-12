@@ -5,12 +5,7 @@ import * as logger from 'winston';
 
 // Configure logger settings
 logger.configure({
-    level: 'debug',
-    transports: [
-        new logger.transports.Console({
-            colorize: true
-        })
-    ]
+    level: 'debug'
 });
 
 let connectionString = cs.getEnvironmentVariable('DATABASE_URL');

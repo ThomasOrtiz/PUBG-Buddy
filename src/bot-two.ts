@@ -1,13 +1,14 @@
+import { CommonService as cs } from './services/common.service';
 import { DiscordClientWrapper } from './DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
 import * as logger from 'winston';
-import { CommonService as cs } from './services/common.service';
 import { SqlServerService as sqlService } from './services/sql.service';
 import { Command } from './models/command';
 import * as commands from './cmd/command_module';
 import { Server } from './models/server';
+
 
 // Configure logger settings
 logger.configure({
@@ -176,3 +177,4 @@ function checkIfCommandIsRunnable(msg: Discord.Message, cmd: any, isGuildMessage
     }
     return true;
 }
+

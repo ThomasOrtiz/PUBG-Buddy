@@ -9,12 +9,24 @@ import {
     SqlServerRegisteryService as sqlServerRegisteryService,
     SqlSqaudSizeService as sqlSqaudSizeService
 } from '../../services/sql.service';
-import { Player } from '../../models/player';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Player as User } from '../../models/player';
 import { Seasons as SeasonEnum } from '../../enums/season.enum';
 import { SquadSize as SquadSizeEnum } from '../../enums/squadSize.enum';
 import { Server } from '../../models/server';
+import { PubgService as pubgApiService } from '../../services/pubg.api.service';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../../node_modules/pubg-typescript-api';
 
+
+class PlayerWithSeasonData {
+    constructor(name: string, gameModeStats: GameModeStats) {
+        this.name = name;
+        this.gameModeStats = gameModeStats;
+    }
+
+    readonly name: string;
+    readonly gameModeStats: GameModeStats;
+}
 
 export class Top extends Command {
 
@@ -48,6 +60,7 @@ export class Top extends Command {
         if (params[0] && !isNaN(+params[0])) {
             amount = +params[0];
         }
+
         let serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         let season: string = cs.getParamValue('season=', params, serverDefaults.default_season);
         let region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
@@ -55,77 +68,112 @@ export class Top extends Command {
         let squadSize: string = cs.getParamValue('squadSize=', params, serverDefaults.default_squadSize);
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
 
-        if (!(await this.checkParameters(msg, season, region, mode, squadSize))) {
-            checkingParametersMsg.delete();
-            return;
-        }
-        let registeredPlayers: Player[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
-        if (registeredPlayers.length === 0) {
+        // if (!(await this.checkParameters(msg, season, region, mode, squadSize))) {
+        //     checkingParametersMsg.delete();
+        //     return;
+        // }
+
+        let registeredUsers: User[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        if (registeredUsers.length === 0) {
             cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
             return;
         }
 
-        const batchEditAmount: number = 5;
-        checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredPlayers.length} registered users\` ... give me a second`);
-        msg.channel.send('Grabbing player data')
-            .then(async (msg: Discord.Message) => {
-                let playersInfo: Player[] = new Array();
-                for (let i = 0; i < registeredPlayers.length; i++) {
-                    let player: Player = registeredPlayers[i];
-                    if (i % batchEditAmount === 0) {
-                        let max: number = (i + batchEditAmount) > registeredPlayers.length ? registeredPlayers.length : i + batchEditAmount;
-                        msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
-                    }
-                    let id: string = await pubgService.getCharacterID(player.username, region);
-                    let characterInfo: Player = await pubgService.getPUBGCharacterData(id, player.username, season, region, +squadSize, mode);
-                    // Check if character info exists for this (it wont if a user hasn't played yet)
-                    if (!characterInfo) {
-                        characterInfo = {
-                            id: '',
-                            pubg_id: id,
-                            username: player.username,
-                            rank: '',
-                            rating: '',
-                            grade: '',
-                            headshot_kills: '',
-                            longest_kill: '',
-                            topPercent: '',
-                            winPercent: '',
-                            topTenPercent: '',
-                            kda: '0.00',
-                            kd: '0.00',
-                            average_damage_dealt: '0.00',
-                        };
-                    }
-                    playersInfo.push(characterInfo);
+        checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredUsers.length} registered users\` ... give me a second`);
+
+        msg.channel.send('Grabbing player data').then(async (msg: Discord.Message) => {
+            const pubg_region: string       = pubgApiService.getPubgRegionFromInput(region);
+            const api: PubgAPI              = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_region]);
+            const statsToGet: string        = this.getWhichStatsToGet(squadSize, mode);
+            const batchEditAmount: number   = 5;
+
+            // Get list of ids
+            const registeredNames: string[] = registeredUsers.map(user => user.username);
+            const players: Player[]         = await pubgApiService.getPlayerByName(api, registeredNames);
+
+            // Iterate through players
+            let userInfo: PlayerWithSeasonData[] = new Array();
+            for(let i = 0; i < players.length; i++) {
+                const player = players[i];
+                const currentId = player.id;
+
+                if (i % batchEditAmount === 0) {
+                    let max: number = (i + batchEditAmount) > registeredUsers.length ? registeredUsers.length : i + batchEditAmount;
+                    msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
                 }
-                // Sorting Array based off of ranking (higher ranking is better)
-                playersInfo.sort(function (a: Player, b: Player) { return (+b.rating) - (+a.rating); });
-                let topPlayers: Player[] = playersInfo.slice(0, amount);
-                let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                    .setTitle('Top ' + amount + ' local players')
-                    .setDescription('Season:\t' + SeasonEnum[season] + '\nRegion:\t' + region.toUpperCase() + '\nMode: \t' + mode.toUpperCase() + '\nSquad Size: \t' + SquadSizeEnum[squadSize])
-                    .setColor(0x00AE86)
-                    .setFooter('Data retrieved from https://pubg.op.gg/')
-                    .setTimestamp();
-                let names: string = '';
-                let ratings: string = '';
-                let kds: string = '';
-                // Construct top strings
-                for (var i = 0; i < topPlayers.length; i++) {
-                    let character: Player = topPlayers[i];
-                    let ratingStr: string = character.rating ? `${character.rank} / ${character.rating}` : 'Not available';
-                    let kdsStr: string = `${character.kd} / ${character.kda} / ${character.average_damage_dealt}`;
-                    names += character.username + '\n';
-                    ratings += ratingStr + '\n';
-                    kds += kdsStr + '\n';
-                }
-                embed.addField('Name', names, true)
-                    .addField('Rank / Rating', ratings, true)
-                    .addField('KD / KDA / Avg Dmg', kds, true);
-                await msg.edit({ embed });
+
+                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, currentId, season);
+                const info = new PlayerWithSeasonData(player.name, seasonInfo[statsToGet]);
+                userInfo.push(info);
+            }
+
+            // Sorting Array based off of ranking (higher ranking is better)
+            userInfo.sort((a: PlayerWithSeasonData, b: PlayerWithSeasonData) => {
+                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
+                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
+                return (+overallRatingB) - (+overallRatingA);
             });
+
+            // Grab only the top 'x' players
+            let topPlayers: PlayerWithSeasonData[] = userInfo.slice(0, amount);
+
+            // Construct top strings
+            let names: string = '';
+            let ratings: string = '';
+            let kds: string = '';
+
+            for (var i = 0; i < topPlayers.length; i++) {
+                const playerInfo = topPlayers[i];
+                let seasonStats: GameModeStats = playerInfo.gameModeStats;
+                const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints));
+                const kd = cs.round(seasonStats.kills / seasonStats.losses);
+                const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses);
+                const averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed);
+
+                let ratingStr: string = overallRating ? `${overallRating}` : 'Not available';
+                let kdsStr: string    = `${kd} / ${kda} / ${averageDamageDealt}`;
+
+                names += `${playerInfo.name}\n`;
+                ratings += `${ratingStr}\n`;
+                kds += `${kdsStr}\n`;
+            }
+
+            // Construct embed to send
+            let embed: Discord.RichEmbed = new Discord.RichEmbed()
+                .setTitle('Top ' + amount + ' local players')
+                .setDescription(`Season:\t ${SeasonEnum[season]}\nRegion:\t${region.toUpperCase()}\nMode:\t${mode.toUpperCase()}\nSquad Size:\t${SquadSizeEnum[squadSize]}`)
+                .setColor(0x00AE86)
+                .setFooter(`Using PUBG's official API`)
+                .setTimestamp()
+                .addField('Name', names, true)
+                .addField('Rating', ratings, true)
+                .addField('KD / KDA / Avg Dmg', kds, true);
+            await msg.edit({ embed });
+        });
     };
+
+    getWhichStatsToGet(squadSize, mode): string {
+        if (squadSize === '1') {
+            if (mode === 'fpp') {
+                return 'soloFPPStats';
+            } else {
+                return 'soloStats';
+            }
+        } else if (squadSize === '2') {
+            if (mode === 'fpp') {
+                return 'duoFPPStats';
+            } else {
+                return 'duoStats';
+            }
+        } else if (squadSize === '4') {
+            if (mode === 'fpp') {
+                return 'squadFPPStats';
+            } else {
+                return 'squadStats';
+            }
+        }
+
+    }
 
     async checkParameters(msg: Discord.Message, checkSeason: string, checkRegion: string, checkMode: string, checkSquadSize: string): Promise<boolean> {
         let errMessage: string = '';

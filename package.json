@@ -2,7 +2,7 @@
   "name": "pubg-stat-bot",
   "version": "1.0.0",
   "description": "A bot that reports PUBG stats",
-  "main": "src/bot.js",
+  "main": "src/bot-two.ts",
   "author": "Thomas Ortiz",
   "scripts": {
     "build": "tsc",
@@ -13,22 +13,22 @@
   "dependencies": {
     "cheerio": "latest",
     "curlrequest": "^1.0.1",
-    "discord.js": "^11.3.0",
-    "dotenv": "^5.0.1",
-    "pg": "^7.4.1",
+    "discord.js": "^11.3.2",
+    "dotenv": "^6.0.0",
+    "pg": "^7.4.3",
     "pubg-typescript-api": "^1.4.0",
-    "request": "^2.83.0",
+    "request": "^2.87.0",
     "request-promise": "^4.2.2",
-    "winston": "^2.4.0"
+    "winston": "^3.0.0"
   },
   "devDependencies": {
-    "@types/cheerio": "^0.22.7",
+    "@types/cheerio": "^0.22.8",
     "@types/es6-promise": "^3.3.0",
-    "@types/node": "^10.3.0",
-    "@types/pg": "^7.4.9",
+    "@types/node": "^10.5.2",
+    "@types/pg": "^7.4.10",
     "@types/request-promise": "^4.1.41",
     "@types/winston": "^2.3.9",
-    "eslint": "^4.19.1",
-    "typescript": "^2.9.1"
+    "eslint": "^5.1.0",
+    "typescript": "^2.9.2"
   }
 }

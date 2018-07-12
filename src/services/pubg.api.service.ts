@@ -1,7 +1,3 @@
-import * as rp from 'request-promise';
-import * as logger from 'winston';
-import * as cheerio from 'cheerio';
-import { CommonService as cs } from './common.service';
 import {
     SqlPlayersService as sqlPlayersService,
     SqlModesService as sqlModeService,
@@ -9,108 +5,84 @@ import {
     SqlSqaudSizeService as sqlSquadSizeService,
     SqlSeasonsService as sqlSeasonService
  } from './sql.service';
-import * as curl from 'curlrequest';
-import { Player, PlayerSeason, PubgAPI } from 'pubg-typescript-api';
+import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion } from 'pubg-typescript-api';
 
-// Webscraping URL --> pubgBaseRL + <username> + pubgServer
-const pubgBaseURL: string = 'https://pubg.op.gg/user/';
-const pubgServer: string = '?server=';
-// Direct API URL --> apiURL + <id> + apiOptions
-const apiURL: string = 'https://pubg.op.gg/api/users/';
-const apiOptions: string = '/ranked-stats';
 
 export class PubgService {
 
-    static async getPlayerStatsByName(api: PubgAPI, names: string[]): Promise<PlayerSeason> {
-        const result: Player[] = await Player.filterByName(api, names);
-        const player: Player = result[0];
-        const seasonData: PlayerSeason = await PlayerSeason.get(api, player.id, 'division.bro.official.2018-04');
-        return seasonData;
-    }
-
     /**
      * Returns a pubg character id
-     * @param {string} username
-     * @param {string} region: region
+     * @param {string} name
      * @returns {Promise<string>} a promise that resolves to a pubg id
      */
-    static async getCharacterID(username: string, region: string): Promise<string> {
-        username = username.toLowerCase();
+    static async getPlayerId(api: PubgAPI, name: string): Promise<string> {
+        const player = await sqlPlayersService.getPlayer(name);
 
-        return sqlPlayersService.getPlayer(username)
-            .then((player: any) => {
-                if(player && player.pubg_id && player.pubg_id !== '') {
-                    return player.pubg_id;
-                } else {
-                    return this.webScrapeForId(username, region);
-                }
-            });
+        if(player && player.pubg_id && player.pubg_id !== '') {
+            return player.pubg_id;
+        } else {
+            return await this.getPlayerIdByName(api, [name]);
+        }
     }
 
-    /**
-     * Using curl this scrapes pubg.op.gg for pubg character id.
-     * @param {string} username: pubg username
-     * @param {string} region: region
-     * @returns {Promise<any>}
-     */
-    static async webScrapeForId(username: string, region: string): Promise<any> {
-        logger.info(`\tWebscraping for ${username} on the ${region} region`);
-
-        let url: string = pubgBaseURL + username + pubgServer + region;
-        return new Promise((resolve, reject) => {
-            curl.request(url, async (err, stdout) => {
-                if(err) { reject(err); }
-
-                let $: any = cheerio.load(stdout);
-                let id: string = $('#userNickname').attr('data-user_id');
-                if(id) {
-                    await sqlPlayersService.addPlayer(username, id);
-                }
-
-                resolve(id);
-            });
-        });
+    static async getPlayerByName(api: PubgAPI, names: string[]): Promise<Player[]> {
+        return Player.filterByName(api, names);
     }
 
-    /**
-     * Makes a api call to pubg.op.gg/api/
-     * @param {string} id: pubg api id
-     * @param {string} username: pubg username
-     * @param {string} season: season of pubg ['2018-01', '2018-02', '2018-03']
-     * @param {string} region: region of play
-     * @param {string} squadSize: solo, duo, squad [1, 2, 4]
-     * @param {string} mode: [fpp, tpp]
-     * @returns {Promise<Player>} A promise that resolves to a player
-     */
-    static async getPUBGCharacterData(id: string, username: string, season: string, region: string, squadSize: number, mode: string): Promise<Player> {
-        logger.info('\tApi call for ' + username);
+    static async getPlayerIdByName(api: PubgAPI, names: string[]): Promise<string> {
+        const result: Player[] = await Player.filterByName(api, names);
 
-        const url = apiURL + id + apiOptions + '?season=' + season + '&server=' + region + '&queue_size=' + squadSize + '&mode=' + mode;
-        return rp({ url: url, json: true })
-            .then((json: any) => {
-                let player: any = {
-                    id: '',
-                    pubg_id: id,
-                    username: username,
-                    rank: `#${json.ranks.rating}`,
-                    rating: json.stats.rating || '',
-                    grade: json.grade || '?',
-                    headshot_kills: cs.getPercentFromFraction(json.stats.headshot_kills_sum, json.stats.kills_sum),
-                    longest_kill: json.stats.longest_kill_max + 'm',
-                    average_damage_dealt: cs.round(json.stats.damage_dealt_avg ),
-                    topPercent: 'Top ' + cs.getPercentFromFraction(json.ranks.rating, json.max_ranks.rating),
-                    winPercent: cs.getPercentFromFraction(json.stats.win_matches_cnt, json.stats.matches_cnt),
-                    topTenPercent: cs.getPercentFromFraction(json.stats.topten_matches_cnt, json.stats.matches_cnt),
-                    kda: cs.round( (json.stats.kills_sum + json.stats.assists_sum) / json.stats.deaths_sum ),
-                    kd: cs.round(json.stats.kills_sum/ json.stats.deaths_sum),
-                }
-
-                return player;
-            }, () => {
-                return null;
-            });
+        if(result.length > 0) {
+            const player = result[0];
+            sqlPlayersService.addPlayer(player.name, player.id)
+            return player.id;
+        } else {
+            return '';
+        }
     }
 
+    static async getPlayerSeasonStatsById(api: PubgAPI, id: string, season: string): Promise<PlayerSeason> {
+        return PlayerSeason.get(api, id, this.getPubgSeasonId(season));
+    }
+
+    //////////////////////////////////////
+    // Seasons
+    //////////////////////////////////////
+    static getPubgSeasonId(seasonInput: string) {
+        const prefix = 'division.bro.official.';
+        return prefix + seasonInput;
+    }
+
+    static async getAvailableSeasons(api: PubgAPI): Promise<any> {
+        let seasons: Season[] = await Season.list(api);
+        console.log('seasons', JSON.stringify(seasons, null, 2));
+        return seasons;
+    }
+
+    static async getCurrentSeason(api: PubgAPI): Promise<any> {
+        let seasons: Season[] = await Season.list(api);
+        const currentSeason = seasons.filter(season => season.isCurrentSeason)[0];
+        return currentSeason;
+    }
+
+    //////////////////////////////////////
+    // Regions
+    //////////////////////////////////////
+    static getPubgRegionFromInput(region: string): string {
+        const pubg_region: string = Object.keys(PlatformRegion).find(key => PlatformRegion[key] === region) as PlatformRegion;
+        return pubg_region;
+    }
+
+    //////////////////////////////////////
+    // Rating Calculation
+    //////////////////////////////////////
+    static calculateOverallRating(winRating: number, killRating: number): number {
+        return winRating + (killRating / 5);
+    }
+
+    //////////////////////////////////////
+    // Validation
+    //////////////////////////////////////
     static async isValidSeason(checkSeason): Promise<boolean> {
         let seasons = await sqlSeasonService.getAllSeasons();
         for(let i = 0; i < seasons.length; i++) {

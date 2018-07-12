@@ -36,7 +36,7 @@ export class RemoveUser extends Command {
             return;
         }
         for (let i = 0; i < params.length; i++) {
-            let username: string = params[i].toLowerCase();
+            let username: string = params[i];
             if (username.indexOf('region=') >= 0) {
                 continue;
             }
