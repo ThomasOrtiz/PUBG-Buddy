@@ -1,13 +1,14 @@
 import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
-import { PubgService as pubgService } from '../../services/pubg.service';
+import { PubgService as pubgService } from '../../services/pubg.api.service';
 import {
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { Server } from '../../models/server';
+import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
 
 export class RemoveUser extends Command {
@@ -37,19 +38,21 @@ export class RemoveUser extends Command {
         }
 
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-        const region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
+        const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+
         for (let i = 0; i < params.length; i++) {
             let username: string = params[i];
 
             if (username.indexOf('region=') >= 0) { continue; }
 
-            this.removeUser(msg, region, username);
+            this.removeUser(msg, api, region, username);
         }
     };
 
-    private async removeUser(msg: Discord.Message, region, username: string) {
+    private async removeUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
         const message: Discord.Message = await msg.channel.send(`Removing ${username} from server registry`) as Discord.Message;
-        const pubgId: string = await pubgService.getCharacterID(username, region);
+        const pubgId: string = await pubgService.getPlayerId(api, username);
 
         if (!pubgId) {
             message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
