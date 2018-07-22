@@ -4,8 +4,7 @@ import {
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService,
 } from '../../services/sql.service';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
-import { Player as User } from '../../models/player';
+import { Command, CommandConfiguration, CommandHelp, Player as User } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 

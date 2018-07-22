@@ -1,7 +1,7 @@
 import * as logger from 'winston';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
-import { Region } from '../../models/region';
+import { Region } from '../../models/models.module';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');

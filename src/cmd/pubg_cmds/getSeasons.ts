@@ -1,7 +1,7 @@
 import { CommonService as cs } from '../../services/common.service';
 import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgService } from '../../services/pubg.api.service';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
 

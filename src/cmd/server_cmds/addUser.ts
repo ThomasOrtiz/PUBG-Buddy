@@ -6,8 +6,7 @@ import {
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services/sql.service';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
-import { Server } from '../../models/server';
+import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
 export class AddUser extends Command {

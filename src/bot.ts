@@ -5,9 +5,8 @@ import * as fs from 'fs';
 import { join } from 'path';
 import * as logger from './services/logger.service';
 import { SqlServerService as sqlService } from './services/sql.service';
-import { Command } from './models/command';
+import { Command, Server } from './models/models.module';
 import * as commands from './cmd/command_module';
-import { Server } from './models/server';
 
 
 // Initialize Bot

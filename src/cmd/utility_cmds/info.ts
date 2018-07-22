@@ -1,7 +1,7 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { version } from 'discord.js';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 
 export class Info extends Command {
 

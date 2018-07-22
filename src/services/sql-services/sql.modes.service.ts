@@ -1,4 +1,4 @@
-import { Mode } from './../../models/mode';
+import { Mode } from './../../models/models.module';
 import * as logger from '../logger.service';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';

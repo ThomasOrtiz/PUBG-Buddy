@@ -1,7 +1,7 @@
 import * as logger from '../logger.service';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
-import { SquadSize } from '../../models/squadSize';
+import { SquadSize } from '../../models/models.module';
 
 
 let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');

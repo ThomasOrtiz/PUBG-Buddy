@@ -1,9 +1,8 @@
-import { Server } from './../../models/server';
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import {SqlServerService as sqlService} from '../../services/sql.service';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 
 export class Help extends Command {
 

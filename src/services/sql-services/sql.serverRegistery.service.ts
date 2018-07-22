@@ -1,6 +1,6 @@
 import * as logger from '../logger.service';
 import { CommonService as cs } from '../common.service';
-import { Player } from '../../models/player';
+import { Player } from '../../models/models.module';
 import { Pool, QueryResult } from 'pg';
 
 

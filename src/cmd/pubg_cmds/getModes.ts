@@ -1,7 +1,6 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { CommandConfiguration, CommandHelp } from '../../models/command';
-import { Command } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 
 

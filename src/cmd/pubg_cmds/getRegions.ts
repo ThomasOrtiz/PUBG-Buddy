@@ -1,7 +1,7 @@
 import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 
 
 export class GetRegions extends Command {
