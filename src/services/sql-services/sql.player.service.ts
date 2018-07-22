@@ -15,8 +15,8 @@ pool.on('error', (err) => {
     process.exit(-1);
 });
 
-const ttl: number = 60 * 60 * 1      // caches for 1 hour
-const cache = new CacheService(ttl); // create a new cache service instance
+
+const cache = new CacheService(); // create a new cache service instance
 
 export class SqlPlayersService {
     /**

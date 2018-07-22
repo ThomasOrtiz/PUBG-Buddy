@@ -8,11 +8,18 @@ import * as logger from './logger.service';
 export default class CacheService {
 
     cache: NodeCache;
+    private ONE_HOUR: number = 60*60*1;
 
-    constructor(ttlSeconds) {
+    /**
+     * Creates a node-cache object
+     * @param {number} ttlSeconds time in seconds until cache is invalid - defaults to 1 hour
+     */
+    constructor(ttlSeconds?: number) {
+        const ttl = ttlSeconds ? ttlSeconds : this.ONE_HOUR;
+
         this.cache = new NodeCache({
-            stdTTL: ttlSeconds,
-            checkperiod: ttlSeconds * 0.2,
+            stdTTL: ttl,
+            checkperiod: ttl * 0.2,
             useClones: false
         });
     }

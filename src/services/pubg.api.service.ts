@@ -6,8 +6,7 @@ import {
 import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
 import CacheService from './cache.service';
 
-const ttl: number = 60 * 60 * 1      // caches for 1 hour
-const cache = new CacheService(ttl); // create a new cache service instance
+const cache = new CacheService(); // create a new cache service instance
 
 
 export class PubgService {
@@ -103,14 +102,36 @@ export class PubgService {
      * @param {PubgAPI} api
      * @returns {Promise<Season[]} list of seasons
      */
-    static async getAvailableSeasons(api: PubgAPI): Promise<Season[]> {
+    static async getAvailableSeasons(api: PubgAPI, removeBeta?: boolean): Promise<Season[]> {
         const cacheKey: string = 'pubgApi.getAvailableSeasons';
         const ttl: number = 60 * 60 * 2;  // caches for 2 hour
         const storeFunction: Function = async (): Promise<Season[]> => {
             return await Season.list(api);
         };
 
-        return await cache.get<Season[]>(cacheKey, storeFunction, ttl);
+        let seasons: Season[] = await cache.get<Season[]>(cacheKey, storeFunction, ttl);
+
+        // Not supporting pre-release seasons
+        if (removeBeta) {
+            seasons = seasons.filter(season => {
+                const seasonId = season.id;
+                return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
+            });
+        }
+
+        return seasons
+    }
+
+    static async getSeasonDisplayName(api: PubgAPI, seasonYearMonth: string): Promise<string> {
+        const seasons: Season[] = await this.getAvailableSeasons(api, true);
+
+        for (let i = 0; i < seasons.length; i++) {
+            let season: Season = seasons[i];
+            const season_ui_id: string = season.id.split('division.bro.official.')[1]
+            if(seasonYearMonth === season_ui_id) {
+                return `Season ${i+1}`;
+            }
+        }
     }
 
     /**
@@ -187,13 +208,7 @@ export class PubgService {
         let validMode: boolean   = this.isValidGameMode(checkMode);
 
         if (!validSeason) {
-            let seasons: Season[] = await this.getAvailableSeasons(api);
-
-            // Not supporting pre-release seasons
-            seasons = seasons.filter(season => {
-                const seasonId = season.id;
-                return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
-            });
+            let seasons: Season[] = await this.getAvailableSeasons(api, true);
 
             let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
