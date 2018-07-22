@@ -1,18 +1,7 @@
+import * as pool from '../sql-services/sql.config.service';
 import { Season } from './../../models/models.module';
-import * as logger from '../logger.service';
-import { CommonService as cs } from '../common.service';
-import { Pool, QueryResult } from 'pg';
+import { QueryResult } from 'pg';
 
-
-let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
-const pool: Pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
-pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
-});
 
 export class SqlSeasonsService {
 

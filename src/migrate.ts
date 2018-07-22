@@ -1,14 +1,7 @@
-import { CommonService as cs } from './services/common.service';
+import * as pool from './services/sql-services/sql.config.service';
 import * as logger from './services/logger.service';
 import { readdir, readFileSync } from 'fs';
-import { Pool } from 'pg';
 
-
-let connectionString = cs.getEnvironmentVariable('DATABASE_URL');
-const pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
 
 logger.info('Starting migrations ...');
 

@@ -1,20 +1,7 @@
-import * as logger from '../logger.service';
-import { CommonService as cs } from '../common.service';
-import { Pool, QueryResult } from 'pg';
+import * as pool from '../sql-services/sql.config.service';
+import { QueryResult } from 'pg';
 import { Player } from '../../models/models.module';
 import CacheService from '../cache.service';
-
-
-let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
-const pool: Pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
-pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
-});
-
 
 const cache = new CacheService(); // create a new cache service instance
 

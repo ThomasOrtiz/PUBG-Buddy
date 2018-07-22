@@ -1,18 +1,7 @@
-import * as logger from '../logger.service';
-import { CommonService as cs } from '../common.service';
+import * as pool from '../sql-services/sql.config.service';
 import { Player } from '../../models/models.module';
-import { Pool, QueryResult } from 'pg';
+import { QueryResult } from 'pg';
 
-
-let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
-const pool: Pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
-pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
-});
 
 export class SqlServerRegisteryService {
 
