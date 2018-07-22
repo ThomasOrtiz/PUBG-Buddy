@@ -21,8 +21,8 @@ export class AddUser extends Command {
 
     help: CommandHelp = {
         name: 'addUser',
-        description: 'Adds user(s) to the server\'s registery.',
-        usage: '<prefix>addUser <username ...> [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)]',
+        description: 'Adds user(s) to the server\'s registery. ** Name is case sensitive **',
+        usage: '<prefix>addUser <username ...> [region=]',
         examples: [
             '!pubg-addUser john',
             '!pubg-addUser john jane',
@@ -31,37 +31,38 @@ export class AddUser extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        if(!params[0]) {
+        if (!params[0]) {
             cs.handleError(msg, 'Error:: Must specify at least one username', this.help);
             return;
         }
 
-        for(let i=0; i < params.length; i++) {
+        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+
+        for(let i = 0; i < params.length; i++) {
             let username: string = params[i];
-            if(username.indexOf('region=') >= 0){
-                continue;
-            }
 
-            let serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-            let region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
+            if (username.indexOf('region=') >= 0){ continue; }
 
-            const pubg_region = pubgService.getPubgRegionFromInput(region);
-            const api: PubgAPI      = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_region]);
-
-            msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`).then(async (message: Discord.Message) => {
-                let pubgId: string = await pubgService.getPlayerId(api, username);
-
-                if (pubgId && pubgId !== '') {
-                    let registered: boolean = await sqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
-                    if(registered) {
-                        message.edit(`Added ${username}`);
-                    } else {
-                        message.edit(`Could not add ${username}`);
-                    }
-                } else {
-                    message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
-                }
-            });
+            this.addUser(msg, api, region, username);
         }
     }
+
+    private async addUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
+        const message: Discord.Message = await msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`) as Discord.Message;
+        const pubgId: string = await pubgService.getPlayerId(api, username);
+
+        if (pubgId && pubgId !== '') {
+            const registered: boolean = await sqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
+            if (registered) {
+                message.edit(`Added ${username}`);
+            } else {
+                message.edit(`Could not add ${username}`);
+            }
+        } else {
+            message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
+        }
+    }
+
 }

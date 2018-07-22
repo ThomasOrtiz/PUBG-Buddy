@@ -22,10 +22,9 @@ export class Ping extends Command {
     };
 
     run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        msg.channel.send('Ping?')
-            .then((message: Discord.Message) => {
-                message.edit(`Pong! (took: ${message.createdTimestamp - msg.createdTimestamp}ms)`);
-            });
+        msg.channel.send('Ping?').then((message: Discord.Message) => {
+            message.edit(`Pong! (took: ${message.createdTimestamp - msg.createdTimestamp}ms)`);
+        });
     };
 
 }

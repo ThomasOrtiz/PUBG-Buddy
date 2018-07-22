@@ -1,10 +1,9 @@
 import { CommonService as cs } from '../../services/common.service';
 import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { SqlSeasonsService as sqlSeasonsService } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { PubgService as pubgService } from '../../services/pubg.api.service';
-import { PlatformRegion, PubgAPI } from '../../../node_modules/pubg-typescript-api';
+import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
 
 
 export class GetSeasons extends Command {
@@ -26,17 +25,20 @@ export class GetSeasons extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let seasons: any = await sqlSeasonsService.getAllSeasons();
+        let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA));
 
-        const API_KEY = cs.getEnvironmentVariable('pubg_api_key');
-        seasons = await pubgService.getAvailableSeasons(new PubgAPI(API_KEY, PlatformRegion.PC_NA));
+        // Not supporting pre-release seasons
+        seasons = seasons.filter(season => {
+            const seasonId = season.id;
+            return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
+        });
 
-        let seasonStr: string = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
+        let seasonStr: string = `= Seasons =\n`;
         for (let i = 0; i < seasons.length; i++) {
-            let key: string = seasons[i].name;
-            let value: string = seasons[i].season;
-            seasonStr += `${key.padEnd(10)}: ${value}\n`;
+            const seasonId = seasons[i].id.split('division.bro.official.')[1];
+            seasonStr += `${seasonId}\n`;
         }
+
         msg.channel.send(seasonStr, { code: 'asciidoc' });
     };
 }

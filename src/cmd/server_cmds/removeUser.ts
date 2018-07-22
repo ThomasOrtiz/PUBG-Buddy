@@ -21,8 +21,8 @@ export class RemoveUser extends Command {
 
     help: CommandHelp = {
         name: 'removeUser',
-        description: 'Removes a user from the server\'s registery.',
-        usage: '<prefix>removeUser <username ...> [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)]',
+        description: 'Removes a user from the server\'s registery. ** Name is case sensitive **',
+        usage: '<prefix>removeUser <username ...> [region=]',
         examples: [
             '!pubg-removeUser john',
             '!pubg-removeUser john jane',
@@ -35,29 +35,35 @@ export class RemoveUser extends Command {
             cs.handleError(msg, 'Error:: Must specify at least one username', this.help);
             return;
         }
+
+        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
         for (let i = 0; i < params.length; i++) {
             let username: string = params[i];
-            if (username.indexOf('region=') >= 0) {
-                continue;
-            }
-            let serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-            let region: string = cs.getParamValue('region=', params, serverDefaults.default_region);
-            msg.channel.send(`Removing ${username} from server registry`)
-                .then(async (message: Discord.Message) => {
-                    let pubgId: string = await pubgService.getCharacterID(username, region);
-                    if (!pubgId) {
-                        message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
-                        return;
-                    }
-                    let unregistered: boolean = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
-                    if (unregistered) {
-                        message.edit(`Removed ${username} from server registry`);
-                    }
-                    else {
-                        message.edit(`${username} does not exist on server registery`);
-                    }
-                });
+
+            if (username.indexOf('region=') >= 0) { continue; }
+
+            this.removeUser(msg, region, username);
         }
     };
+
+    private async removeUser(msg: Discord.Message, region, username: string) {
+        const message: Discord.Message = await msg.channel.send(`Removing ${username} from server registry`) as Discord.Message;
+        const pubgId: string = await pubgService.getCharacterID(username, region);
+
+        if (!pubgId) {
+            message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
+            return;
+        }
+
+        let unregistered: boolean = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
+        if (unregistered) {
+            message.edit(`Removed ${username} from server registry`);
+        }
+        else {
+            message.edit(`${username} does not exist on server registery`);
+        }
+
+    }
 
 }

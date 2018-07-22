@@ -3,7 +3,6 @@ import * as Discord from 'discord.js';
 import { version } from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 
-
 export class Info extends Command {
 
     conf: CommandConfiguration = {

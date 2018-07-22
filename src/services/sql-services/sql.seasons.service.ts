@@ -21,6 +21,8 @@ export class SqlSeasonsService {
      * @returns {obj}: { id, name, season }
      */
     static async getAllSeasons(): Promise<Season[]> {
+        // TODO: Run a 'timed' event to grab most recent season
+
         return pool.query('select * from seasons').then((res: QueryResult) => {
             return res.rows as Season[];
         });

@@ -70,5 +70,11 @@ export class SqlServerRegisteryService {
                 }
             });
     }
+
+    static async deleteAllPlayers(): Promise<any> {
+        return pool.query('delete from players where 1=1').then((res: QueryResult) => {
+            return pool.query('delete from server_registery where 1=1').then(() => {});
+        });
+    }
 }
 
