@@ -21,15 +21,15 @@ export class SetServerDefaults extends Command {
         description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
         usage: '<prefix>setServerDefaults <prefix=> <season=> <region=> <mode=>',
         examples: [
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=na mode=tpp',
+            '!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=pc-na mode=tpp',
         ]
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let prefix: string = cs.getParamValue('prefix=', params, false);
+        let prefix: string = cs.getParamValue('prefix=', params, '!pubg-');
         let season: string = cs.getParamValue('season=', params, false);
-        let region: string = cs.getParamValue('region=', params, false);
-        let mode: string = cs.getParamValue('mode=', params, false);
+        let region: string = cs.getParamValue('region=', params, '').toUpperCase().replace('-', '_');
+        let mode: string = cs.getParamValue('mode=', params, '').toUpperCase().replace('-', '_');
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
         const isValidParameters = await pubgApiService.validateParameters(msg, this.help, season, region, mode);
@@ -50,8 +50,8 @@ export class SetServerDefaults extends Command {
                     .addBlankField(true)
                     .addBlankField(false)
                     .addField('Default Season', server.default_season, true)
-                    .addField('Default Region', server.default_region, true)
-                    .addField('Default GameMode', server.default_mode, true)
+                    .addField('Default Region', server.default_region.replace('_', '-'), true)
+                    .addField('Default GameMode', server.default_mode.replace('_', '-'), true)
                 msg.edit({ embed });
             });
         });

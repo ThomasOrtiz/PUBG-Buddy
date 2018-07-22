@@ -25,13 +25,7 @@ export class GetSeasons extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA));
-
-        // Not supporting pre-release seasons
-        seasons = seasons.filter(season => {
-            const seasonId = season.id;
-            return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
-        });
+        let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA), true);
 
         let seasonStr: string = `= Seasons =\n`;
         for (let i = 0; i < seasons.length; i++) {

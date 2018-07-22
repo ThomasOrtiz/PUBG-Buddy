@@ -6,11 +6,16 @@ import {
 } from '../../services/sql.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
 import { Player as User } from '../../models/player';
-import { Seasons as SeasonEnum } from '../../enums/season.enum';
-import { Server } from '../../models/server';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 
+
+interface ParameterMap {
+    amount: number;
+    season: string;
+    region: string;
+    mode: string;
+}
 
 class PlayerWithSeasonData {
     constructor(name: string, gameModeStats: GameModeStats) {
@@ -50,18 +55,10 @@ export class Top extends Command {
     };
 
     async run(bot: any, msg: any, params: string[], perms: number) {
-        let amount: number = 10;
-        if (params[0] && !isNaN(+params[0])) {
-            amount = +params[0];
-        }
-
-        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-        const season: string         = cs.getParamValue('season=', params, serverDefaults.default_season);
-        const region: string         = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
-        const mode: string           = cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase();
+        const paramMap: ParameterMap = await this.getParameters(msg, params);
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, season, region, mode);
+        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, paramMap.season, paramMap.region, paramMap.mode);
         if(!isValidParameters) {
             checkingParametersMsg.delete();
             return;
@@ -73,11 +70,11 @@ export class Top extends Command {
             return;
         }
 
-        checkingParametersMsg.edit(`Aggregating \`top ${amount}\` on \`${registeredUsers.length} registered users\` ... give me a second`);
+        checkingParametersMsg.edit(`Aggregating \`top ${paramMap.amount}\` on \`${registeredUsers.length} registered users\` ... give me a second`);
 
         msg.channel.send('Grabbing player data').then(async (msg: Discord.Message) => {
-            const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
-            const statsToGetKey: string = this.getWhichStatsToGet(mode);
+            const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[paramMap.region]);
+            const statsToGetKey: string = this.getWhichStatsToGet(paramMap.mode);
             const batchEditAmount: number = 5;
 
             // Get list of ids
@@ -95,7 +92,7 @@ export class Top extends Command {
                     msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
                 }
 
-                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, currentId, season);
+                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, currentId, paramMap.season);
                 const info = new PlayerWithSeasonData(player.name, seasonInfo[statsToGetKey]);
                 userInfo.push(info);
             }
@@ -108,7 +105,7 @@ export class Top extends Command {
             });
 
             // Grab only the top 'x' players
-            let topPlayers: PlayerWithSeasonData[] = userInfo.slice(0, amount);
+            let topPlayers: PlayerWithSeasonData[] = userInfo.slice(0, paramMap.amount);
 
             // Construct top strings
             let names: string = '';
@@ -118,7 +115,7 @@ export class Top extends Command {
             for (let i = 0; i < topPlayers.length; i++) {
                 const playerInfo = topPlayers[i];
                 const seasonStats: GameModeStats = playerInfo.gameModeStats;
-                const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints));
+                const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0);
                 const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
                 const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
                 const averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
@@ -131,9 +128,12 @@ export class Top extends Command {
             }
 
             // Construct embed to send
+            const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, paramMap.season);
+            const regionDisplayName: string = paramMap.region.toUpperCase().replace('_', '-');
+            const modeDescription: string = paramMap.mode.replace('_', '-');
             let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                .setTitle('Top ' + amount + ' local players')
-                .setDescription(`Season:\t ${SeasonEnum[season]}\nRegion:\t${region.toUpperCase()}\nMode:\t${mode.toUpperCase()}`)
+                .setTitle('Top ' + paramMap.amount + ' local players')
+                .setDescription(`Season:\t ${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode:\t${modeDescription}`)
                 .setColor(0x00AE86)
                 .setFooter(`Using PUBG's official API`)
                 .setTimestamp()
@@ -143,6 +143,22 @@ export class Top extends Command {
             await msg.edit({ embed });
         });
     };
+
+    private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
+        let amount: number = 10;
+        if (params[0] && !isNaN(+params[0])) {
+            amount = +params[0];
+        }
+
+        const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+        const paramMap: ParameterMap = {
+            amount : amount,
+            season: cs.getParamValue('season=', params, serverDefaults.default_season),
+            region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
+            mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
+        }
+        return paramMap;
+    }
 
     /**
      *
