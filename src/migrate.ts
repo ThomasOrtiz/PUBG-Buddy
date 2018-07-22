@@ -1,12 +1,8 @@
 import { CommonService as cs } from './services/common.service';
+import * as logger from './services/logger.service';
 import { readdir, readFileSync } from 'fs';
 import { Pool } from 'pg';
-import * as logger from 'winston';
 
-// Configure logger settings
-logger.configure({
-    level: 'debug'
-});
 
 let connectionString = cs.getEnvironmentVariable('DATABASE_URL');
 const pool = new Pool({

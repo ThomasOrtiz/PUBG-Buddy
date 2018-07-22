@@ -1,4 +1,5 @@
 import * as NodeCache from 'node-cache';
+import * as logger from './logger.service';
 
 
 /**
@@ -25,7 +26,7 @@ export default class CacheService {
     get<T>(key: string, storeFunction: Function, ttl?: number): Promise<T> {
         const value: T = this.cache.get<T>(key);
         if (value) {
-            console.log(`CACHED: ${key}`);
+            logger.info(`CACHED: ${key}`);
             return Promise.resolve(value);
         }
 
@@ -40,7 +41,7 @@ export default class CacheService {
      */
     put<T>(key, storeFunction, ttl?: number): Promise<T> {
         return storeFunction().then((result) => {
-            console.log(`CACHING: ${key}`);
+            logger.info(`CACHING: ${key}`);
             this.cache.set<T>(key, result, ttl);
             return result;
         });

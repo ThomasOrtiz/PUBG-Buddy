@@ -3,20 +3,12 @@ import { DiscordClientWrapper } from './DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as logger from 'winston';
+import * as logger from './services/logger.service';
 import { SqlServerService as sqlService } from './services/sql.service';
 import { Command } from './models/command';
 import * as commands from './cmd/command_module';
 import { Server } from './models/server';
 
-
-// Configure logger settings
-logger.configure({
-    level: 'debug',
-    transports: [
-        new logger.transports.Console({})
-    ]
-});
 
 // Initialize Bot
 const botToken: string = cs.getEnvironmentVariable('bot_token');

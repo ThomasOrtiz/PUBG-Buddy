@@ -1,5 +1,5 @@
 import { Mode } from './../../models/mode';
-import * as logger from 'winston';
+import * as logger from '../logger.service';
 import { CommonService as cs } from '../common.service';
 import { Pool, QueryResult } from 'pg';
 import CacheService from '../cache.service';
