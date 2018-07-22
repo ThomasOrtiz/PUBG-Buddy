@@ -73,11 +73,16 @@ export class CommonService {
     }
 
     /**
-     * Given a number it will round it to the nearest 100th place
+     * Given a number it will round it to the nearest 100th place by default
      * @param {number} num
+     * @param {number} precision
      */
-    static round(num: number): string {
+    static round(num: number, precision: number = 2): string {
+        const castedNum: number = Number(num);
+
+        if(isNaN(castedNum)) { return ''; }
+
         //return Math.round(num * 100) / 100;
-        return num.toFixed(2);
+        return num.toFixed(precision);
     }
 }
