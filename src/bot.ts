@@ -4,7 +4,7 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
 import * as logger from './services/logger.service';
-import { SqlServerService as sqlService } from './services/sql.service';
+import { SqlServerService as sqlService } from './services/sql-services/sql.module';
 import { Command, Server } from './models/models.module';
 import * as commands from './cmd/command_module';
 

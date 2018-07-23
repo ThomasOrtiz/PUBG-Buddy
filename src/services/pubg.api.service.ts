@@ -2,7 +2,7 @@ import { CommonService as cs } from '../services/common.service';
 import * as Discord from 'discord.js';
 import {
     SqlPlayersService as sqlPlayersService
- } from './sql.service';
+ } from './sql-services/sql.module';
 import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
 import CacheService from './cache.service';
 

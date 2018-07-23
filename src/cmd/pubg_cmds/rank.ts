@@ -4,7 +4,7 @@ import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
     SqlSeasonsService as sqlSeasonsService
-} from '../../services/sql.service';
+} from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';

@@ -5,7 +5,7 @@ import { PubgService as pubgService } from '../../services/pubg.api.service';
 import {
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
-} from '../../services/sql.service';
+} from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
