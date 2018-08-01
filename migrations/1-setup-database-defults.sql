@@ -3,13 +3,13 @@ BEGIN;
     CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT);
 
     CREATE TABLE IF NOT EXISTS servers
-        (id SERIAL PRIMARY KEY, server_id TEXT, default_bot_prefix TEXT DEFAULT '!pubg-', 
-        default_season TEXT DEFAULT '2018-05',  default_region TEXT DEFAULT 'na', 
+        (id SERIAL PRIMARY KEY, server_id TEXT, default_bot_prefix TEXT DEFAULT '!pubg-',
+        default_season TEXT DEFAULT '2018-05',  default_region TEXT DEFAULT 'na',
         default_mode TEXT DEFAULT 'fpp', default_squadSize TEXT DEFAULT '4');
 
-    CREATE TABLE IF NOT EXISTS server_registery 
-        (id SERIAL PRIMARY KEY, 
-        fk_players_id integer REFERENCES players (id) ON DELETE CASCADE, 
+    CREATE TABLE IF NOT EXISTS server_registery
+        (id SERIAL PRIMARY KEY,
+        fk_players_id integer REFERENCES players (id) ON DELETE CASCADE,
         fk_servers_id integer REFERENCES servers (id) ON DELETE CASCADE);
 COMMIT;
 
@@ -44,6 +44,10 @@ BEGIN;
 
     INSERT INTO seasons (name, season)
     VALUES ('Season 7', '2018-07')
+    ON CONFLICT (season) do nothing;
+
+    INSERT INTO seasons (name, season)
+    VALUES ('Season 8', '2018-08')
     ON CONFLICT (season) do nothing;
 COMMIT;
 
