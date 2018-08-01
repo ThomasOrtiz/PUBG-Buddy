@@ -40,6 +40,9 @@ export class SetServerDefaults extends Command {
         checkingParametersMsg.edit('Updating this server\'s defaults ...').then(async (msg: Discord.Message) => {
             sqlServerService.setServerDefaults(msg.guild.id, prefix, season, region, mode).then(async () => {
                 let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+
+                const regionDisplayName: string = server.default_region.replace('_', '-');
+                const modeDescription: string = server.default_mode.replace('_', '-');
                 let embed: Discord.RichEmbed = new Discord.RichEmbed()
                     .setTitle('Server Defaults')
                     .setDescription('The defaults that a server has when running PUBG Bot commands.')
@@ -49,8 +52,8 @@ export class SetServerDefaults extends Command {
                     .addBlankField(true)
                     .addBlankField(false)
                     .addField('Default Season', server.default_season, true)
-                    .addField('Default Region', server.default_region.replace('_', '-'), true)
-                    .addField('Default GameMode', server.default_mode.replace('_', '-'), true)
+                    .addField('Default Region', regionDisplayName, true)
+                    .addField('Default Mode', modeDescription, true)
                 msg.edit({ embed });
             });
         });

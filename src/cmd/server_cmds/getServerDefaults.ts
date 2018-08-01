@@ -34,8 +34,8 @@ export class GetServerDefaults extends Command {
                 .addBlankField(true)
                 .addBlankField(false)
                 .addField('Default Season', server.default_season, true)
-                .addField('Default Region', server.default_region, true)
-                .addField('Default GameMode', server.default_mode, true)
+                .addField('Default Region', server.default_region.replace('_', '-'), true)
+                .addField('Default Mode', server.default_mode.replace('_', '-'), true)
             message.edit({ embed });
         });
     };
