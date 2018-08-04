@@ -28,7 +28,7 @@ export class GetMatches extends Command {
     help: CommandHelp= {
         name: 'matches',
         description: 'Returns the last 10 matches for a player with links to https://pubg-replay.com',
-        usage: '<prefix>matches',
+        usage: '<prefix>matches <pubg username> [season=] [region=] [mode=]',
         examples: [
             '!pubg-matches'
         ]
