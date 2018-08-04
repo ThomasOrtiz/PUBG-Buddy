@@ -52,12 +52,12 @@ bot.on('message', async (msg: Discord.Message) => {
     if(msg.guild) {
         isGuildMessage = true;
         let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
-        prefix = server_defaults.default_bot_prefix;
+        prefix = server_defaults.default_bot_prefix.toLowerCase();
         perms = bot.elevation(msg);
     }
 
     // Ignore requests without our prefix
-    if (!msg.content.startsWith(prefix)) return;
+    if (!msg.content.toLowerCase().startsWith(prefix)) { return; }
     command = msg.content.split(' ')[0].slice(prefix.length);
     params = msg.content.split(' ').slice(1);
 
