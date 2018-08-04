@@ -216,6 +216,13 @@ export class GetMatches extends Command {
         embed.addField(`${gameMode} Matches`, reply, true);
     }
 
+    /**
+     * Constructs a replay url
+     * @param platFormRegion
+     * @param username
+     * @param matchId
+     * @returns {string} Replay Url
+     */
     private getPubgReplayUrl(platFormRegion: string, username: string, matchId: string): string {
         const split_region = platFormRegion.split('_');
         const platform: string = split_region[0];
