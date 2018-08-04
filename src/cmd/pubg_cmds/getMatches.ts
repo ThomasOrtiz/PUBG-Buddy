@@ -38,6 +38,11 @@ export class GetMatches extends Command {
     private MAX_MATCHES: number = 5;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        if (!params[0]) {
+            cs.handleError(msg, 'Error:: Must specify a username', this.help);
+            return;
+        }
+
         this.paramMap = await this.getParameters(msg, params);
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -63,11 +68,6 @@ export class GetMatches extends Command {
      * @returns {Promise<ParameterMap>}
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        if (!params[0]) {
-            cs.handleError(msg, 'Error:: Must specify a username', this.help);
-            return;
-        }
-
         let paramMap: ParameterMap;
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);

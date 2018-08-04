@@ -41,6 +41,11 @@ export class Rank extends Command {
     private paramMap: ParameterMap;
 
     public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        if (!params[0]) {
+            cs.handleError(msg, 'Error:: Must specify a username', this.help);
+            return;
+        }
+
         const originalPoster: Discord.User = msg.author;
         this.paramMap = await this.getParameters(msg, params);
 
@@ -80,11 +85,6 @@ export class Rank extends Command {
      * @returns {Promise<ParameterMap>}
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        if (!params[0]) {
-            cs.handleError(msg, 'Error:: Must specify a username', this.help);
-            return;
-        }
-
         let paramMap: ParameterMap;
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
