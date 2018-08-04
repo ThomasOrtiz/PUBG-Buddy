@@ -1,3 +1,4 @@
+import { DiscordClientWrapper } from './../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import {
@@ -53,7 +54,7 @@ export class Top extends Command {
         ]
     };
 
-    async run(bot: any, msg: any, params: string[], perms: number) {
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const paramMap: ParameterMap = await this.getParameters(msg, params);
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
@@ -143,6 +144,12 @@ export class Top extends Command {
         });
     };
 
+    /**
+     * Retrieves the paramters for the command
+     * @param {Discord.Message} msg
+     * @param {string[]} params
+     * @returns {Promise<ParameterMap>}
+     */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         let amount: number = 10;
         if (params[0] && !isNaN(+params[0])) {
@@ -160,8 +167,9 @@ export class Top extends Command {
     }
 
     /**
-     *
-     * @param {any} mode
+     * Give a mode, return the dict key relevant to that mode
+     * @param {string} mode
+     * @returns {string} dictionary key for stat to get
      */
     private getWhichStatsToGet(mode: string): string {
         switch (mode) {
