@@ -38,47 +38,40 @@ export class Rank extends Command {
         ]
     };
 
-    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        const paramMap: ParameterMap = await this.getParameters(msg, params);
+    paramMap: ParameterMap;
+
+    public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        const originalPoster: Discord.User = msg.author;
+        this.paramMap = await this.getParameters(msg, params);
 
         const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, paramMap.season, paramMap.region, paramMap.mode);
+        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
         if(!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
 
-        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${paramMap.username}`);
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[paramMap.region]);
-        const players: Player[] = await pubgApiService.getPlayerByName(api, [paramMap.username])
+        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${this.paramMap.username}`);
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username])
         const player: Player = players[0];
 
         if (!player.id) {
-            message.edit(`Could not find \`${paramMap.username}\` on the \`${paramMap.region}\` region. Double check the username and region.`);
+            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
             return;
         }
 
         // Get Player Data
-        const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, paramMap.season);
+        const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
 
         // Create embed to send
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, paramMap.season);
-        const regionDisplayName: string = paramMap.region.toUpperCase().replace('_', '-');
-        const modeDescription: string = (paramMap.mode.indexOf('FPP') >= 0 ? 'FPP' : 'TPP').replace('_', '-');
-        let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle('Ranking: ' + paramMap.username)
-            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode: \t${modeDescription}`)
-            .setColor(0x00AE86)
-            .setFooter(`Using PUBG's official API`)
-            .setTimestamp();
+        let embed: Discord.RichEmbed = await this.createBaseEmbed();
 
-        if(paramMap.mode.indexOf('FPP') >= 0) {
-            this.addDataToEmbed(embed, seasonData.soloFPPStats, seasonData.duoFPPStats, seasonData.squadFPPStats);
-        } else {
-            this.addDataToEmbed(embed, seasonData.soloStats, seasonData.duoStats, seasonData.squadStats);
-        }
+        this.addDefaultStats(embed, seasonData);
 
-        message.edit({ embed });
+        message.edit({ embed }).then(async message => {
+            this.setupReactions(message, originalPoster, seasonData);
+        }).catch(console.error);
     };
 
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
@@ -108,6 +101,84 @@ export class Rank extends Command {
         return paramMap;
     }
 
+    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
+        let mode = this.paramMap.mode.toLowerCase();
+
+        if (mode.indexOf('solo') >= 0) {
+            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
+        } else if (mode.indexOf('duo') >= 0) {
+            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
+        } else if (mode.indexOf('squad') >= 0) {
+            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
+        }
+    }
+
+    private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason) {
+        const reaction_numbers = ["\u0030\u20E3","\u0031\u20E3","\u0032\u20E3","\u0033\u20E3","\u0034\u20E3","\u0035\u20E3", "\u0036\u20E3","\u0037\u20E3","\u0038\u20E3","\u0039\u20E3"]
+        await msg.react(reaction_numbers[1]);
+        await msg.react(reaction_numbers[2]);
+        await msg.react(reaction_numbers[4]);
+
+        const one_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[1] && originalPoster.id === user.id;
+        const two_filter: Discord.CollectorFilter = (reaction, user) =>  reaction.emoji.name === reaction_numbers[2] && originalPoster.id === user.id;
+        const four_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[4] && originalPoster.id === user.id;
+
+        const one_collector: Discord.ReactionCollector = msg.createReactionCollector(one_filter, { time: 15*1000 });
+        const two_collector: Discord.ReactionCollector = msg.createReactionCollector(two_filter, { time: 15*1000 });
+        const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
+
+        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
+
+            await msg.edit({ embed });
+        });
+        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
+
+            await msg.edit({ embed });
+        });
+        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
+
+            await msg.edit({ embed });
+        });
+
+        one_collector.on('end', collected => msg.clearReactions());
+        two_collector.on('end', collected => msg.clearReactions());
+        four_collector.on('end', collected => msg.clearReactions());
+    }
+
+    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
+        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
+        const modeDescription: string = (this.paramMap.mode.indexOf('FPP') >= 0 ? 'FPP' : 'TPP').replace('_', '-');
+
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle('Ranking: ' + this.paramMap.username)
+            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode: \t${modeDescription}`)
+            .setColor(0x00AE86)
+            .setFooter(`Using PUBG's official API`)
+            .setTimestamp();
+
+        return embed;
+    }
+
     /**
      * Adds game stats to the embed
      * @param {Discord.RichEmbed} embed
@@ -115,26 +186,12 @@ export class Rank extends Command {
      * @param {GameModeStats} duoData
      * @param {GameModeStats} squadData
      */
-    private addDataToEmbed(embed: Discord.RichEmbed, soloData: GameModeStats, duoData: GameModeStats, squadData: GameModeStats) {
-        if (soloData) {
-            this.addEmbedFields(embed, 'Solo', soloData);
+    private addSpecificDataToEmbed(embed: Discord.RichEmbed, data: GameModeStats, type: string) {
+        if (data.roundsPlayed > 0) {
+            this.addEmbedFields(embed, type, data);
         } else {
             embed.addBlankField(false);
-            embed.addField('Solo Status', 'Player hasn\'t played solo games this season', false);
-        }
-
-        if (duoData) {
-            this.addEmbedFields(embed, 'Duo', duoData);
-        } else {
-            embed.addBlankField(false);
-            embed.addField('Duo Status', 'Player hasn\'t played duo games this season', false);
-        }
-
-        if (squadData) {
-            this.addEmbedFields(embed, 'Squad', squadData);
-        } else {
-            embed.addBlankField(false);
-            embed.addField('Squad Stats', 'Player hasn\'t played squad games this season', false);
+            embed.addField(`${type} Status`, `Player hasn\'t played ${type} games this season`, false);
         }
     }
 
@@ -150,17 +207,42 @@ export class Rank extends Command {
         const kda = cs.round((playerData.kills + playerData.assists) / playerData.losses) || 0;
         const winPercent = cs.getPercentFromFraction(playerData.wins, playerData.roundsPlayed);
         const topTenPercent = cs.getPercentFromFraction(playerData.top10s, playerData.roundsPlayed);
-        const headshotKills = cs.getPercentFromFraction(playerData.headshotKills, playerData.roundsPlayed);
         const averageDamageDealt = cs.round(playerData.damageDealt / playerData.roundsPlayed) || 0;
 
-        embed.addBlankField(false)
-            .addField(`${gameMode} Rating`, overallRating, false)
-            .addField('KD / KDA', `${kd} / ${kda}`, true)
-            .addField('Win %', winPercent, true)
-            .addField('Top 10%', topTenPercent, true)
-            .addField('Headshot Kill %', headshotKills, true)
-            .addField('Longest Kill', cs.round(playerData.longestKill) + 'm', true)
-            .addField('Average Damage', averageDamageDealt, true);
+        let killStats: string = `
+        \`KD:\` ${kd}
+        \`KDA:\` ${kda}
+        \`Kills:\` ${playerData.kills}
+        \`Assists:\` ${playerData.assists}
+        \`DBNOs:\` ${playerData.dBNOs}
+        \`Suicides:\` ${playerData.suicides}
+        \`Headshots:\` ${playerData.headshotKills}
+        \`Longest kill:\` ${playerData.longestKill.toFixed(2)}
+        \`Road kill:\` ${playerData.roadKills}
+        `;
+
+        let gameStats: string = `
+        \`Total Damage Dealt:\` ${playerData.damageDealt.toFixed(2)}
+        \`Average damage dealt:\` ${averageDamageDealt}
+        \`Longest time survived:\` ${playerData.longestTimeSurvived.toFixed(2)}
+        \`Walk distance:\` ${playerData.walkDistance.toFixed(2)}
+        \`Ride distance:\` ${playerData.rideDistance.toFixed(2)}
+        \`Vehicles Destroyed:\` ${playerData.vehicleDestroys}
+        `;
+
+        let winStats: string = `
+        \`Win %:\` ${winPercent}
+        \`Wins:\` ${playerData.wins}
+        \`Top 10 %:\` ${topTenPercent}
+        \`Top 10s:\`  ${playerData.top10s}
+        \`Matches Player:\`  ${playerData.roundsPlayed}
+        `;
+
+        embed.addBlankField();
+        embed.addField(`${gameMode} Rating`, overallRating, false)
+        embed.addField('Kill stats', killStats, true);
+        embed.addField('Game stats', gameStats, true);
+        embed.addField('Win stats', winStats);
     }
 
 }
