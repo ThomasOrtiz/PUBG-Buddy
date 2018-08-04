@@ -61,6 +61,23 @@ export class CommonService {
         }
     }
 
+    //////////////////////////////
+    // Strings and Math
+    //////////////////////////////
+
+    /**
+     * Sees if a string is inside of another string
+     * @param {string} str
+     * @param {string} searchStr
+     * @param {boolean} ignoreCase
+     */
+    static stringContains(str: string, searchStr: string, ignoreCase: boolean = false): boolean {
+        if(ignoreCase) {
+            return str.toLowerCase().indexOf(searchStr.toLowerCase()) >= 0;
+        }
+        return str.indexOf(searchStr) >= 0;
+    }
+
     /**
      * Given a fraction it will return the equivalent % with '%' tacked on
      * @param {number} num

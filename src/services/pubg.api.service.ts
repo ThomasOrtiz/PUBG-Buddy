@@ -198,6 +198,7 @@ export class PubgService {
      * @param checkSeason
      * @param checkRegion
      * @param checkMode
+     * @returns {Promise<boolean>} t/f value if valid
      */
     static async validateParameters(msg: Discord.Message, help: any, checkSeason: string, checkRegion: string, checkMode: string): Promise<boolean> {
         let errMessage: string   = '';

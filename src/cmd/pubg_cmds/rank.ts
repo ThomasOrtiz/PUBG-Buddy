@@ -38,7 +38,7 @@ export class Rank extends Command {
         ]
     };
 
-    paramMap: ParameterMap;
+    private paramMap: ParameterMap;
 
     public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const originalPoster: Discord.User = msg.author;
@@ -53,7 +53,7 @@ export class Rank extends Command {
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${this.paramMap.username}`);
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username])
+        const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
         const player: Player = players[0];
 
         if (!player.id) {
@@ -64,16 +64,21 @@ export class Rank extends Command {
         // Get Player Data
         const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
 
-        // Create embed to send
+        // Create base embed to send
         let embed: Discord.RichEmbed = await this.createBaseEmbed();
-
         this.addDefaultStats(embed, seasonData);
 
-        message.edit({ embed }).then(async message => {
-            this.setupReactions(message, originalPoster, seasonData);
-        }).catch(console.error);
+        // Send the message and setup reactions
+        this.setupReactions(message, originalPoster, seasonData);
+        message.edit({ embed });
     };
 
+    /**
+     * Retrieves the paramters for the command
+     * @param {Discord.Message} msg
+     * @param {string[]} params
+     * @returns {Promise<ParameterMap>}
+     */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         if (!params[0]) {
             cs.handleError(msg, 'Error:: Must specify a username', this.help);
@@ -101,22 +106,33 @@ export class Rank extends Command {
         return paramMap;
     }
 
-    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
-        let mode = this.paramMap.mode.toLowerCase();
+    /**
+     * Depending on the user's default mode get one of three stats
+     * @param {Discord.RichEmbed} embed
+     * @param {PlayerSeason} seasonData
+     */
+    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason): void {
+        let mode = this.paramMap.mode;
 
-        if (mode.indexOf('solo') >= 0) {
+        if (cs.stringContains(mode, 'solo', true)) {
             this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
             this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
-        } else if (mode.indexOf('duo') >= 0) {
+        } else if (cs.stringContains(mode, 'duo', true)) {
             this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
             this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
-        } else if (mode.indexOf('squad') >= 0) {
+        } else if (cs.stringContains(mode, 'squad', true)) {
             this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
             this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
         }
     }
 
-    private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason) {
+    /**
+     * Adds reaction collectors and filters to make interactive messages
+     * @param {Discord.Message} msg
+     * @param {Discord.User} originalPoster
+     * @param {PlayerSeason} seasonData
+     */
+    private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason): Promise<void> {
         const reaction_numbers = ["\u0030\u20E3","\u0031\u20E3","\u0032\u20E3","\u0033\u20E3","\u0034\u20E3","\u0035\u20E3", "\u0036\u20E3","\u0037\u20E3","\u0038\u20E3","\u0039\u20E3"]
         await msg.react(reaction_numbers[1]);
         await msg.react(reaction_numbers[2]);
@@ -163,11 +179,16 @@ export class Rank extends Command {
         four_collector.on('end', collected => msg.clearReactions());
     }
 
+    /**
+     * Creates the base embed that the command will respond with
+     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
+     */
     private async createBaseEmbed(): Promise<Discord.RichEmbed> {
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
-        const modeDescription: string = (this.paramMap.mode.indexOf('FPP') >= 0 ? 'FPP' : 'TPP').replace('_', '-');
+        const isFPP: boolean = cs.stringContains(this.paramMap.mode, 'FPP');
+        const modeDescription: string = (isFPP ? 'FPP' : 'TPP').replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Ranking: ' + this.paramMap.username)
@@ -186,7 +207,7 @@ export class Rank extends Command {
      * @param {GameModeStats} duoData
      * @param {GameModeStats} squadData
      */
-    private addSpecificDataToEmbed(embed: Discord.RichEmbed, data: GameModeStats, type: string) {
+    private addSpecificDataToEmbed(embed: Discord.RichEmbed, data: GameModeStats, type: string): void {
         if (data.roundsPlayed > 0) {
             this.addEmbedFields(embed, type, data);
         } else {
