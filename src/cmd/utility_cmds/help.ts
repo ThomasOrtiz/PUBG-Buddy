@@ -54,13 +54,13 @@ export class Help extends Command {
 
             switch (c.help.name) {
                 case 'matches':
-                    str += `= PUBG Commands = \n${row}\n`
+                    str += `\n\n= PUBG Commands = \n${row}\n`
                     break;
                 case 'addUser':
-                    str += `\n= Server Commands = \n${row}\n`
+                    str += `\n\n= Server Commands = \n${row}\n`
                     break;
                 case 'help':
-                    str += `\n= Utility Commands = \n${row}\n`
+                    str += `\n\n= Utility Commands = \n${row}\n`
                     break;
                 default:
                     str += `${row}\n`;
@@ -84,7 +84,7 @@ export class Help extends Command {
                                 '\tpubg-rank janedoe season=2018-03 mode=tpp\n' +
                                 '\tpubg-rank johndoe region=eu mode=fpp\n' +
                                 '\t...';
-        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "<prefix>help <commandname>" for details]\n\n${commandList}`, { code: 'asciidoc'}) as Discord.Message;
+        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "<prefix>help <commandname>" for details]${commandList}`, { code: 'asciidoc'}) as Discord.Message;
         msg.channel.send(`${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
     }
 
