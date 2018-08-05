@@ -7,7 +7,7 @@ BEGIN;
         server_id TEXT,
         default_bot_prefix TEXT DEFAULT '!pubg-',
         default_season TEXT DEFAULT '2018-08',
-        default_region TEXT DEFAULT 'pc-na',
+        default_region TEXT DEFAULT 'PC_NA',
         default_mode TEXT DEFAULT 'SQUAD_FPP');
 
     CREATE TABLE IF NOT EXISTS server_registery
