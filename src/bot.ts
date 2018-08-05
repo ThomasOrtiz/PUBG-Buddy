@@ -7,6 +7,7 @@ import * as logger from './services/logger.service';
 import { SqlServerService as sqlService } from './services/sql-services/sql.module';
 import { Command, Server } from './models/models.module';
 import * as commands from './cmd/command_module';
+import * as mixpanel from './services/analytics.service';
 
 
 // Initialize Bot
@@ -28,10 +29,20 @@ bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
     sqlService.registerServer(guild.id).then(() => {
         logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+        mixpanel.track('New Discord server', {
+            guildName: guild.name,
+            guildId: guild.id,
+            memberCount: guild.memberCount
+        });
     });
 });
 bot.on('guildDelete', guild => {
     sqlService.unRegisterServer(guild.id).then(() => {
+        mixpanel.track('Removed Discord server', {
+            guildName: guild.name,
+            guildId: guild.id,
+            memberCount: guild.memberCount
+        });
         logger.info(`Removed ${guild.name} from database.`);
     });
 });
