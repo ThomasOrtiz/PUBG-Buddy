@@ -9,6 +9,7 @@ export * from './pubg_cmds/top';
 // Server Commands
 export * from './server_cmds/addUser';
 export * from './server_cmds/getServerDefaults';
+export * from './server_cmds/register';
 export * from './server_cmds/removeUser';
 export * from './server_cmds/setServerDefaults';
 export * from './server_cmds/users';

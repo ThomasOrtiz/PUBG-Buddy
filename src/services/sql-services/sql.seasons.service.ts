@@ -1,5 +1,5 @@
-import * as pool from '../sql-services/sql.config.service';
-import { Season } from './../../models/models.module';
+import * as pool from './sql.config.service';
+import { Season } from '../../models/models.module';
 import { QueryResult } from 'pg';
 
 

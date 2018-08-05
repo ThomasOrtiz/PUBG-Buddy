@@ -4,7 +4,7 @@ import { Command, CommandConfiguration, CommandHelp } from '../../models/models.
 import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
-    SqlSeasonsService as sqlSeasonsService
+    SqlUserRegisteryService as sqlUserRegisteryService
 } from '../../services/sql-services/sql.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, Player, PlayerSeason } from 'pubg-typescript-api';
@@ -38,12 +38,11 @@ export class GetMatches extends Command {
     private MAX_MATCHES: number = 5;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        if (!params[0]) {
-            cs.handleError(msg, 'Error:: Must specify a username', this.help);
+        try {
+            this.paramMap = await this.getParameters(msg, params);
+        } catch(e) {
             return;
         }
-
-        this.paramMap = await this.getParameters(msg, params);
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
 
@@ -69,6 +68,24 @@ export class GetMatches extends Command {
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         let paramMap: ParameterMap;
+        let username: string;
+
+        // Try to get username from user registery
+        if(!params[0]) {
+            username = await sqlUserRegisteryService.getRegisteredUser(msg.author.id);
+        }
+
+        // Check if user had registered name, if not check if supplied
+        if(!username) {
+            username = params[0];
+        }
+
+        // Throw error if no username supplied
+        if(!username) {
+            cs.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
+            throw 'Error:: Must specify a username';
+        }
+
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
             paramMap = {
@@ -80,7 +97,7 @@ export class GetMatches extends Command {
         } else {
             paramMap = {
                 username: params[0],
-                season: cs.getParamValue('season=', params, await sqlSeasonsService.getLatestSeason()),
+                season: cs.getParamValue('season=', params, await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))),
                 region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
             }

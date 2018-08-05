@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 

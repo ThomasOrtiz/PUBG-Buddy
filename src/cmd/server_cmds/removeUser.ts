@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import { PubgService as pubgService } from '../../services/pubg.api.service';

@@ -1,6 +1,6 @@
-import * as pool from '../sql-services/sql.config.service';
+import * as pool from './sql.config.service';
 import { QueryResult } from 'pg';
-import { Mode } from './../../models/models.module';
+import { Mode } from '../../models/models.module';
 import CacheService from '../cache.service';
 
 const cache = new CacheService(); // create a new cache service instance

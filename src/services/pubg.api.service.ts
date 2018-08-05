@@ -1,4 +1,4 @@
-import { CommonService as cs } from '../services/common.service';
+import { CommonService as cs } from './common.service';
 import * as Discord from 'discord.js';
 import {
     SqlPlayersService as sqlPlayersService

@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { SqlServerService as sqlServerService } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
