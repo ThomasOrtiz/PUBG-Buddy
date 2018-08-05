@@ -241,12 +241,10 @@ export class Rank extends Command {
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
-        const isFPP: boolean = cs.stringContains(this.paramMap.mode, 'FPP');
-        const modeDescription: string = (isFPP ? 'FPP' : 'TPP').replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Ranking: ' + this.paramMap.username)
-            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode: \t${modeDescription}`)
+            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
             .setColor(0x00AE86)
             .setFooter(`Using PUBG's official API`)
             .setTimestamp();
