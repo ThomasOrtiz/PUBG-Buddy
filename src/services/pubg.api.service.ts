@@ -55,7 +55,7 @@ export class PubgService {
 
             if(result.length > 0) {
                 const player = result[0];
-                sqlPlayersService.addPlayer(player.name, player.id)
+                await sqlPlayersService.addPlayer(player.name, player.id)
                 return player.id;
             } else {
                 return '';
