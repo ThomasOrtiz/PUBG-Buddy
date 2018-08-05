@@ -9,16 +9,16 @@ export class GetModes extends Command {
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['getModes'],
         permLevel: 0
     }
 
     help: CommandHelp= {
-        name: 'getModes',
+        name: 'modes',
         description: 'Returns all available modes to use as parameters',
-        usage: '<prefix>getModes',
+        usage: '<prefix>modes',
         examples: [
-            '!pubg-getModes'
+            '!pubg-modes'
         ]
     }
 

@@ -18,6 +18,16 @@ interface ParameterMap {
 }
 
 class PlayerWithSeasonData {
+    constructor(name: string, seasonData: PlayerSeason) {
+        this.name = name;
+        this.seasonData = seasonData;
+    }
+
+    readonly name: string;
+    readonly seasonData: PlayerSeason;
+}
+
+class PlayerWithGameModeStats {
     constructor(name: string, gameModeStats: GameModeStats) {
         this.name = name;
         this.gameModeStats = gameModeStats;
@@ -26,6 +36,7 @@ class PlayerWithSeasonData {
     readonly name: string;
     readonly gameModeStats: GameModeStats;
 }
+
 
 export class Top extends Command {
 
@@ -54,95 +65,83 @@ export class Top extends Command {
         ]
     };
 
+    private paramMap: ParameterMap;
+    private registeredUsers: User[];
+    private api: PubgAPI;
+    private batchEditAmount: number = 5;
+
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        const paramMap: ParameterMap = await this.getParameters(msg, params);
+        const originalPoster: Discord.User = msg.author;
+        this.paramMap = await this.getParameters(msg, params);
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, paramMap.season, paramMap.region, paramMap.mode);
+        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
         if(!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
 
-        let registeredUsers: User[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
-        if (registeredUsers.length === 0) {
+        this.registeredUsers = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        if (this.registeredUsers.length === 0) {
             cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
             return;
         }
 
-        checkingParametersMsg.edit(`Aggregating \`top ${paramMap.amount}\` on \`${registeredUsers.length} registered users\` ... give me a second`);
+        checkingParametersMsg.edit(`Aggregating \`top ${this.paramMap.amount}\` on \`${this.registeredUsers.length} registered users\` ... give me a second`);
 
         msg.channel.send('Grabbing player data').then(async (msg: Discord.Message) => {
-            const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[paramMap.region]);
-            const statsToGetKey: string = this.getWhichStatsToGet(paramMap.mode);
-            const batchEditAmount: number = 5;
+            this.api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
 
             // Get list of ids
-            const registeredNames: string[] = registeredUsers.map(user => user.username);
-            const players: Player[] = await pubgApiService.getPlayerByName(api, registeredNames);
+            const registeredNames: string[] = this.registeredUsers.map(user => user.username);
+            const players: Player[] = await pubgApiService.getPlayerByName(this.api, registeredNames);
 
             // Iterate through players
-            let userInfo: PlayerWithSeasonData[] = new Array();
+            let playerSeasons: PlayerWithSeasonData[] = new Array();
             for(let i = 0; i < players.length; i++) {
                 const player = players[i];
                 const currentId = player.id;
 
-                if (i % batchEditAmount === 0) {
-                    let max: number = (i + batchEditAmount) > registeredUsers.length ? registeredUsers.length : i + batchEditAmount;
-                    msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
+                if (i % this.batchEditAmount === 0) {
+                    let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
+                    //msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
+                    console.log(`Grabbing data for players ${i + 1} - ${max}`);
                 }
 
-                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, currentId, paramMap.season);
-                const info = new PlayerWithSeasonData(player.name, seasonInfo[statsToGetKey]);
-                userInfo.push(info);
+                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
+                const info = new PlayerWithSeasonData(player.name, seasonInfo);
+                playerSeasons.push(info);
             }
 
-            // Sorting Array based off of ranking (higher ranking is better)
-            userInfo.sort((a: PlayerWithSeasonData, b: PlayerWithSeasonData) => {
-                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
-                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
-                return (+overallRatingB) - (+overallRatingA);
-            });
+            // Create base embed to send
+            let embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addDefaultStats(embed, playerSeasons);
 
-            // Grab only the top 'x' players
-            let topPlayers: PlayerWithSeasonData[] = userInfo.slice(0, paramMap.amount);
-
-            // Construct top strings
-            let names: string = '';
-            let ratings: string = '';
-            let kds: string = '';
-
-            for (let i = 0; i < topPlayers.length; i++) {
-                const playerInfo = topPlayers[i];
-                const seasonStats: GameModeStats = playerInfo.gameModeStats;
-                const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0);
-                const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
-                const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
-                const averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
-                const ratingStr: string = overallRating ? `${overallRating}` : 'Not available';
-                const kdsStr: string    = `${kd} / ${kda} / ${averageDamageDealt}`;
-
-                names += `${playerInfo.name}\n`;
-                ratings += `${ratingStr}\n`;
-                kds += `${kdsStr}\n`;
-            }
-
-            // Construct embed to send
-            const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, paramMap.season);
-            const regionDisplayName: string = paramMap.region.toUpperCase().replace('_', '-');
-            const modeDescription: string = paramMap.mode.replace('_', '-');
-            let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                .setTitle('Top ' + paramMap.amount + ' local players')
-                .setDescription(`Season:\t ${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode:\t${modeDescription}`)
-                .setColor(0x00AE86)
-                .setFooter(`Using PUBG's official API`)
-                .setTimestamp()
-                .addField('Name', names, true)
-                .addField('Rating', ratings, true)
-                .addField('KD / KDA / Avg Dmg', kds, true);
-            await msg.edit({ embed });
+            // Send the message and setup reactions
+            this.setupReactions(msg, originalPoster, playerSeasons);
+            msg.edit({ embed });
         });
     };
+
+    /**
+     * Depending on the user's default mode get one of three stats
+     * @param {Discord.RichEmbed} embed
+     * @param {PlayerSeason} seasonData
+     */
+    private addDefaultStats(embed: Discord.RichEmbed, players: PlayerWithSeasonData[]): void {
+        let mode = this.paramMap.mode;
+
+        if (cs.stringContains(mode, 'solo', true)) {
+            this.addSpecificDataToEmbed(embed, players, 'SOLO_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'SOLO');
+        } else if (cs.stringContains(mode, 'duo', true)) {
+            this.addSpecificDataToEmbed(embed, players, 'DUO_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'DUO');
+        } else if (cs.stringContains(mode, 'squad', true)) {
+            this.addSpecificDataToEmbed(embed, players, 'SQUAD_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'SQUAD');
+        }
+    }
 
     /**
      * Retrieves the paramters for the command
@@ -164,6 +163,147 @@ export class Top extends Command {
             mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
         }
         return paramMap;
+    }
+
+    /**
+     * Adds reaction collectors and filters to make interactive messages
+     * @param {Discord.Message} msg
+     * @param {Discord.User} originalPoster
+     * @param {PlayerSeason} seasonData
+     */
+    private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, players: PlayerWithSeasonData[]): Promise<void> {
+        const reaction_numbers = ["\u0030\u20E3","\u0031\u20E3","\u0032\u20E3","\u0033\u20E3","\u0034\u20E3","\u0035\u20E3", "\u0036\u20E3","\u0037\u20E3","\u0038\u20E3","\u0039\u20E3"]
+        await msg.react(reaction_numbers[1]);
+        await msg.react(reaction_numbers[2]);
+        await msg.react(reaction_numbers[4]);
+
+        const one_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[1] && originalPoster.id === user.id;
+        const two_filter: Discord.CollectorFilter = (reaction, user) =>  reaction.emoji.name === reaction_numbers[2] && originalPoster.id === user.id;
+        const four_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[4] && originalPoster.id === user.id;
+
+        const one_collector: Discord.ReactionCollector = msg.createReactionCollector(one_filter, { time: 15*1000 });
+        const two_collector: Discord.ReactionCollector = msg.createReactionCollector(two_filter, { time: 15*1000 });
+        const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
+
+        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, players, 'SOLO_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'SOLO');
+
+            await msg.edit({ embed });
+        });
+        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, players, 'DUO_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'DUO');
+
+            await msg.edit({ embed });
+        });
+        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            await reaction.remove(originalPoster);
+
+            const embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addSpecificDataToEmbed(embed, players, 'SQUAD_FPP');
+            this.addSpecificDataToEmbed(embed, players, 'SQUAD');
+
+            await msg.edit({ embed });
+        });
+
+        one_collector.on('end', collected => msg.clearReactions());
+        two_collector.on('end', collected => msg.clearReactions());
+        four_collector.on('end', collected => msg.clearReactions());
+    }
+
+    /**
+     * Creates the base embed that the command will respond with
+     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
+     */
+    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
+        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
+
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+                .setTitle('Top ' + this.paramMap.amount + ' local players')
+                .setDescription(`Season:\t ${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
+                .setColor(0x00AE86)
+                .setFooter(`Using PUBG's official API`)
+                .setTimestamp()
+
+        return embed;
+    }
+
+    /**
+     * Adds game stats to the embed
+     * @param {Discord.RichEmbed} embed
+     * @param {GameModeStats} soloData
+     * @param {GameModeStats} duoData
+     * @param {GameModeStats} squadData
+     */
+    private addSpecificDataToEmbed(embed: Discord.RichEmbed, players: PlayerWithSeasonData[], gameMode: string): void {
+        this.addEmbedFields(embed, gameMode, players);
+    }
+
+    /**
+     * Add the game mode data to the embed
+     * @param {Discord.Message} embed
+     * @param {string} gameMode
+     * @param {GameModeStats} playerData
+     */
+    private async addEmbedFields(embed: Discord.RichEmbed, gameMode: string, players: PlayerWithSeasonData[]) {
+        const statsToGetKey: string = this.getWhichStatsToGet(gameMode);
+
+        // Create UserInfo array with specific season data
+        let userInfo: PlayerWithGameModeStats[] = new Array();
+        for(let i = 0; i < players.length; i++) {
+            const data: PlayerWithSeasonData = players[i];
+            const info = new PlayerWithGameModeStats(data.name, data.seasonData[statsToGetKey]);
+            userInfo.push(info);
+        }
+
+        // Sorting Array based off of ranking (higher ranking is better)
+        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+            const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
+            const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
+            return (+overallRatingB) - (+overallRatingA);
+        });
+
+        // Grab only the top 'x' players
+        let topPlayers: PlayerWithGameModeStats[] = userInfo.slice(0, this.paramMap.amount);
+
+        // Construct top strings
+        let names: string = '';
+        let ratings: string = '';
+        let kds: string = '';
+
+        for (let i = 0; i < topPlayers.length; i++) {
+            const playerInfo = topPlayers[i];
+            const seasonStats: GameModeStats = playerInfo.gameModeStats;
+            const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0);
+            const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
+            const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
+            const averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
+            const ratingStr: string = overallRating ? `${overallRating}` : 'Not available';
+            const kdsStr: string    = `${kd} / ${kda} / ${averageDamageDealt}`;
+
+            names += `${playerInfo.name}\n`;
+            ratings += `${ratingStr}\n`;
+            kds += `${kdsStr}\n`;
+        }
+
+        const gameModeSplit: string[] = gameMode.split('_');
+        let gameModeDescription: string = gameModeSplit[0];
+        gameModeDescription += (gameModeSplit.length == 2) ? ` ${gameModeSplit[1]}` : '';
+
+        embed.addBlankField();
+        embed.addField('Game Type', gameModeDescription);
+        embed.addField('Name', names, true);
+        embed.addField('Rating', ratings, true);
+        embed.addField('KD / KDA / Avg Dmg', kds, true);
     }
 
     /**

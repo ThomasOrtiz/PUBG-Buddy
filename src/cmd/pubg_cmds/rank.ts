@@ -28,8 +28,9 @@ export class Rank extends Command {
     help: CommandHelp = {
         name: 'rank',
         description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
-        usage: '<prefix>rank <pubg username> [season=] [region=] [mode=]',
+        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=]',
         examples: [
+            '!pubg-rank        (only valid if you have already used the `register` command)',
             '!pubg-rank john',
             '!pubg-rank john season=2018-03',
             '!pubg-rank john season=2018-03 region=eu',

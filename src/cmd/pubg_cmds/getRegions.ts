@@ -9,15 +9,15 @@ export class GetRegions extends Command {
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['getRegions'],
         permLevel: 0
     };
     help: CommandHelp = {
-        name: 'getRegions',
+        name: 'regions',
         description: 'Returns all available regions to use as parameters',
-        usage: '<prefix>getRegions',
+        usage: '<prefix>regions',
         examples: [
-            '!pubg-getRegions'
+            '!pubg-regions'
         ]
     };
 

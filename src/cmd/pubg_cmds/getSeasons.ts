@@ -11,16 +11,16 @@ export class GetSeasons extends Command {
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['getSeasons'],
         permLevel: 0
     };
 
     help: CommandHelp = {
-        name: 'getSeasons',
+        name: 'seasons',
         description: 'Returns all available seasons to use as parameters',
-        usage: '<prefix>getSeasons',
+        usage: '<prefix>seasons',
         examples: [
-            '!pubg-getSeasons'
+            '!pubg-seasons'
         ]
     }
 

@@ -47,18 +47,38 @@ export class Help extends Command {
                                     'This bot\'s prefix and PUBG specific defaults are configurable if on a server through the `setServerDefaults` command.\n\n' +
                                     'Default Bot Prefix:   \t"' + default_bot_prefix + '"\n' +
                                     'Current Server Prefix:\t "' + prefix + '"';
-        let commandList: string = bot.commands.map(c=>`${c.help.name}:: ${c.help.description}`).join('\n');
+        let commandList: string = '';
+        bot.commands.map(c => {
+            let str = '';
+            const row =  `${c.help.name}:: ${c.help.description}`;
+
+            switch (c.help.name) {
+                case 'matches':
+                    str += `= PUBG Commands = \n${row}\n`
+                    break;
+                case 'addUser':
+                    str += `\n= Server Commands = \n${row}\n`
+                    break;
+                case 'help':
+                    str += `\n= Utility Commands = \n${row}\n`
+                    break;
+                default:
+                    str += `${row}\n`;
+                    break;
+            }
+
+            commandList += str;
+        });
         let parameterExplanation: string = '= Parameter Explanation =\n\n' +
-                                    'See available parameters for each type of parameter by calling the following commands: "getModes", "getRegions", "getSquadSizes", and "getSeasons".`\n\n' +
+                                    'See available parameters by calling the following commands: "modes", "regions", and "seasons".`\n\n' +
                                     'required:: <parameter> \n' +
                                     'optional:: [parameter]\n' +
                                     'select one:: (option1 | option2 | option3)\n' +
                                     'required select one:: <(option1 | option2 | option3)>\n' +
                                     'optional select one:: [(option1 | option2 | option3)]\n\n';
         let parameterExample: string = '= Parameter Example =\n\n' +
-                                'pubg-rank <pubg username> [season=(2018-01 | 2018-02 | 2018-03)] [region=(na | as | kr/jp | kakao | sa | eu | oc | sea)] [mode=(fpp | tpp)]\n\n' +
-                                '"pubg-rank" requires a <pubg username> parameter and takes the following optional parameters: "season=", "region=" and "mode=". Each of these optional parameters ' +
-                                'requires that one of the items within the "()" to be selected. Some valid call of this command is:\n\n' +
+                                'pubg-rank <pubg username> [season=] [region=] [mode=]\n\n' +
+                                '"pubg-rank" requires a <pubg username> parameter and takes the following optional parameters: "season=", "region=" and "mode=". Some valid call of this command is:\n\n' +
                                 '\tpubg-rank johndoe\n' +
                                 '\tpubg-rank johndoe season=2018-03 region=as mode=tpp\n' +
                                 '\tpubg-rank janedoe season=2018-03 mode=tpp\n' +

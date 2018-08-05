@@ -27,10 +27,11 @@ export class GetMatches extends Command {
 
     help: CommandHelp= {
         name: 'matches',
-        description: 'Returns the last 10 matches for a player with links to https://pubg-replay.com',
-        usage: '<prefix>matches <pubg username> [season=] [region=] [mode=]',
+        description: `Returns the last ${this.MAX_MATCHES} matches for a player with links to https://pubg-replay.com`,
+        usage: '<prefix>matches [pubg username] [season=] [region=] [mode=]',
         examples: [
-            '!pubg-matches'
+            '!pubg-matches        (only valid if you have already used the `register` command)',
+            '!pubg-matches Jane'
         ]
     }
 
@@ -89,14 +90,14 @@ export class GetMatches extends Command {
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
             paramMap = {
-                username: params[0],
+                username: username,
                 season: cs.getParamValue('season=', params, serverDefaults.default_season),
                 region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
             }
         } else {
             paramMap = {
-                username: params[0],
+                username: username,
                 season: cs.getParamValue('season=', params, await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))),
                 region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
@@ -210,7 +211,7 @@ export class GetMatches extends Command {
             this.addEmbedFields(embed, type, matchIds);
         } else {
             embed.addBlankField(false);
-            embed.addField(`${type} Status`, `Player hasn\'t played ${type} games this season`, false);
+            embed.addField(`${type} Status`, `Player hasn't played ${type} games this season`, false);
         }
     }
 
