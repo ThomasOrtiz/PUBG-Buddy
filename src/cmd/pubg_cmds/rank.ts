@@ -185,13 +185,17 @@ export class Rank extends Command {
                 mode: this.paramMap.mode
             });
 
-            await reaction.remove(originalPoster);
+            let warningMessage;
+            await reaction.remove(originalPoster).catch(async (err) => {
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+            });
+
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
             this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
 
-            await msg.edit({ embed });
+            await msg.edit(warningMessage, { embed });
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
             mixpanel.track(this.help.name, {
@@ -202,13 +206,16 @@ export class Rank extends Command {
                 mode: this.paramMap.mode
             });
 
-            await reaction.remove(originalPoster);
+            let warningMessage;
+            await reaction.remove(originalPoster).catch(async (err) => {
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+            });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
             this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
 
-            await msg.edit({ embed });
+            await msg.edit(warningMessage, { embed });
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
             mixpanel.track(this.help.name, {
@@ -219,13 +226,16 @@ export class Rank extends Command {
                 mode: this.paramMap.mode
             });
 
-            await reaction.remove(originalPoster);
+            let warningMessage;
+            await reaction.remove(originalPoster).catch(async (err) => {
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+            });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
             this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
 
-            await msg.edit({ embed });
+            await msg.edit(warningMessage, { embed });
         });
 
         one_collector.on('end', collected => msg.clearReactions());
