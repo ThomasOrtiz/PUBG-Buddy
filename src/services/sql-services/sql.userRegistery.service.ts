@@ -42,7 +42,7 @@ export class SqlUserRegisteryService {
                 pool.query(`
                     update ${this.tableName}
                     set
-                        fk_players_id=(select id from players where pubg_id=$2),
+                        fk_players_id=(select id from players where pubg_id=$2)
                     where discord_id = $1`, [discordId, pubgId]
                 );
                 return true;
