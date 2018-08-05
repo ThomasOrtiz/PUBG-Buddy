@@ -8,8 +8,7 @@ BEGIN;
         default_bot_prefix TEXT DEFAULT '!pubg-',
         default_season TEXT DEFAULT '2018-08',
         default_region TEXT DEFAULT 'pc-na',
-        default_mode TEXT DEFAULT 'fpp',
-        default_squadSize TEXT DEFAULT '4');
+        default_mode TEXT DEFAULT 'fpp');
 
     CREATE TABLE IF NOT EXISTS server_registery
         (id SERIAL PRIMARY KEY,
