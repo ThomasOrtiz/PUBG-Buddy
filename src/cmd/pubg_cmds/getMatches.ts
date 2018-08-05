@@ -74,7 +74,7 @@ export class GetMatches extends Command {
         let username: string;
 
         // Try to get username from user registery
-        if(!params[0]) {
+        if(!params[0] || cs.stringContains(params[0], '=')) {
             username = await sqlUserRegisteryService.getRegisteredUser(msg.author.id);
         }
 
