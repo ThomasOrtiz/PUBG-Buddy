@@ -49,6 +49,7 @@ bot.on('guildDelete', guild => {
 bot.on('ready', () => {
     logger.info(`Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`);
     logger.info('Connected');
+    bot.user.setActivity("Use `!pubg-help`");
 });
 bot.on('message', async (msg: Discord.Message) => {
     // Ignore other bots
@@ -65,6 +66,21 @@ bot.on('message', async (msg: Discord.Message) => {
         let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
         prefix = server_defaults.default_bot_prefix.toLowerCase();
         perms = bot.elevation(msg);
+    }
+
+    // Check for special case with default help
+    const startsWithDefaultHelp = msg.content.toLowerCase().startsWith('!pubg-help');
+    if (startsWithDefaultHelp) {
+        command = msg.content.split(' ')[0].slice('!pubg-'.length);
+        params = msg.content.split(' ').slice(1);
+        // Get command
+        let cmd: Command = getCommand(command);
+
+        // Run command
+        if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
+            cmd.run(bot, msg, params, perms);
+        }
+        return;
     }
 
     // Ignore requests without our prefix
