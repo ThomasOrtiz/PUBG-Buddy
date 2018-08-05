@@ -1,18 +1,7 @@
-import * as logger from 'winston';
-import { CommonService as cs } from '../common.service';
-import { Player } from '../../models/player';
-import { Pool, QueryResult } from 'pg';
+import * as pool from './sql.config.service';
+import { Player } from '../../models/models.module';
+import { QueryResult } from 'pg';
 
-
-let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
-const pool: Pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
-pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
-});
 
 export class SqlServerRegisteryService {
 
@@ -69,6 +58,12 @@ export class SqlServerRegisteryService {
                     return [];
                 }
             });
+    }
+
+    static async deleteAllPlayers(): Promise<any> {
+        return pool.query('delete from players where 1=1').then((res: QueryResult) => {
+            return pool.query('delete from server_registery where 1=1').then(() => {});
+        });
     }
 }
 

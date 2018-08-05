@@ -1,7 +1,10 @@
-import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import { CommonService as cs } from '../../services/common.service';
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { SqlSeasonsService as sqlSeasonsService } from '../../services/sql.service';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
+import { PubgService as pubgService } from '../../services/pubg.api.service';
+import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class GetSeasons extends Command {
@@ -9,27 +12,34 @@ export class GetSeasons extends Command {
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['getSeasons'],
         permLevel: 0
     };
 
     help: CommandHelp = {
-        name: 'getSeasons',
+        name: 'seasons',
         description: 'Returns all available seasons to use as parameters',
-        usage: '<prefix>getSeasons',
+        usage: '<prefix>seasons',
         examples: [
-            '!pubg-getSeasons'
+            '!pubg-seasons'
         ]
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let seasons: any = await sqlSeasonsService.getAllSeasons();
-        let seasonStr: string = `= Seasons =\n\nUse the value for parameters\n\n${'= Key ='.padEnd(10)}: = Value =\n`;
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length
+        });
+
+        let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA), true);
+
+        let seasonStr: string = `= Seasons =\n`;
         for (let i = 0; i < seasons.length; i++) {
-            let key: string = seasons[i].name;
-            let value: string = seasons[i].season;
-            seasonStr += `${key.padEnd(10)}: ${value}\n`;
+            const seasonId = seasons[i].id.split('division.bro.official.')[1];
+            seasonStr += `${seasonId}\n`;
         }
+
         msg.channel.send(seasonStr, { code: 'asciidoc' });
     };
 }

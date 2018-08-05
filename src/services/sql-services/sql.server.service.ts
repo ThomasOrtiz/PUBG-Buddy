@@ -1,18 +1,6 @@
-import * as logger from 'winston';
-import { CommonService as cs } from '../common.service';
-import { Pool, QueryResult } from 'pg';
-import { Server } from '../../models/server';
-
-
-let connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');
-const pool: Pool = new Pool({
-    connectionString: connectionString,
-    ssl: true,
-});
-pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
-});
+import * as pool from './sql.config.service';
+import { QueryResult } from 'pg';
+import { Server } from '../../models/models.module';
 
 
 export class SqlServerService {
@@ -114,15 +102,14 @@ export class SqlServerService {
      * @param {string} season of PUBG
      * @param {string} region of PUBG
      * @param {string} mode fpp or tpp
-     * @param {string} squadSize 1, 2, 4
      */
-    static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string, squadSize: number): Promise<QueryResult> {
+    static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string): Promise<QueryResult> {
         return pool.query('select server_id from servers where server_id = $1', [serverId])
             .then((res: QueryResult) => {
                 if(res.rowCount === 0) {
-                    return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode, default_squadsize) values ($1, $2, $3, $4, $5, $6)', [serverId, botPrefix, season, region, mode, squadSize]);
+                    return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
                 } else {
-                    return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5, default_squadsize=$6 where server_id = $1', [serverId, botPrefix, season, region, mode, squadSize]);
+                    return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
                 }
             });
     }

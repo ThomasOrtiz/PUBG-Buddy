@@ -1,7 +1,8 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { version } from 'discord.js';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class Info extends Command {
@@ -23,6 +24,11 @@ export class Info extends Command {
     };
 
     run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag
+        });
+
         msg.channel.send(`= PUBG Bot Information =
 • Owner       :: Thomas Ortiz
 • Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot

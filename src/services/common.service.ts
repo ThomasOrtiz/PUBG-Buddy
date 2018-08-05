@@ -61,6 +61,23 @@ export class CommonService {
         }
     }
 
+    //////////////////////////////
+    // Strings and Math
+    //////////////////////////////
+
+    /**
+     * Sees if a string is inside of another string
+     * @param {string} str
+     * @param {string} searchStr
+     * @param {boolean} ignoreCase
+     */
+    static stringContains(str: string, searchStr: string, ignoreCase: boolean = false): boolean {
+        if(ignoreCase) {
+            return str.toLowerCase().indexOf(searchStr.toLowerCase()) >= 0;
+        }
+        return str.indexOf(searchStr) >= 0;
+    }
+
     /**
      * Given a fraction it will return the equivalent % with '%' tacked on
      * @param {number} num
@@ -73,11 +90,16 @@ export class CommonService {
     }
 
     /**
-     * Given a number it will round it to the nearest 100th place
+     * Given a number it will round it to the nearest 100th place by default
      * @param {number} num
+     * @param {number} precision
      */
-    static round(num: number): string {
+    static round(num: number, precision: number = 2): string {
+        const castedNum: number = Number(num);
+
+        if(isNaN(castedNum)) { return ''; }
+
         //return Math.round(num * 100) / 100;
-        return num.toFixed(2);
+        return num.toFixed(precision);
     }
 }

@@ -1,4 +1,4 @@
-import { DiscordClientWrapper } from './../DiscordClientWrapper';
+import { DiscordClientWrapper } from '../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 
 export interface CommandHelp {

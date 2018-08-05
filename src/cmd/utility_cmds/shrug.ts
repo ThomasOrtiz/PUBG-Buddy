@@ -1,7 +1,7 @@
-import { DiscordClientWrapper } from './../../DiscordClientWrapper';
+import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-
-import { Command, CommandConfiguration, CommandHelp } from '../../models/command';
+import * as mixpanel from '../../services/analytics.service';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 
 
 export class Shrug extends Command {
@@ -24,6 +24,11 @@ export class Shrug extends Command {
     };
 
     run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag
+        });
+
         let shrugString: string = '';
         let amount: number = 1;
         if (params[0] && !isNaN(+params[0])) {
