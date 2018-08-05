@@ -104,8 +104,7 @@ export class Top extends Command {
 
                 if (i % this.batchEditAmount === 0) {
                     let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
-                    //msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
-                    console.log(`Grabbing data for players ${i + 1} - ${max}`);
+                    msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
                 }
 
                 const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
