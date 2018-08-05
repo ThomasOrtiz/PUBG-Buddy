@@ -21,7 +21,7 @@ export class SetServerDefaults extends Command {
         description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
         usage: '<prefix>setServerDefaults <prefix=> <season=> <region=> <mode=>',
         examples: [
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-03 region=pc-na mode=tpp',
+            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na mode=SQUAD-FPP',
         ]
     };
 
