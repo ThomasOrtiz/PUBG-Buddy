@@ -1,22 +1,13 @@
+import { CommonService as cs } from './services/common.service';
 import { DiscordClientWrapper } from './DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as logger from 'winston';
-import { CommonService as cs } from './services/common.service';
-import { SqlServerService as sqlService } from './services/sql.service';
-import { Command } from './models/command';
+import * as logger from './services/logger.service';
+import { SqlServerService as sqlService } from './services/sql-services/sql.module';
+import { Command, Server } from './models/models.module';
 import * as commands from './cmd/command_module';
 
-// Configure logger settings
-logger.configure({
-    level: 'debug',
-    transports: [
-        new logger.transports.Console({
-            colorize: true
-        })
-    ]
-});
 
 // Initialize Bot
 const botToken: string = cs.getEnvironmentVariable('bot_token');
@@ -60,13 +51,13 @@ bot.on('message', async (msg: Discord.Message) => {
     // Grab relevant guild info if not DM
     if(msg.guild) {
         isGuildMessage = true;
-        let server_defaults: any = await sqlService.getOrRegisterServer(msg.guild.id);
-        prefix = server_defaults.default_bot_prefix;
+        let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
+        prefix = server_defaults.default_bot_prefix.toLowerCase();
         perms = bot.elevation(msg);
     }
 
     // Ignore requests without our prefix
-    if (!msg.content.startsWith(prefix)) return;
+    if (!msg.content.toLowerCase().startsWith(prefix)) { return; }
     command = msg.content.split(' ')[0].slice(prefix.length);
     params = msg.content.split(' ').slice(1);
 
@@ -98,6 +89,7 @@ bot.reload = function(command): Promise<any> {
         }
     });
 };
+
 /**
  * This function should resolve to an ELEVATION level which
  * is then sent to the command handler for verification

@@ -1,14 +1,15 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
+import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
 } from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Player, PlayerSeason } from 'pubg-typescript-api';
 import * as mixpanel from '../../services/analytics.service';
+
 
 interface ParameterMap {
     username: string;
@@ -17,66 +18,48 @@ interface ParameterMap {
     mode: string;
 }
 
-export class Rank extends Command {
+export class GetMatches extends Command {
 
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
         aliases: [],
         permLevel: 0
-    };
+    }
 
-    help: CommandHelp = {
-        name: 'rank',
-        description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
-        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=]',
+    help: CommandHelp= {
+        name: 'matches',
+        description: `Returns the last ${this.MAX_MATCHES} matches for a player with links to https://pubg-replay.com`,
+        usage: '<prefix>matches [pubg username] [season=] [region=] [mode=]',
         examples: [
-            '!pubg-rank        (only valid if you have already used the `register` command)',
-            '!pubg-rank john',
-            '!pubg-rank john season=2018-03',
-            '!pubg-rank john season=2018-03 region=eu',
-            '!pubg-rank john season=2018-03 region=na mode=tpp',
-            '!pubg-rank john region=as mode=tpp season=2018-03',
+            '!pubg-matches        (only valid if you have already used the `register` command)',
+            '!pubg-matches Jane'
         ]
-    };
+    }
 
     private paramMap: ParameterMap;
+    private MAX_MATCHES: number = 5;
 
-    public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        const originalPoster: Discord.User = msg.author;
-
+    async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         try {
             this.paramMap = await this.getParameters(msg, params);
         } catch(e) {
             return;
         }
 
-        const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
-        if(!isValidParameters) {
-            checkingParametersMsg.delete();
-            return;
-        }
-
-        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${this.paramMap.username}`);
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+
         const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
         const player: Player = players[0];
-
-        if (!player.id) {
-            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
-            return;
-        }
-
-        // Get Player Data
-        const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+        const seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
 
         // Create base embed to send
         let embed: Discord.RichEmbed = await this.createBaseEmbed();
         this.addDefaultStats(embed, seasonData);
 
         // Send the message and setup reactions
-        this.setupReactions(message, originalPoster, seasonData);
+        let message: Discord.Message = await msg.channel.send('Getting matches') as Discord.Message;
+        this.setupReactions(message, msg.author, seasonData);
         message.edit({ embed });
     };
 
@@ -137,23 +120,22 @@ export class Rank extends Command {
     }
 
     /**
-     * Depending on the user's default mode get one of three stats
-     * @param {Discord.RichEmbed} embed
-     * @param {PlayerSeason} seasonData
+     * Creates the base embed that the command will respond with
+     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
      */
-    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason): void {
-        let mode = this.paramMap.mode;
+    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
+        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
-        if (cs.stringContains(mode, 'solo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
-        } else if (cs.stringContains(mode, 'duo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
-        } else if (cs.stringContains(mode, 'squad', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
-        }
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle('Matches')
+            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
+            .setColor(0x00AE86)
+            .setFooter(`Powered by https://pubg-replay.com`)
+            .setTimestamp()
+
+        return embed;
     }
 
     /**
@@ -188,8 +170,8 @@ export class Rank extends Command {
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
+            this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
 
             await msg.edit({ embed });
         });
@@ -205,8 +187,8 @@ export class Rank extends Command {
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
+            this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
 
             await msg.edit({ embed });
         });
@@ -222,8 +204,8 @@ export class Rank extends Command {
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
+            this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
 
             await msg.edit({ embed });
         });
@@ -234,24 +216,23 @@ export class Rank extends Command {
     }
 
     /**
-     * Creates the base embed that the command will respond with
-     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
+     * Depending on the user's default mode get one of three stats
+     * @param {Discord.RichEmbed} embed
+     * @param {PlayerSeason} seasonData
      */
-    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
-        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
-        const isFPP: boolean = cs.stringContains(this.paramMap.mode, 'FPP');
-        const modeDescription: string = (isFPP ? 'FPP' : 'TPP').replace('_', '-');
+    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason): void {
+        let mode = this.paramMap.mode;
 
-        let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle('Ranking: ' + this.paramMap.username)
-            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}\nMode: \t${modeDescription}`)
-            .setColor(0x00AE86)
-            .setFooter(`Using PUBG's official API`)
-            .setTimestamp();
-
-        return embed;
+        if (cs.stringContains(mode, 'solo', true)) {
+            this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
+        } else if (cs.stringContains(mode, 'duo', true)) {
+            this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
+        } else if (cs.stringContains(mode, 'squad', true)) {
+            this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
+            this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
+        }
     }
 
     /**
@@ -261,12 +242,12 @@ export class Rank extends Command {
      * @param {GameModeStats} duoData
      * @param {GameModeStats} squadData
      */
-    private addSpecificDataToEmbed(embed: Discord.RichEmbed, data: GameModeStats, type: string): void {
-        if (data.roundsPlayed > 0) {
-            this.addEmbedFields(embed, type, data);
+    private addSpecificDataToEmbed(embed: Discord.RichEmbed, matchIds: string[], type: string): void {
+        if (matchIds.length > 0) {
+            this.addEmbedFields(embed, type, matchIds);
         } else {
             embed.addBlankField(false);
-            embed.addField(`${type} Status`, `Player hasn\'t played ${type} games this season`, false);
+            embed.addField(`${type} Status`, `Player hasn't played ${type} games this season`, false);
         }
     }
 
@@ -276,49 +257,30 @@ export class Rank extends Command {
      * @param {string} gameMode
      * @param {GameModeStats} playerData
      */
-    private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, playerData: GameModeStats): void {
-        const overallRating = cs.round(pubgApiService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
-        const kd = cs.round(playerData.kills / playerData.losses) || 0;
-        const kda = cs.round((playerData.kills + playerData.assists) / playerData.losses) || 0;
-        const winPercent = cs.getPercentFromFraction(playerData.wins, playerData.roundsPlayed);
-        const topTenPercent = cs.getPercentFromFraction(playerData.top10s, playerData.roundsPlayed);
-        const averageDamageDealt = cs.round(playerData.damageDealt / playerData.roundsPlayed) || 0;
+    private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, matchIds: string[]): void {
+        let reply: string = '';
+        const finalLength: number = matchIds.length <= this.MAX_MATCHES ? matchIds.length : this.MAX_MATCHES;
 
-        let killStats: string = `
-        \`KD:\` ${kd}
-        \`KDA:\` ${kda}
-        \`Kills:\` ${playerData.kills}
-        \`Assists:\` ${playerData.assists}
-        \`DBNOs:\` ${playerData.dBNOs}
-        \`Suicides:\` ${playerData.suicides}
-        \`Headshots:\` ${playerData.headshotKills}
-        \`Longest kill:\` ${playerData.longestKill.toFixed(2)}
-        \`Road kill:\` ${playerData.roadKills}
-        `;
+        for(let i = 0; i < finalLength; i++) {
+            const url = this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, matchIds[i]);
 
-        let gameStats: string = `
-        \`Total Damage Dealt:\` ${playerData.damageDealt.toFixed(2)}
-        \`Average damage dealt:\` ${averageDamageDealt}
-        \`Longest time survived:\` ${playerData.longestTimeSurvived.toFixed(2)}
-        \`Walk distance:\` ${playerData.walkDistance.toFixed(2)}
-        \`Ride distance:\` ${playerData.rideDistance.toFixed(2)}
-        \`Vehicles Destroyed:\` ${playerData.vehicleDestroys}
-        `;
+            reply += `[Match ${i+1}](${url})\n`
+        }
 
-        let winStats: string = `
-        \`Win %:\` ${winPercent}
-        \`Wins:\` ${playerData.wins}
-        \`Top 10 %:\` ${topTenPercent}
-        \`Top 10s:\`  ${playerData.top10s}
-        \`Matches Player:\`  ${playerData.roundsPlayed}
-        `;
-
-        embed.addBlankField();
-        embed.addField(`${gameMode} Rating`, overallRating, false)
-        embed.addField('Kill stats', killStats, true);
-        embed.addField('Game stats', gameStats, true);
-        embed.addField('Win stats', winStats);
+        embed.addField(`${gameMode} Matches`, reply, true);
     }
 
+    /**
+     * Constructs a replay url
+     * @param platFormRegion
+     * @param username
+     * @param matchId
+     * @returns {string} Replay Url
+     */
+    private getPubgReplayUrl(platFormRegion: string, username: string, matchId: string): string {
+        const split_region = platFormRegion.split('_');
+        const platform: string = split_region[0];
+        const region: string = split_region[1];
+        return `https://pubg-replay.com/match/${platform}/${region}/${matchId}?highlight=${username}`
+    }
 }
-
