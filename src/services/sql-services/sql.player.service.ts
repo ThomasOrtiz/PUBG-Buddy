@@ -12,9 +12,9 @@ export class SqlPlayersService {
      * @param {string} pubgId
      */
     static async addPlayer(username: string, pubgId: string): Promise<any> {
-        return pool.query('select pubg_id from players where pubg_id = $1', [pubgId]).then((res: QueryResult) => {
+        return pool.query('select pubg_id from players where pubg_id = $1', [pubgId]).then(async (res: QueryResult) => {
             if(res.rowCount === 0) {
-                return pool.query('insert into players (pubg_id, username) values ($1, $2)', [pubgId, username]);
+                return await pool.query('insert into players (pubg_id, username) values ($1, $2)', [pubgId, username]);
             }
         });
     }
