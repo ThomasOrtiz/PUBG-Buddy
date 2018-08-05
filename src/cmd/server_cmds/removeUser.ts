@@ -8,6 +8,7 @@ import {
 } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class RemoveUser extends Command {
@@ -39,6 +40,13 @@ export class RemoveUser extends Command {
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length,
+            region: region
+        });
 
         for (let i = 0; i < params.length; i++) {
             let username: string = params[i];

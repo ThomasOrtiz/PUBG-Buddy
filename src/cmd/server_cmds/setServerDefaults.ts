@@ -4,6 +4,7 @@ import { CommonService as cs } from '../../services/common.service';
 import { SqlServerService as sqlServerService } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class SetServerDefaults extends Command {
@@ -36,6 +37,17 @@ export class SetServerDefaults extends Command {
             checkingParametersMsg.delete();
             return;
         }
+
+        mixpanel.track(this.help.name, {
+            server_id: msg.guild.id,
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length,
+            prefix: prefix,
+            season: season,
+            region: region,
+            mode: mode
+        });
 
         checkingParametersMsg.edit('Updating this server\'s defaults ...').then(async (msg: Discord.Message) => {
             sqlServerService.setServerDefaults(msg.guild.id, prefix, season, region, mode).then(async () => {

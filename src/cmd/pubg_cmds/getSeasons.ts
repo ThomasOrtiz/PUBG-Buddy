@@ -4,6 +4,7 @@ import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgService } from '../../services/pubg.api.service';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class GetSeasons extends Command {
@@ -25,6 +26,12 @@ export class GetSeasons extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length
+        });
+
         let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA), true);
 
         let seasonStr: string = `= Seasons =\n`;

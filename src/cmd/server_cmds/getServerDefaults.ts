@@ -2,6 +2,7 @@ import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { SqlServerService as sqlServerService } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class GetServerDefaults extends Command {
@@ -23,6 +24,13 @@ export class GetServerDefaults extends Command {
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        mixpanel.track(this.help.name, {
+            server_id: msg.guild.id,
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length
+        });
+
         msg.channel.send('Getting server defaults ...').then(async (message: Discord.Message) => {
             let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
             let embed: Discord.RichEmbed = new Discord.RichEmbed()

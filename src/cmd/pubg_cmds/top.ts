@@ -8,6 +8,7 @@ import {
 import { Command, CommandConfiguration, CommandHelp, Player as User } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import * as mixpanel from '../../services/analytics.service';
 
 
 interface ParameterMap {
@@ -161,6 +162,16 @@ export class Top extends Command {
             region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
             mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
         }
+
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length,
+            season: paramMap.season,
+            region: paramMap.region,
+            mode: paramMap.mode
+        });
+
         return paramMap;
     }
 
@@ -185,6 +196,13 @@ export class Top extends Command {
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
         one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            mixpanel.track(this.help.name, {
+                Action: 'Click 1',
+                season: this.paramMap.season,
+                region: this.paramMap.region,
+                mode: this.paramMap.mode
+            });
+
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -194,6 +212,13 @@ export class Top extends Command {
             await msg.edit({ embed });
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            mixpanel.track(this.help.name, {
+                Action: 'Click 2',
+                season: this.paramMap.season,
+                region: this.paramMap.region,
+                mode: this.paramMap.mode
+            });
+
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -203,6 +228,13 @@ export class Top extends Command {
             await msg.edit({ embed });
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+            mixpanel.track(this.help.name, {
+                Action: 'Click 4',
+                season: this.paramMap.season,
+                region: this.paramMap.region,
+                mode: this.paramMap.mode
+            });
+
             await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();

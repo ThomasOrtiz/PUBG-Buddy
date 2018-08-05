@@ -2,6 +2,7 @@ import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { SqlServerRegisteryService as sqlServerRegisteryService } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Player } from '../../models/models.module';
+import * as mixpanel from '../../services/analytics.service';
 
 
 export class Users extends Command {
@@ -23,6 +24,13 @@ export class Users extends Command {
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        mixpanel.track(this.help.name, {
+            server_id: msg.guild.id,
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length
+        });
+
         let registeredPlayers: Player[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         let players: string = '';
 

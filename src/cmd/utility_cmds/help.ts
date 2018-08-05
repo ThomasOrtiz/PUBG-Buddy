@@ -3,6 +3,8 @@ import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import {SqlServerService as sqlService} from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
+import * as mixpanel from '../../services/analytics.service';
+
 
 export class Help extends Command {
 
@@ -28,8 +30,18 @@ export class Help extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
+            mixpanel.track(this.help.name, {
+                type: 'Help',
+                discord_id: msg.author.id,
+                discord_username: msg.author.tag
+            });
             this.printBotHelp(bot, msg);
         } else {
+            mixpanel.track(this.help.name, {
+                type: 'Command Help',
+                discord_id: msg.author.id,
+                discord_username: msg.author.tag
+            });
             this.printCommandHelp(bot, msg, params[0]);
         }
     };

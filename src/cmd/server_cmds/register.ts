@@ -8,6 +8,8 @@ import {
 } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import * as mixpanel from '../../services/analytics.service';
+
 
 export class Register extends Command {
 
@@ -38,8 +40,17 @@ export class Register extends Command {
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+        const username: string = params[0];
 
-        this.registerUser(msg, api, region, params[0]);
+        mixpanel.track(this.help.name, {
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            pubg_name: username,
+            number_parameters: params.length,
+            region: region
+        });
+
+        this.registerUser(msg, api, region, username);
     }
 
     private async registerUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
