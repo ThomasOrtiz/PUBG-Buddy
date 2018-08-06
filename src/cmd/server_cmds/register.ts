@@ -8,7 +8,7 @@ import {
 } from '../../services/sql-services/sql.module';
 import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
 
 export class Register extends Command {

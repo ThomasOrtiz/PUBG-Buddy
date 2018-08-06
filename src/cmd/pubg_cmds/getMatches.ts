@@ -8,7 +8,7 @@ import {
 } from '../../services/sql-services/sql.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, Player, PlayerSeason } from 'pubg-typescript-api';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
 
 interface ParameterMap {
