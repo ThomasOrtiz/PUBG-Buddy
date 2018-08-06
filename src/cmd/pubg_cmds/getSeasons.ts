@@ -4,7 +4,7 @@ import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { PubgService as pubgService } from '../../services/pubg.api.service';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
 
 export class GetSeasons extends Command {

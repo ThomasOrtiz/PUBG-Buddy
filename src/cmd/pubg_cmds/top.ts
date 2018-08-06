@@ -8,7 +8,7 @@ import {
 import { Command, CommandConfiguration, CommandHelp, Player as User } from '../../models/models.module';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
 
 interface ParameterMap {

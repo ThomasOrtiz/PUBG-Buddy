@@ -1,6 +1,6 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 
 

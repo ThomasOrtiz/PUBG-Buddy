@@ -4,6 +4,7 @@ export * from './pubg_cmds/getModes';
 export * from './pubg_cmds/getRegions';
 export * from './pubg_cmds/getSeasons';
 export * from './pubg_cmds/rank';
+export * from './pubg_cmds/randomDrop';
 export * from './pubg_cmds/top';
 
 // Server Commands

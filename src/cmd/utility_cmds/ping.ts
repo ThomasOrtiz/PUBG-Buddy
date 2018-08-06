@@ -1,7 +1,7 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
-import * as mixpanel from '../../services/analytics.service';
+import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
 
 export class Ping extends Command {
