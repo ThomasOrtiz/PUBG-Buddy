@@ -177,8 +177,7 @@ export class Rank extends Command {
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
         one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(this.help.name, {
-                Action: 'Click 1',
+            mixpanel.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -198,8 +197,7 @@ export class Rank extends Command {
             await msg.edit(warningMessage, { embed });
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(this.help.name, {
-                Action: 'Click 2',
+            mixpanel.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -218,8 +216,7 @@ export class Rank extends Command {
             await msg.edit(warningMessage, { embed });
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(this.help.name, {
-                Action: 'Click 4',
+            mixpanel.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
