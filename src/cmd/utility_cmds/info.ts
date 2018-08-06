@@ -33,6 +33,7 @@ export class Info extends Command {
 • Owner       :: Thomas Ortiz
 • Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot
 • Bot Discord :: https://discord.gg/6kVvTwD
+• Uptime      :: ${this.getUptime(bot.uptime)}
 • Mem Usage   :: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
 • Users       :: ${bot.users.size.toLocaleString()}
 • Servers     :: ${bot.guilds.size.toLocaleString()}
@@ -41,5 +42,17 @@ export class Info extends Command {
 • Typescript  :: v2.8.3
 • Node        :: ${process.version}`, { code: 'asciidoc' });
     };
+
+    private getUptime(botUptime): string {
+
+        let totalSeconds = (botUptime / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+        const uptime = `${hours} hours, ${minutes} minutes, and ${seconds} seconds`;
+
+        return uptime;
+    }
 
 }
