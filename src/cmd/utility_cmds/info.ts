@@ -32,6 +32,7 @@ export class Info extends Command {
         msg.channel.send(`= PUBG Bot Information =
 • Owner       :: Thomas Ortiz
 • Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot
+• Bot Discord :: https://discord.gg/6kVvTwD
 • Mem Usage   :: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
 • Users       :: ${bot.users.size.toLocaleString()}
 • Servers     :: ${bot.guilds.size.toLocaleString()}
