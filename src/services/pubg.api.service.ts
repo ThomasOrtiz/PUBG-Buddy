@@ -37,8 +37,13 @@ export class PubgService {
      * @returns {Promise<Player[]>} list of player(s)
      */
     static async getPlayerByName(api: PubgAPI, names: string[]): Promise<Player[]> {
-        // TODO: Can this be cached easily?
-        return Player.filterByName(api, names);
+        const cacheKey: string = `pubgApi.getPlayerByName-${api.platformRegion}-${names}`;
+        const ttl: number = 60 * 15;  // caches for 15 min
+        const storeFunction: Function = async (): Promise<Player[]> => {
+            return Player.filterByName(api, names);
+        };
+
+        return await cache.get<Player[]>(cacheKey, storeFunction, ttl);
     }
 
     /**
