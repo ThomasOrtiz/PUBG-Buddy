@@ -1,6 +1,6 @@
 # PUBG Discord Bot
 
-This bot uses [https://pubg.op.gg/](https://pubg.op.gg/) as a means to get a PUBG player's stats.
+This bot uses the [Official PUBG Api](https://documentation.pubg.com/en/introduction.html) to provide ranking information and statistics.
 
 # Bot Usage
 1. Add bot to your server by going to this [url](https://discordapp.com/oauth2/authorize?client_id=417828293019041804&scope=bot&permissions=388160).
