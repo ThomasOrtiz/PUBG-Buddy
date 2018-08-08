@@ -58,11 +58,15 @@ export class Rank extends Command {
             return;
         }
 
-        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for ${this.paramMap.username}`);
+        const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for \`${this.paramMap.username}\``);
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
-        const player: Player = players[0];
 
+        if(players.length === 0) {
+            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
+            return;
+        }
+        const player: Player = players[0];
         if (!player.id) {
             message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
             return;

@@ -50,6 +50,12 @@ export class GetMatches extends Command {
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
 
         const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
+
+        if(players.length === 0) {
+            msg.channel.send(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
+            return;
+        }
+
         const player: Player = players[0];
         const seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
 

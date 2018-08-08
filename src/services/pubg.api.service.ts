@@ -40,7 +40,7 @@ export class PubgService {
         const cacheKey: string = `pubgApi.getPlayerByName-${api.platformRegion}-${names}`;
         const ttl: number = 60 * 15;  // caches for 15 min
         const storeFunction: Function = async (): Promise<Player[]> => {
-            return Player.filterByName(api, names);
+            return Player.filterByName(api, names).catch(() => []);
         };
 
         return await cache.get<Player[]>(cacheKey, storeFunction, ttl);
