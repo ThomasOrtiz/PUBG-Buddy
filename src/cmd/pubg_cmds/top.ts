@@ -95,23 +95,10 @@ export class Top extends Command {
 
             // Get list of ids
             const registeredNames: string[] = this.registeredUsers.map(user => user.username);
-            const players: Player[] = await pubgApiService.getPlayerByName(this.api, registeredNames);
+            const players: Player[] = await this.getPlayerInfoByBatching(registeredNames);
 
-            // Iterate through players
-            let playerSeasons: PlayerWithSeasonData[] = new Array();
-            for(let i = 0; i < players.length; i++) {
-                const player = players[i];
-                const currentId = player.id;
-
-                if (i % this.batchEditAmount === 0) {
-                    let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
-                    msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
-                }
-
-                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
-                const info = new PlayerWithSeasonData(player.name, seasonInfo);
-                playerSeasons.push(info);
-            }
+            // Retrieve Season data for player
+            let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(msg, players);
 
             // Create base embed to send
             let embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -122,6 +109,52 @@ export class Top extends Command {
             msg.edit({ embed });
         });
     };
+
+    /**
+     * Returns PUBG Player[] by batching
+     * @param {string[]} names list of names
+     * @returns {Promise<Player[]>}
+     */
+    private async getPlayerInfoByBatching(names: string[]): Promise<Player[]> {
+        let players: Player[] = new Array<Player>();
+        const batchAmount: number = 5;
+
+        let currBatch: string[] = names.splice(0, batchAmount);
+        while (currBatch.length > 0) {
+            const batchedPlayers: Player[] = await pubgApiService.getPlayerByName(this.api, currBatch);
+            players = [...players, ...batchedPlayers];
+
+            currBatch = names.splice(0, batchAmount);
+        }
+
+        return players;
+    }
+
+    /**
+     * Returns a promise of PlayerWithSeasonData[]
+     * @param {Discord.Message} msg
+     * @param {Player[]} players list of PUBG Players
+     * @returns {Promise<PlayerWithSeasonData[]>}
+     */
+    private async getPlayersSeasonData(msg: Discord.Message, players: Player[]): Promise<PlayerWithSeasonData[]> {
+        let playerSeasons: PlayerWithSeasonData[] = new Array();
+
+        for(let i = 0; i < players.length; i++) {
+            const player = players[i];
+            const currentId = player.id;
+
+            if (i % this.batchEditAmount === 0) {
+                let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
+                msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
+            }
+
+            const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
+            const info = new PlayerWithSeasonData(player.name, seasonInfo);
+            playerSeasons.push(info);
+        }
+
+        return playerSeasons;
+    }
 
     /**
      * Depending on the user's default mode get one of three stats
