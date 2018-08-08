@@ -48,7 +48,7 @@ export class PubgService {
      * @returns {Promise<string>} a player's id
      */
     static async getPlayerIdByName(api: PubgAPI, name: string): Promise<string> {
-        const cacheKey: string = `pubgApi.getPlayerIdByName-${name}`;
+        const cacheKey: string = `pubgApi.getPlayerIdByName-${name}-${api.platformRegion}`;
         const ttl: number = 60 * 60 * 2;  // caches for 2 hour
         const storeFunction: Function = async (): Promise<string> => {
             const result: Player[] = await Player.filterByName(api, [name]);
@@ -73,7 +73,7 @@ export class PubgService {
      * @returns {Promise<PlayerSeason>}
      */
     static async getPlayerSeasonStatsById(api: PubgAPI, id: string, season: string): Promise<PlayerSeason> {
-        const cacheKey: string = `pubgApi.getPlayerSeasonStatsById-${id}-${season}`;
+        const cacheKey: string = `pubgApi.getPlayerSeasonStatsById-${id}-${season}-${api.platformRegion}`;
         const ttl: number = 60 * 5;  // caches for 5 minutes
         const storeFunction: Function = async (): Promise<PlayerSeason> => {
             const seasonId: string = this.getPubgSeasonId(season);
