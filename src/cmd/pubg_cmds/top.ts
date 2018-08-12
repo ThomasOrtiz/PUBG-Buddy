@@ -353,6 +353,9 @@ export class Top extends Command {
         for (let i = 0; i < topPlayers.length; i++) {
             const playerInfo = topPlayers[i];
             const seasonStats: GameModeStats = playerInfo.gameModeStats;
+
+            if(seasonStats.roundsPlayed === 0) { continue; }
+
             const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0);
             const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
             const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
@@ -368,6 +371,8 @@ export class Top extends Command {
         const gameModeSplit: string[] = gameMode.split('_');
         let gameModeDescription: string = gameModeSplit[0];
         gameModeDescription += (gameModeSplit.length == 2) ? ` ${gameModeSplit[1]}` : '';
+
+        if(names.length === 0) { return; }
 
         embed.addBlankField();
         embed.addField('Game Type', gameModeDescription);
