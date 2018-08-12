@@ -40,7 +40,8 @@ export class Help extends Command {
             mixpanel.track(this.help.name, {
                 type: 'Command Help',
                 discord_id: msg.author.id,
-                discord_username: msg.author.tag
+                discord_username: msg.author.tag,
+                helpKey: params[0]
             });
             this.printCommandHelp(bot, msg, params[0]);
         }

@@ -319,7 +319,7 @@ export class Rank extends Command {
         \`Wins:\` ${playerData.wins}
         \`Top 10 %:\` ${topTenPercent}
         \`Top 10s:\`  ${playerData.top10s}
-        \`Matches Player:\`  ${playerData.roundsPlayed}
+        \`Matches Played:\`  ${playerData.roundsPlayed}
         `;
 
         embed.addBlankField();
