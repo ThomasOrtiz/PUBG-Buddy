@@ -77,13 +77,14 @@ export class RandomDrop extends Command {
     private getParameters(msg: Discord.Message, params: string[]): string {
         if (params.length < 1) {
             cs.handleError(msg, 'Error:: Must specify a map name', this.help);
-            throw 'Error:: Must specify a map name (e || m || s';
+            throw 'Error:: Must use "e", "m", or "s"';
         }
 
         let mapName: string = params[0].toLowerCase();
 
         if (mapName !== 'e' && mapName !== 'm' && mapName !== 's') {
-            cs.handleError(msg, 'Error:: Must use "e", "m", or "s"', this.help);
+            cs.handleError(msg, 'Error:: Must specify a map name', this.help);
+            throw 'Error:: Must use "e", "m", or "s"';
         }
 
         return mapName;
