@@ -119,9 +119,10 @@ export class Rank extends Command {
                 mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
             }
         } else {
+            const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
             paramMap = {
                 username: username,
-                season: cs.getParamValue('season=', params, await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))),
+                season: cs.getParamValue('season=', params, currentSeason),
                 region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
             }
@@ -190,7 +191,8 @@ export class Rank extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+                if(!msg.guild) { return; }
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
 
@@ -210,6 +212,7 @@ export class Rank extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
+                if(!msg.guild) { return; }
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
@@ -229,7 +232,8 @@ export class Rank extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+                if(!msg.guild) { return; }
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();

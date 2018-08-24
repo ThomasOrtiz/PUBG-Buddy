@@ -237,7 +237,8 @@ export class Top extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+                if(!msg.guild) { return; }
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -255,7 +256,8 @@ export class Top extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+                if(!msg.guild) { return; }
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -273,7 +275,8 @@ export class Top extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages`. Give permission for the best experience. :warning:';
+                if(!msg.guild) { return; }
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
