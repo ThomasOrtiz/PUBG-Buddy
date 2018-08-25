@@ -28,7 +28,7 @@ export class SetServerDefaults extends Command {
         description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
         usage: '<prefix>setServerDefaults [prefix=] [season=] [region=] [mode=]',
         examples: [
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na mode=SQUAD-FPP',
+            '!pubg-setServerDefaults',
             '!pubg-setServerDefaults prefix=!pubg-',
             '!pubg-setServerDefaults prefix=!pubg- season=2018-08 ',
             '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na ',
@@ -39,6 +39,13 @@ export class SetServerDefaults extends Command {
     private paramMap: ParameterMap;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        if(params.length === 0) {
+            const message: Discord.Message = await msg.channel.send('Getting server defaults ...') as Discord.Message;
+            const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(message);
+            message.edit({embed});
+            return;
+        }
+
         try {
             this.paramMap = await this.getParameters(msg, params);
         } catch(e) { return; }
@@ -52,21 +59,7 @@ export class SetServerDefaults extends Command {
 
         checkingParametersMsg.edit('Updating this server\'s defaults ...').then(async (msg: Discord.Message) => {
             sqlServerService.setServerDefaults(msg.guild.id, this.paramMap.prefix, this.paramMap.season, this.paramMap.region, this.paramMap.mode).then(async () => {
-                let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-
-                const regionDisplayName: string = server.default_region.replace('_', '-');
-                const modeDescription: string = server.default_mode.replace('_', '-');
-                let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                    .setTitle('Server Defaults')
-                    .setDescription('The defaults that a server has when running PUBG Bot commands.')
-                    .setColor(0x00AE86)
-                    .addField('Bot Prefix', server.default_bot_prefix, true)
-                    .addBlankField(true)
-                    .addBlankField(true)
-                    .addBlankField(false)
-                    .addField('Default Season', server.default_season, true)
-                    .addField('Default Region', regionDisplayName, true)
-                    .addField('Default Mode', modeDescription, true)
+                const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(msg);
                 msg.edit({ embed });
             });
         });
@@ -103,5 +96,23 @@ export class SetServerDefaults extends Command {
         });
 
         return paramMap;
+    }
+
+    private async getCurrentServerDefaultsEmbed(msg: Discord.Message): Promise<Discord.RichEmbed> {
+        let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const regionDisplayName: string = server.default_region.replace('_', '-');
+        const modeDescription: string = server.default_mode.replace('_', '-');
+
+        return new Discord.RichEmbed()
+            .setTitle('Server Defaults')
+            .setDescription('The defaults that a server has when running PUBG Bot commands.')
+            .setColor(0x00AE86)
+            .addField('Bot Prefix', server.default_bot_prefix, true)
+            .addBlankField(true)
+            .addBlankField(true)
+            .addBlankField(false)
+            .addField('Default Season', server.default_season, true)
+            .addField('Default Region', regionDisplayName, true)
+            .addField('Default Mode', modeDescription, true)
     }
 }
