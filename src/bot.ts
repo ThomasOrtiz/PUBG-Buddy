@@ -93,6 +93,7 @@ bot.on('message', async (msg: Discord.Message) => {
 
     // Run command
     if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
+        mixpanel.setPerson(msg.author.id, {});
         cmd.run(bot, msg, params, perms);
     }
 });

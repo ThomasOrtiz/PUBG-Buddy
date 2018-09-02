@@ -15,4 +15,8 @@ export class AnalyticsService {
         }
 
     }
+
+    static setPerson(distinctId: string, body: any) {
+        mixpanel.people.set(distinctId, body);
+    }
 }
