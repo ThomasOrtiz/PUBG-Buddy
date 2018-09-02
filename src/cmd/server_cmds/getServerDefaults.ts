@@ -25,6 +25,7 @@ export class GetServerDefaults extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,

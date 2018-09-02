@@ -114,6 +114,7 @@ export class GetMatches extends Command {
         }
 
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,

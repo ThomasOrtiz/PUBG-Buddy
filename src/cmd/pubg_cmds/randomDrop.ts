@@ -25,17 +25,11 @@ export class RandomDrop extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        mixpanel.track(this.help.name, {
-            discord_id: msg.author.id,
-            discord_username: msg.author.tag,
-            number_parameters: params.length
-        });
-
         let mapName: string;
+
         try {
             mapName = this.getParameters(msg, params);
         } catch { return; }
-
 
         let randomDrop;
         let fullMapName: string;
@@ -58,6 +52,7 @@ export class RandomDrop extends Command {
         }
 
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             mapName: fullMapName,

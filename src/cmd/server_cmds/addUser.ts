@@ -42,6 +42,7 @@ export class AddUser extends Command {
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
 
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,

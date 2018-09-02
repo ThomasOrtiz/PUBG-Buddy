@@ -43,6 +43,7 @@ export class Register extends Command {
         const username: string = params[0];
 
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             pubg_name: username,

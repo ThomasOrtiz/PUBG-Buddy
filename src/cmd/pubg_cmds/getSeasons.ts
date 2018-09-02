@@ -27,6 +27,7 @@ export class GetSeasons extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         mixpanel.track(this.help.name, {
+            distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length

@@ -31,6 +31,7 @@ export class Help extends Command {
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
             mixpanel.track(this.help.name, {
+                distinct_id: msg.author.id,
                 type: 'Help',
                 discord_id: msg.author.id,
                 discord_username: msg.author.tag
@@ -38,6 +39,7 @@ export class Help extends Command {
             this.printBotHelp(bot, msg);
         } else {
             mixpanel.track(this.help.name, {
+                distinct_id: msg.author.id,
                 type: 'Command Help',
                 discord_id: msg.author.id,
                 discord_username: msg.author.tag,
