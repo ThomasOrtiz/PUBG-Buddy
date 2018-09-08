@@ -57,7 +57,14 @@ export class GetMatches extends Command {
         }
 
         const player: Player = players[0];
-        const seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+
+        let seasonData: PlayerSeason;
+        try {
+            seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+        } catch(e) {
+            msg.edit(`Could not find \`${this.paramMap.username}\`'s \`${this.paramMap.season}\` stats.`);
+            return;
+        }
 
         // Create base embed to send
         let embed: Discord.RichEmbed = await this.createBaseEmbed();

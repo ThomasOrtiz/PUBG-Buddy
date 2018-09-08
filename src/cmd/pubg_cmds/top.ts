@@ -148,9 +148,14 @@ export class Top extends Command {
                 msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
             }
 
-            const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
-            const info = new PlayerWithSeasonData(player.name, seasonInfo);
-            playerSeasons.push(info);
+            try {
+                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
+                const info = new PlayerWithSeasonData(player.name, seasonInfo);
+                playerSeasons.push(info);
+            } catch(e) {
+                // player hasn't played this season
+            }
+
         }
 
         return playerSeasons;

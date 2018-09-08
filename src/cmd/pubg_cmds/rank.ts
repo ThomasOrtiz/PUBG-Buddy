@@ -73,7 +73,13 @@ export class Rank extends Command {
         }
 
         // Get Player Data
-        const seasonData: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+        let seasonData: PlayerSeason;
+        try {
+            seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+        } catch(e) {
+            message.edit(`Could not find \`${this.paramMap.username}\`'s \`${this.paramMap.season}\` stats.`);
+            return;
+        }
 
         // Create base embed to send
         let embed: Discord.RichEmbed = await this.createBaseEmbed();
