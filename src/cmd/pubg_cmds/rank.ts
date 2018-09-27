@@ -9,12 +9,15 @@ import { Command, CommandConfiguration, CommandHelp } from '../../models/models.
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import Jimp = require('jimp');
+
 
 interface ParameterMap {
     username: string;
     season: string;
     region: string;
     mode: string;
+    useText: boolean;
 }
 
 export class Rank extends Command {
@@ -29,7 +32,7 @@ export class Rank extends Command {
     help: CommandHelp = {
         name: 'rank',
         description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
-        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=]',
+        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=all]',
         examples: [
             '!pubg-rank        (only valid if you have already used the `register` command)',
             '!pubg-rank john',
@@ -37,10 +40,18 @@ export class Rank extends Command {
             '!pubg-rank john season=2018-03 region=eu',
             '!pubg-rank john season=2018-03 region=na mode=tpp',
             '!pubg-rank john region=as mode=tpp season=2018-03',
+            '!pubg-rank john =all  (this will show in a text based format instead of the image)'
         ]
     };
 
     private paramMap: ParameterMap;
+
+    // Image Params
+    private headerImg: Jimp;
+    private baseImg: Jimp;
+    private font_64_white: Jimp.Font;
+    private font_32_white: Jimp.Font;
+    private font_32_black: Jimp.Font;
 
     public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const originalPoster: Discord.User = msg.author;
@@ -81,13 +92,20 @@ export class Rank extends Command {
             return;
         }
 
-        // Create base embed to send
-        let embed: Discord.RichEmbed = await this.createBaseEmbed();
-        this.addDefaultStats(embed, seasonData);
+        if(this.paramMap.useText) {
+            // Create base embed to send
+            let embed: Discord.RichEmbed = await this.createBaseEmbed();
+            this.addDefaultStats(embed, seasonData);
 
-        // Send the message and setup reactions
-        this.setupReactions(message, originalPoster, seasonData);
-        message.edit({ embed });
+            // Send the message and setup reactions
+            this.setupReactions(message, originalPoster, seasonData);
+            message.edit({ embed });
+        } else {
+            let attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonData);
+            let msg = await message.channel.send(attatchment) as Discord.Message;
+            this.setupReactions(msg, originalPoster, seasonData);
+        }
+
     };
 
     /**
@@ -116,13 +134,18 @@ export class Rank extends Command {
             throw 'Error:: Must specify a username';
         }
 
+        const indexOfUseText : number = cs.isSubstringOfElement('=all', params);
+        if(indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
+
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+
             paramMap = {
                 username: username,
                 season: cs.getParamValue('season=', params, serverDefaults.default_season),
                 region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
+                useText: indexOfUseText >= 0
             }
         } else {
             const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
@@ -131,6 +154,7 @@ export class Rank extends Command {
                 season: cs.getParamValue('season=', params, currentSeason),
                 region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
                 mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
+                useText: indexOfUseText >= 0
             }
         }
 
@@ -146,6 +170,18 @@ export class Rank extends Command {
         });
 
         return paramMap;
+    }
+
+    private async addDefaultImageStats(seasonData: PlayerSeason): Promise<Discord.Attachment> {
+        let mode = this.paramMap.mode;
+
+        if (cs.stringContains(mode, 'solo', true)) {
+            return await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
+        } else if (cs.stringContains(mode, 'duo', true)) {
+            return await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
+        } else if (cs.stringContains(mode, 'squad', true)) {
+            return await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
+        }
     }
 
     /**
@@ -188,7 +224,7 @@ export class Rank extends Command {
         const two_collector: Discord.ReactionCollector = msg.createReactionCollector(two_filter, { time: 15*1000 });
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
-        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             mixpanel.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -202,14 +238,24 @@ export class Rank extends Command {
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
+            if(this.paramMap.useText) {
+                const embed: Discord.RichEmbed = await this.createBaseEmbed();
+                this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
+                this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
+                await msg.edit(warningMessage, { embed });
+            } else {
+                let attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
 
-            const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
+                if(msg.deletable) {
+                    one_collector.removeAllListeners();
+                    await msg.delete();
+                }
 
-            await msg.edit(warningMessage, { embed });
+                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                this.setupReactions(newMsg, originalPoster, seasonData);
+            }
         });
-        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             mixpanel.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -223,13 +269,24 @@ export class Rank extends Command {
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
+            if(this.paramMap.useText) {
+                const embed: Discord.RichEmbed = await this.createBaseEmbed();
+                this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
+                this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
+                await msg.edit(warningMessage, { embed });
+            } else {
+                let attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
 
-            await msg.edit(warningMessage, { embed });
+                if(msg.deletable) {
+                    two_collector.removeAllListeners();
+                    await msg.delete();
+                }
+
+                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                this.setupReactions(newMsg, originalPoster, seasonData);
+            }
         });
-        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             mixpanel.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -243,16 +300,28 @@ export class Rank extends Command {
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
+            if(this.paramMap.useText) {
+                const embed: Discord.RichEmbed = await this.createBaseEmbed();
+                this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
+                this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
 
-            await msg.edit(warningMessage, { embed });
+                await msg.edit(warningMessage, { embed });
+            } else {
+                let attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
+
+                if(msg.deletable) {
+                    four_collector.removeAllListeners();
+                    await msg.delete();
+                }
+
+                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                this.setupReactions(newMsg, originalPoster, seasonData);
+            }
         });
 
-        one_collector.on('end', collected => msg.clearReactions());
-        two_collector.on('end', collected => msg.clearReactions());
-        four_collector.on('end', collected => msg.clearReactions());
+        one_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
+        two_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
+        four_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
     }
 
     /**
@@ -340,5 +409,229 @@ export class Rank extends Command {
         embed.addField('Win stats', winStats);
     }
 
+    private async createImage(fppStats: GameModeStats, tppStats: GameModeStats, mode: string): Promise<Discord.Attachment> {
+        let baseHeaderImg: Jimp;
+        let baseImg: Jimp;
+
+        if(!this.headerImg) {
+            this.headerImg = await Jimp.read('./assets/header.png');
+        }
+        baseHeaderImg = this.headerImg;
+
+        if(!this.baseImg) {
+            this.baseImg = await Jimp.read('./assets/Base-Stats.png');
+        }
+        baseImg = this.baseImg;
+
+        const baseImageWidth = baseImg.getWidth();
+        const baseImageHeight = baseImg.getHeight();
+
+        // Create parts of final image
+        const headerImg: Jimp = await this.addHeaderImageText(baseHeaderImg.clone());
+        let fppStatsImage: Jimp;
+        let tppStatsImage: Jimp;
+        if (fppStats.roundsPlayed > 0) {
+            fppStatsImage = await this.addBodyTextToImage(baseImg.clone(), fppStats, `${mode} FPP`);
+        }
+        if (tppStats.roundsPlayed > 0) {
+            tppStatsImage = await this.addBodyTextToImage(baseImg.clone(), tppStats, `${mode}`);
+        }
+
+        // Merge parts together
+        let image: Jimp = headerImg.clone();
+        let heightTally = image.getHeight();
+        if (fppStatsImage) {
+            const newHeight = heightTally + baseImageHeight;
+            let newCanvas = new Jimp(baseImageWidth, newHeight);
+            newCanvas.composite(image, 0, 0);
+
+            image = newCanvas.composite(fppStatsImage, 0, heightTally);
+            heightTally = image.getHeight();
+        }
+        if (tppStatsImage) {
+            const newHeight = heightTally + baseImageHeight;
+            let newCanvas = new Jimp(baseImageWidth, newHeight);
+            newCanvas.composite(image, 0, 0);
+
+            image = newCanvas.composite(tppStatsImage, 0, heightTally);
+            heightTally = image.getHeight();
+        }
+
+        // Create/Merge error message
+        if(!fppStatsImage && !tppStatsImage) {
+            const errMessageImage: Jimp = await this.addNoMatchesPlayedText(baseHeaderImg.clone(), mode);
+
+            const newHeight = heightTally + errMessageImage.getHeight();
+            let newCanvas = new Jimp(baseImageWidth, newHeight);
+            newCanvas.composite(image, 0, 0);
+
+            image = newCanvas.composite(errMessageImage, 0, heightTally);
+            heightTally = image.getHeight();
+        }
+
+        const imageBuffer: Buffer = await image.getBufferAsync(Jimp.MIME_PNG);
+        return new Discord.Attachment(imageBuffer);
+    }
+
+    private async addNoMatchesPlayedText(img: Jimp, mode: string): Promise<Jimp> {
+        const textObj: any = {
+            text: '',
+            alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+        }
+        if(!this.font_32_white) {
+            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+        }
+        const font_32_white: Jimp.Font = this.font_32_white;
+
+        textObj.text = `Player hasn\'t played "${mode}" games this season`;
+        const textWidth = Jimp.measureText(font_32_white, textObj.text);
+        img.print(font_32_white, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
+
+        return img;
+    }
+
+    private async addHeaderImageText(img: Jimp): Promise<Jimp> {
+        const imageWidth: number = img.getWidth();
+        const textObj: any = {
+            text: '',
+            alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+        }
+
+        if (!this.font_64_white) {
+            this.font_64_white = await Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
+        }
+        if(!this.font_32_white) {
+            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+        }
+        const font_64_white: Jimp.Font = this.font_64_white;
+        const font_32_white: Jimp.Font = this.font_32_white;
+        let textWidth: number;
+
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
+        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
+
+        textObj.text = this.paramMap.username;
+        img.print(font_64_white, 20, 30, textObj);
+
+        textObj.text = regionDisplayName;
+        textWidth = Jimp.measureText(font_32_white, textObj.text);
+        img.print(font_32_white, imageWidth-textWidth-25, 20, textObj);
+
+        textObj.text = seasonDisplayName;
+        textWidth = Jimp.measureText(font_32_white, textObj.text);
+        img.print(font_32_white, imageWidth-textWidth-25, 70, textObj);
+
+        return img;
+    }
+
+    private async addBodyTextToImage(img: Jimp, fppStats: GameModeStats, mode: string): Promise<Jimp> {
+        const imageWidth: number = img.getWidth();
+        const textObj: any = {
+            text: '',
+            alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
+        }
+
+        if (!this.font_32_white) {
+            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+        }
+        if(!this.font_32_black) {
+            this.font_32_black = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+        }
+        const font_32_white: Jimp.Font = this.font_32_white;
+        const font_32_black: Jimp.Font = this.font_32_black;
+        let textWidth: number;
+
+        const body_subheading_x: number = 50;
+        const body_subheading_y: number = 15;
+        const body_top_y: number = 100;
+        const body_mid_y: number = 265;
+        const body_bottom_y: number = 415;
+
+        const overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
+        const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
+        const kda = cs.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
+        const winPercent = cs.getPercentFromFraction(fppStats.wins, fppStats.roundsPlayed);
+        const topTenPercent = cs.getPercentFromFraction(fppStats.top10s, fppStats.roundsPlayed);
+        const averageDamageDealt = cs.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
+
+        let x_centers : any = {
+            kd: 165,
+            winPercent: 385,
+            topTenPercent: 619,
+            averageDamageDealt: 855,
+            kda: 165,
+            kills: 379,
+            assists: 617,
+            dBNOs: 857,
+            longestKill: 338,
+            headshotKills: 747
+        }
+
+        // Sub Heading
+        textObj.text = `${mode} - ${overallRating}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_white, body_subheading_x+10, body_subheading_y, textObj);
+
+        textObj.text = `${fppStats.wins}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_white, 440-textWidth-5, body_subheading_y-2, textObj);
+
+        textObj.text = `${fppStats.top10s}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_white, 680-textWidth-5, body_subheading_y-2, textObj);
+
+        textObj.text = `${fppStats.roundsPlayed}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_white, imageWidth-textWidth-180, body_subheading_y, textObj);
+
+        // Body - Top
+        textObj.text = `${kd}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.kd-(textWidth/2), body_top_y, textObj);
+
+        textObj.text = `${winPercent}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.winPercent-(textWidth/2), body_top_y, textObj);
+
+        textObj.text = `${topTenPercent}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.topTenPercent-(textWidth/2), body_top_y, textObj);
+
+        textObj.text = `${averageDamageDealt}`;;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.averageDamageDealt-(textWidth/2), body_top_y, textObj);
+
+        // Body - Middle
+        textObj.text = `${kda}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.kda-(textWidth/2), body_mid_y, textObj);
+
+        textObj.text = `${fppStats.kills}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.kills-(textWidth/2), body_mid_y, textObj);
+
+        textObj.text = `${fppStats.assists}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.assists-(textWidth/2), body_mid_y, textObj);
+
+        textObj.text = `${fppStats.dBNOs}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.dBNOs-(textWidth/2), body_mid_y, textObj);
+
+        // Body - Bottom
+        textObj.text = `${fppStats.longestKill.toFixed(2)}m`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.longestKill-(textWidth/2), body_bottom_y, textObj);
+
+        textObj.text = `${fppStats.headshotKills}`;
+        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        img.print(font_32_black, x_centers.headshotKills-(textWidth/2), body_bottom_y, textObj);
+
+        return img;
+    }
 }
 
