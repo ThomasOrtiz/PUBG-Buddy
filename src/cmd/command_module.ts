@@ -6,6 +6,7 @@ export * from './pubg_cmds/getSeasons';
 export * from './pubg_cmds/rank';
 export * from './pubg_cmds/randomDrop';
 export * from './pubg_cmds/top';
+export * from './pubg_cmds/updateRoles';
 
 // Server Commands
 export * from './server_cmds/addUser';

@@ -1,4 +1,5 @@
 export interface Player {
+    discord_id: string;
     id: string;
     pubg_id: string;
     username: string;

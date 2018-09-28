@@ -13,7 +13,9 @@ BEGIN;
     CREATE TABLE IF NOT EXISTS server_registery
         (id SERIAL PRIMARY KEY,
         fk_players_id integer REFERENCES players (id) ON DELETE CASCADE,
-        fk_servers_id integer REFERENCES servers (id) ON DELETE CASCADE);
+        fk_servers_id integer REFERENCES servers (id) ON DELETE CASCADE),
+        discord_id TEXT;
+        /** alter table server_registery add colum discord_id TEXT; */
 
     CREATE TABLE IF NOT EXISTS user_registery
         (id SERIAL PRIMARY KEY,
