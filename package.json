@@ -6,6 +6,7 @@
   "author": "Thomas Ortiz",
   "scripts": {
     "build": "tsc",
+    "watch": "tsc --watch",
     "run": "tsc; node dist/bot.js",
     "sql": "heroku pg:psql -a pubg-stat-discord-bot",
     "sql-test": "heroku pg:psql -a pubg-stat-discord-bot-dev"

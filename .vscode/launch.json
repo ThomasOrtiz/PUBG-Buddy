@@ -7,8 +7,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/dist/bot.js"
+            "name": "Debug Bot",
+            "program": "${workspaceFolder}/dist/bot.js",
+            "preLaunchTask": "compile typescript"
         }
     ]
 }
