@@ -32,6 +32,7 @@ export class Info extends Command {
 
         msg.channel.send(`= PUBG Bot Information =
 • Owner       :: Thomas Ortiz
+• DiscordBots :: https://discordbots.org/bot/417828293019041804
 • Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot
 • Bot Discord :: https://discord.gg/6kVvTwD
 • Uptime      :: ${this.getUptime(bot.uptime)}
@@ -45,7 +46,6 @@ export class Info extends Command {
     };
 
     private getUptime(botUptime): string {
-
         let totalSeconds = (botUptime / 1000);
         const hours = Math.floor(totalSeconds / 3600);
         totalSeconds %= 3600;

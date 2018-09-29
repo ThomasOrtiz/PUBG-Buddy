@@ -17,7 +17,7 @@ export class Help extends Command {
 
     help: CommandHelp = {
         name: 'help',
-        description: 'Returns page details.',
+        description: 'Returns help topics.',
         usage: '<prefix>help [command]',
         examples: [
             '<prefix>',

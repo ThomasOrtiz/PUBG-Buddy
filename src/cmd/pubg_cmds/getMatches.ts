@@ -20,6 +20,8 @@ interface ParameterMap {
 
 export class GetMatches extends Command {
 
+    private MAX_MATCHES: number = 5;
+
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: false,
@@ -38,7 +40,7 @@ export class GetMatches extends Command {
     }
 
     private paramMap: ParameterMap;
-    private MAX_MATCHES: number = 5;
+
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         try {
