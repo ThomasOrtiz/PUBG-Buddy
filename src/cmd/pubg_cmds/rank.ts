@@ -10,6 +10,7 @@ import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 import Jimp = require('jimp');
+import { ImageService as imageService } from '../../services/image.service';
 
 
 interface ParameterMap {
@@ -32,7 +33,7 @@ export class Rank extends Command {
     help: CommandHelp = {
         name: 'rank',
         description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
-        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=all]',
+        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=text]',
         examples: [
             '!pubg-rank        (only valid if you have already used the `register` command)',
             '!pubg-rank john',
@@ -45,13 +46,6 @@ export class Rank extends Command {
     };
 
     private paramMap: ParameterMap;
-
-    // Image Params
-    private headerImg: Jimp;
-    private baseImg: Jimp;
-    private font_64_white: Jimp.Font;
-    private font_32_white: Jimp.Font;
-    private font_32_black: Jimp.Font;
 
     public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const originalPoster: Discord.User = msg.author;
@@ -134,7 +128,7 @@ export class Rank extends Command {
             throw 'Error:: Must specify a username';
         }
 
-        const indexOfUseText : number = cs.isSubstringOfElement('=all', params);
+        const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
         if(indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
 
         if (msg.guild) {
@@ -409,19 +403,13 @@ export class Rank extends Command {
         embed.addField('Win stats', winStats);
     }
 
+    //////////////////////////////////////
+    // Image
+    //////////////////////////////////////
+
     private async createImage(fppStats: GameModeStats, tppStats: GameModeStats, mode: string): Promise<Discord.Attachment> {
-        let baseHeaderImg: Jimp;
-        let baseImg: Jimp;
-
-        if(!this.headerImg) {
-            this.headerImg = await Jimp.read('./assets/header.png');
-        }
-        baseHeaderImg = this.headerImg;
-
-        if(!this.baseImg) {
-            this.baseImg = await Jimp.read('./assets/Base-Stats.png');
-        }
-        baseImg = this.baseImg;
+        let baseHeaderImg: Jimp = await imageService.loadImage('./assets/rank/Black_1050_130.png');
+        let baseImg: Jimp = await imageService.loadImage('./assets/rank/Body.png');
 
         const baseImageWidth = baseImg.getWidth();
         const baseImageHeight = baseImg.getHeight();
@@ -479,10 +467,7 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        if(!this.font_32_white) {
-            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-        }
-        const font_32_white: Jimp.Font = this.font_32_white;
+        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
 
         textObj.text = `Player hasn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32_white, textObj.text);
@@ -498,15 +483,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-
-        if (!this.font_64_white) {
-            this.font_64_white = await Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
-        }
-        if(!this.font_32_white) {
-            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-        }
-        const font_64_white: Jimp.Font = this.font_64_white;
-        const font_32_white: Jimp.Font = this.font_32_white;
+        const font_64_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_64_WHITE);
+        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
         let textWidth: number;
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -534,15 +512,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-
-        if (!this.font_32_white) {
-            this.font_32_white = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-        }
-        if(!this.font_32_black) {
-            this.font_32_black = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-        }
-        const font_32_white: Jimp.Font = this.font_32_white;
-        const font_32_black: Jimp.Font = this.font_32_black;
+        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
+        const font_32_black: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_BLACK);
         let textWidth: number;
 
         const body_subheading_x: number = 50;
