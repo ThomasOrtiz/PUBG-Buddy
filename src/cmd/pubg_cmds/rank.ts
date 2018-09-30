@@ -448,13 +448,7 @@ export class Rank extends Command {
         // Create/Merge error message
         if(!fppStatsImage && !tppStatsImage) {
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(baseHeaderImg.clone(), mode);
-
-            const newHeight = heightTally + errMessageImage.getHeight();
-            let newCanvas = new Jimp(baseImageWidth, newHeight);
-            newCanvas.composite(image, 0, 0);
-
-            image = newCanvas.composite(errMessageImage, 0, heightTally);
-            heightTally = image.getHeight();
+            image = imageService.combineImagesVertically(image ,errMessageImage);
         }
 
         const imageBuffer: Buffer = await image.getBufferAsync(Jimp.MIME_PNG);
