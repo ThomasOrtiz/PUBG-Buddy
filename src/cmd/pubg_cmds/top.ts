@@ -150,7 +150,8 @@ export class Top extends Command {
             number_parameters: params.length,
             season: paramMap.season,
             region: paramMap.region,
-            mode: paramMap.mode
+            mode: paramMap.mode,
+            useText: paramMap.useText
         });
 
         return paramMap;
@@ -251,7 +252,8 @@ export class Top extends Command {
             mixpanel.track(`${this.help.name} - Click 1`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;
@@ -283,7 +285,8 @@ export class Top extends Command {
             mixpanel.track(`${this.help.name} - Click 2`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;
@@ -314,7 +317,8 @@ export class Top extends Command {
             mixpanel.track(`${this.help.name} - Click 4`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;

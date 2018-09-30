@@ -160,7 +160,8 @@ export class Rank extends Command {
             pubg_name: username,
             season: paramMap.season,
             region: paramMap.region,
-            mode: paramMap.mode
+            mode: paramMap.mode,
+            useText: paramMap.useText
         });
 
         return paramMap;
@@ -223,7 +224,8 @@ export class Rank extends Command {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;
@@ -254,7 +256,8 @@ export class Rank extends Command {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;
@@ -285,7 +288,8 @@ export class Rank extends Command {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode
+                mode: this.paramMap.mode,
+                useText: this.paramMap.useText
             });
 
             let warningMessage;
