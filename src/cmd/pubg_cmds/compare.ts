@@ -68,12 +68,12 @@ export class Compare extends Command {
         const playerA: Player = players.find(p => p.name === this.paramMap.playerA);
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
 
-        if (!playerA.id) {
-            message.edit(`Could not find ${this.paramMap.playerA} -- double check the usernames and region.`);
+        if (!playerA || !playerA.id) {
+            message.edit(`Could not find \`${this.paramMap.playerA}\` on the \`${this.paramMap.region}\`-- double check the usernames and region.`);
             return;
         }
-        if (!playerB.id) {
-            message.edit(`Could not find ${this.paramMap.playerB} -- double check the usernames and region.`);
+        if (!playerB || !playerB.id) {
+            message.edit(`Could not find \`${this.paramMap.playerB}\` on the \`${this.paramMap.region}\` -- double check the usernames and region.`);
             return;
         }
 
