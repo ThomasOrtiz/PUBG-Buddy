@@ -35,7 +35,7 @@ export class Rank extends Command {
         description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
         usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=text]',
         examples: [
-            '!pubg-rank        (only valid if you have already used the `register` command)',
+            '!pubg-rank        (only valid if you have used the `register` command)',
             '!pubg-rank john',
             '!pubg-rank john season=2018-03',
             '!pubg-rank john season=2018-03 region=eu',
@@ -465,11 +465,11 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
+        const font_32: Jimp.Font = await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-32.fnt');
 
         textObj.text = `Player hasn\'t played "${mode}" games this season`;
-        const textWidth = Jimp.measureText(font_32_white, textObj.text);
-        img.print(font_32_white, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
+        const textWidth = Jimp.measureText(font_32, textObj.text);
+        img.print(font_32, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
 
         return img;
     }
@@ -481,8 +481,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_64_WHITE);
-        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
+        const font_64: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-72.fnt');
+        const font_48: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-48.fnt');
         let textWidth: number;
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -490,15 +490,15 @@ export class Rank extends Command {
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         textObj.text = this.paramMap.username;
-        img.print(font_64_white, 20, 30, textObj);
+        img.print(font_64, 30, 20, textObj);
 
         textObj.text = regionDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        img.print(font_32_white, imageWidth-textWidth-25, 20, textObj);
+        textWidth = Jimp.measureText(font_48, textObj.text);
+        img.print(font_48, imageWidth-textWidth-25, 10, textObj);
 
         textObj.text = seasonDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        img.print(font_32_white, imageWidth-textWidth-25, 70, textObj);
+        textWidth = Jimp.measureText(font_48, textObj.text);
+        img.print(font_48, imageWidth-textWidth-25, 60, textObj);
 
         return img;
     }
@@ -510,15 +510,15 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
-        const font_32_black: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_BLACK);
+        const font_48_white: Jimp.Font = await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-48.fnt');
+        const font_48_orange: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/orange/Teko-Orange-40.fnt');
         let textWidth: number;
 
         const body_subheading_x: number = 50;
-        const body_subheading_y: number = 15;
-        const body_top_y: number = 100;
-        const body_mid_y: number = 265;
-        const body_bottom_y: number = 415;
+        const body_subheading_y: number = 0;
+        const body_top_y: number = 95;
+        const body_mid_y: number = 255;
+        const body_bottom_y: number = 405;
 
         const overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
@@ -528,77 +528,77 @@ export class Rank extends Command {
         const averageDamageDealt = cs.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
 
         let x_centers : any = {
-            kd: 165,
-            winPercent: 385,
-            topTenPercent: 619,
-            averageDamageDealt: 855,
-            kda: 165,
-            kills: 379,
-            assists: 617,
-            dBNOs: 857,
-            longestKill: 338,
-            headshotKills: 747
+            kd: 160,
+            winPercent: 376,
+            topTenPercent: 605,
+            averageDamageDealt: 841,
+            kda: 162.5,
+            kills: 367.5,
+            assists: 605,
+            dBNOs: 846.5,
+            longestKill: 311,
+            headshotKills: 726.5
         }
 
         // Sub Heading
         textObj.text = `${mode} - ${overallRating}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_white, body_subheading_x+10, body_subheading_y, textObj);
+        textWidth = Jimp.measureText(font_48_white, textObj.text);
+        img.print(font_48_white, body_subheading_x+10, body_subheading_y, textObj);
 
         textObj.text = `${fppStats.wins}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_white, 440-textWidth-5, body_subheading_y-2, textObj);
+        textWidth = Jimp.measureText(font_48_white, textObj.text);
+        img.print(font_48_white, 440-textWidth-5, body_subheading_y, textObj);
 
         textObj.text = `${fppStats.top10s}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_white, 680-textWidth-5, body_subheading_y-2, textObj);
+        textWidth = Jimp.measureText(font_48_white, textObj.text);
+        img.print(font_48_white, 680-textWidth-5, body_subheading_y, textObj);
 
         textObj.text = `${fppStats.roundsPlayed}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_white, imageWidth-textWidth-180, body_subheading_y, textObj);
+        textWidth = Jimp.measureText(font_48_white, textObj.text);
+        img.print(font_48_white, imageWidth-textWidth-180, body_subheading_y+2, textObj);
 
         // Body - Top
         textObj.text = `${kd}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.kd-(textWidth/2), body_top_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.kd-(textWidth/2), body_top_y, textObj);
 
         textObj.text = `${winPercent}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.winPercent-(textWidth/2), body_top_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.winPercent-(textWidth/2), body_top_y, textObj);
 
         textObj.text = `${topTenPercent}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.topTenPercent-(textWidth/2), body_top_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.topTenPercent-(textWidth/2), body_top_y, textObj);
 
         textObj.text = `${averageDamageDealt}`;;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.averageDamageDealt-(textWidth/2), body_top_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.averageDamageDealt-(textWidth/2), body_top_y, textObj);
 
         // Body - Middle
         textObj.text = `${kda}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.kda-(textWidth/2), body_mid_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.kda-(textWidth/2), body_mid_y, textObj);
 
         textObj.text = `${fppStats.kills}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.kills-(textWidth/2), body_mid_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.kills-(textWidth/2), body_mid_y, textObj);
 
         textObj.text = `${fppStats.assists}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.assists-(textWidth/2), body_mid_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.assists-(textWidth/2), body_mid_y, textObj);
 
         textObj.text = `${fppStats.dBNOs}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.dBNOs-(textWidth/2), body_mid_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.dBNOs-(textWidth/2), body_mid_y, textObj);
 
         // Body - Bottom
         textObj.text = `${fppStats.longestKill.toFixed(2)}m`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.longestKill-(textWidth/2), body_bottom_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.longestKill-(textWidth/2), body_bottom_y, textObj);
 
         textObj.text = `${fppStats.headshotKills}`;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.headshotKills-(textWidth/2), body_bottom_y, textObj);
+        textWidth = Jimp.measureText(font_48_orange, textObj.text);
+        img.print(font_48_orange, x_centers.headshotKills-(textWidth/2), body_bottom_y, textObj);
 
         return img;
     }

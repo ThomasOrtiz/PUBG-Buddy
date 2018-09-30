@@ -34,7 +34,7 @@ export class GetMatches extends Command {
         description: `Returns the last ${this.MAX_MATCHES} matches for a player with links to https://pubg-replay.com`,
         usage: '<prefix>matches [pubg username] [season=] [region=] [mode=]',
         examples: [
-            '!pubg-matches        (only valid if you have already used the `register` command)',
+            '!pubg-matches        (only valid if you have used the `register` command)',
             '!pubg-matches Jane'
         ]
     }

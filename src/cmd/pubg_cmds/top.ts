@@ -522,8 +522,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
-        const font_64_white: Jimp.Font =  await imageService.loadFont(Jimp.FONT_SANS_64_WHITE);
+        const font_64: Jimp.Font =  await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-72.fnt');
+        const font_48: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-48.fnt');
         let textWidth: number;
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -535,15 +535,15 @@ export class Top extends Command {
         gameModeDescription += (gameModeSplit.length == 2) ? ` ${gameModeSplit[1]}` : '';
 
         textObj.text = `Top ${this.paramMap.amount} - ${gameModeDescription}`;
-        img.print(font_64_white, 20, 30, textObj);
+        img.print(font_64, 30, 20, textObj);
 
         textObj.text = regionDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        img.print(font_32_white, imageWidth-textWidth-25, 20, textObj);
+        textWidth = Jimp.measureText(font_48, textObj.text);
+        img.print(font_48, imageWidth-textWidth-25, 10, textObj);
 
         textObj.text = seasonDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        img.print(font_32_white, imageWidth-textWidth-25, 70, textObj);
+        textWidth = Jimp.measureText(font_48, textObj.text);
+        img.print(font_48, imageWidth-textWidth-25, 60, textObj);
 
         return img;
     }
@@ -590,19 +590,18 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32_black: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_BLACK);
+        const body_font: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/orange/Teko-Orange-42.fnt');
+        const username_font: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/black/Teko-Black-42.fnt');
 
         const x_centers : any = {
-            username: 85,
-            rating: 525,
-            wins: 640,
-            roundsPlayed: 640,
-            winsOverGames: 685,
+            username: 90,
+            rating: 519,
+            winsOverGames: 687,
             kd: 818,
-            kda: 936,
-            averageDamageDealt: 1065,
+            kda: 935,
+            averageDamageDealt: 1061.5,
         }
-        const body_y: number = 25;
+        const body_y: number = 5;
         let textWidth: number;
 
         const seasonStats: GameModeStats = playerSeason.gameModeStats;
@@ -617,31 +616,31 @@ export class Top extends Command {
 
 
         textObj.text = username;
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
+        textWidth = Jimp.measureText(username_font, textObj.text);
         textObj.alingmentX = Jimp.HORIZONTAL_ALIGN_LEFT;
-        img.print(font_32_black, x_centers.username, body_y, textObj);
+        img.print(username_font, x_centers.username, body_y, textObj);
 
         textObj.alingmentX = Jimp.HORIZONTAL_ALIGN_CENTER;
 
         textObj.text = `${rating}`
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.rating-(textWidth/2), body_y, textObj);
+        textWidth = Jimp.measureText(body_font, textObj.text);
+        img.print(body_font, x_centers.rating-(textWidth/2), body_y, textObj);
 
         textObj.text = `${winsOverGames}`
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.winsOverGames-(textWidth/2), body_y, textObj);
+        textWidth = Jimp.measureText(body_font, textObj.text);
+        img.print(body_font, x_centers.winsOverGames-(textWidth/2), body_y, textObj);
 
         textObj.text = `${kd}`
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.kd-(textWidth/2), body_y, textObj);
+        textWidth = Jimp.measureText(body_font, textObj.text);
+        img.print(body_font, x_centers.kd-(textWidth/2), body_y, textObj);
 
         textObj.text = `${kda}`
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.kda-(textWidth/2), body_y, textObj);
+        textWidth = Jimp.measureText(body_font, textObj.text);
+        img.print(body_font, x_centers.kda-(textWidth/2), body_y, textObj);
 
         textObj.text = `${+averageDamageDealt}`
-        textWidth = Jimp.measureText(font_32_black, textObj.text);
-        img.print(font_32_black, x_centers.averageDamageDealt-(textWidth/2), body_y, textObj);
+        textWidth = Jimp.measureText(body_font, textObj.text);
+        img.print(body_font, x_centers.averageDamageDealt-(textWidth/2), body_y, textObj);
 
         return img;
     }
@@ -652,8 +651,9 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32_white: Jimp.Font = await imageService.loadFont(Jimp.FONT_SANS_32_WHITE);
-        const font_64_white: Jimp.Font =  await imageService.loadFont(Jimp.FONT_SANS_64_WHITE);
+        const font_64: Jimp.Font =  await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-60.fnt');
+        const font_32: Jimp.Font = await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-48.fnt');
+
 
         // Add top header
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -667,21 +667,21 @@ export class Top extends Command {
 
         let headerImg = img.clone();
         textObj.text = `Top ${this.paramMap.amount} - ${gameModeDescription}`;
-        headerImg.print(font_64_white, 20, 30, textObj);
+        headerImg.print(font_64, 20, 30, textObj);
 
         textObj.text = regionDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        headerImg.print(font_32_white, imageWidth-textWidth-25, 20, textObj);
+        textWidth = Jimp.measureText(font_32, textObj.text);
+        headerImg.print(font_32, imageWidth-textWidth-25, 20, textObj);
 
         textObj.text = seasonDisplayName;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        headerImg.print(font_32_white, imageWidth-textWidth-25, 70, textObj);
+        textWidth = Jimp.measureText(font_32, textObj.text);
+        headerImg.print(font_32, imageWidth-textWidth-25, 70, textObj);
 
         // Add warning message
         const warningImg = img.clone();
         textObj.text = `Players haven\'t played "${gameModeDescription}" games this season`;
-        textWidth = Jimp.measureText(font_32_white, textObj.text);
-        warningImg.print(font_32_white, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
+        textWidth = Jimp.measureText(font_32, textObj.text);
+        warningImg.print(font_32, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
 
         return imageService.combineImagesVertically(headerImg, warningImg);
     }

@@ -1,4 +1,5 @@
 // Pubg Commands
+export * from './pubg_cmds/compare';
 export * from './pubg_cmds/getMatches';
 export * from './pubg_cmds/getModes';
 export * from './pubg_cmds/getRegions';

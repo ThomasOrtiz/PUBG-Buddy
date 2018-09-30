@@ -53,7 +53,7 @@ bot.on('ready', () => {
 });
 bot.on('message', async (msg: Discord.Message) => {
     // Ignore other bots
-    if (msg.author.bot) return;
+    //if (msg.author.bot) return;
 
     let isGuildMessage: boolean = false;
     let perms: number;
