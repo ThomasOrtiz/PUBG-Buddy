@@ -68,7 +68,7 @@ export class Help extends Command {
             const row =  `${c.help.name}:: ${c.help.description}`;
 
             switch (c.help.name) {
-                case 'matches':
+                case 'compare':
                     str += `\n\n= PUBG Commands = \n${row}\n`
                     break;
                 case 'addUser':
