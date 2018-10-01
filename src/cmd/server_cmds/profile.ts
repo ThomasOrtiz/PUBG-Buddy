@@ -30,12 +30,15 @@ export class Profile extends Command {
         let discordId: string;
         let usedMention: boolean = false;
 
+        let user: Discord.User;
         if (params.length > 0) {
             let mention: string = params[0];
             discordId = mention.substring(2, mention.length-1);
             usedMention = true;
+            user= await bot.fetchUser(discordId);
         } else {
             discordId = msg.author.id;
+            user = msg.author;
         }
 
         let username: string = await SqlUserRegisteryService.getUserProfile(discordId);
@@ -55,10 +58,10 @@ export class Profile extends Command {
             pubg_name: username
         });
 
-        const date: Date = msg.author.createdAt;
+        const date: Date = user.createdAt;
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle(`\`${msg.author.tag}\`'s profile`)
-            .setThumbnail(msg.author.displayAvatarURL)
+            .setTitle(`\`${user.tag}\`'s profile`)
+            .setThumbnail(user.displayAvatarURL)
             .setColor(0x00AE86)
             .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
             .addField('PUBG Username', username)
