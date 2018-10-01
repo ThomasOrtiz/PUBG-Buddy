@@ -21,15 +21,31 @@ export class Profile extends Command {
         description: `Shows the Discord User's profile`,
         usage: '<prefix>profile',
         examples: [
-            '!pubg-profile'
+            '!pubg-profile',
+            '!pubg-profile [@Discord_Mention]'
         ]
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let username: string = await SqlUserRegisteryService.getUserProfile(msg.author.id);
+        let discordId: string;
+        let usedMention: boolean = false;
 
-        if(!username) {
-            msg.channel.send(`You haven't registered a user yet -- run \`register\`.`);
+        if (params.length > 0) {
+            let mention: string = params[0];
+            discordId = mention.substring(2, mention.length-1);
+            usedMention = true;
+        } else {
+            discordId = msg.author.id;
+        }
+
+        let username: string = await SqlUserRegisteryService.getUserProfile(discordId);
+
+        if (!username && !usedMention) {
+            msg.channel.send(`You haven't registered yet -- run \`register\`.`);
+            return;
+        } else if (!username && usedMention) {
+            msg.channel.send(`That user hasn't registered yet -- ask them run \`register\`.`);
+            return;
         }
 
         mixpanel.track(this.help.name, {
