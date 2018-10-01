@@ -35,18 +35,24 @@ export class Profile extends Command {
             let mention: string = params[0];
             discordId = mention.substring(2, mention.length-1);
             usedMention = true;
-            user= await bot.fetchUser(discordId);
+            try {
+                user = await bot.fetchUser(discordId);
+            } catch(e) {
+                msg.channel.send(`You must use a Discord Mention as a parameter.`);
+                return;
+            }
+
         } else {
             discordId = msg.author.id;
             user = msg.author;
         }
 
-        let username: string = await SqlUserRegisteryService.getUserProfile(discordId);
+        let pubg_name: string = await SqlUserRegisteryService.getUserProfile(discordId);
 
-        if (!username && !usedMention) {
+        if (!pubg_name && !usedMention) {
             msg.channel.send(`You haven't registered yet -- run \`register\`.`);
             return;
-        } else if (!username && usedMention) {
+        } else if (!pubg_name && usedMention) {
             msg.channel.send(`That user hasn't registered yet -- ask them run \`register\`.`);
             return;
         }
@@ -55,7 +61,7 @@ export class Profile extends Command {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
-            pubg_name: username
+            pubg_name: pubg_name
         });
 
         const date: Date = user.createdAt;
@@ -64,7 +70,7 @@ export class Profile extends Command {
             .setThumbnail(user.displayAvatarURL)
             .setColor(0x00AE86)
             .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
-            .addField('PUBG Username', username)
+            .addField('PUBG Username', pubg_name)
             .setTimestamp();
 
         msg.channel.send({embed})
