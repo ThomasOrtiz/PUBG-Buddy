@@ -61,7 +61,17 @@ export class Register extends Command {
         if (pubgId && pubgId !== '') {
             const registered: boolean = await sqlUserRegisteryService.registerUser(msg.author.id, pubgId);
             if (registered) {
-                message.edit(`Registered your Discord User with PUBG name \`${username}\``);
+                const user: Discord.User = msg.author;
+                const date: Date = user.createdAt;
+                let embed: Discord.RichEmbed = new Discord.RichEmbed()
+                    .setTitle(`\`${user.tag}\`'s profile`)
+                    .setThumbnail(user.displayAvatarURL)
+                    .setColor(0x00AE86)
+                    .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
+                    .addField('PUBG Username', username)
+                    .setTimestamp();
+
+                message.edit({embed});
             } else {
                 message.edit(`Failed to register your Discord user with PUBG name \`${username}\``);
             }
