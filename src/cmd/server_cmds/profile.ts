@@ -73,7 +73,7 @@ export class Profile extends Command {
             .addField('PUBG Username', pubg_name)
             .setTimestamp();
 
-        msg.channel.send({embed})
+        msg.channel.send({embed});
     }
 
 }

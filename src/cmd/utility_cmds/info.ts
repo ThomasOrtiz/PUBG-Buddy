@@ -1,6 +1,6 @@
 import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { version } from 'discord.js';
+// import { version } from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
 import { AnalyticsService as mixpanel } from '../../services/analytics.service';
 
@@ -30,20 +30,25 @@ export class Info extends Command {
             discord_username: msg.author.tag
         });
 
-        msg.channel.send(`= PUBG Bot Information =
-• Owner       :: Thomas Ortiz
-• DiscordBots :: https://discordbots.org/bot/417828293019041804
-• Github      :: https://github.com/Tdortiz/PUBG-Discord-Bot
-• Bot Discord :: https://discord.gg/6kVvTwD
-• Uptime      :: ${this.getUptime(bot.uptime)}
-• Mem Usage   :: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
-• Users       :: ${bot.users.size.toLocaleString()}
-• Servers     :: ${bot.guilds.size.toLocaleString()}
-• Channels    :: ${bot.channels.size.toLocaleString()}
-• Discord.js  :: v${version}
-• Typescript  :: v2.8.3
-• Node        :: ${process.version}`, { code: 'asciidoc' });
-    };
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle(`PUBG Bot Information`)
+            .setThumbnail(bot.user.displayAvatarURL)
+            .setColor(0x00AE86)
+            .addField('Owner', 'Thomas Ortiz - Thomas#1442')
+            .addBlankField()
+            .addField('Discord Bots', '[Link](https://discordbots.org/bot/417828293019041804)', true)
+            .addField('Github', '[Link](https://github.com/Tdortiz/PUBG-Discord-Bot)', true)
+            .addField('Discord Link', 'https://discord.gg/6kVvTwD', true)
+            .addBlankField()
+            .addField('Uptime', this.getUptime(bot.uptime))
+            .addField('Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`, true)
+            .addBlankField()
+            .addField('Users', bot.users.size.toLocaleString(), true)
+            .addField('Servers', bot.guilds.size.toLocaleString(), true)
+            .addField('Channels', bot.channels.size.toLocaleString(), true);
+
+        msg.channel.send({embed});
+    }
 
     private getUptime(botUptime): string {
         let totalSeconds = (botUptime / 1000);

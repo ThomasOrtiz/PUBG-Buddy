@@ -60,47 +60,39 @@ export class Help extends Command {
 
         let prefix_explanation: string = '= Bot Prefix and PUBG Defaults Explanation = \n\n' +
                                     'This bot\'s prefix and PUBG specific defaults are configurable if on a server through the `setServerDefaults` command.\n\n' +
-                                    'Default Bot Prefix:   \t"' + default_bot_prefix + '"\n' +
+                                    'Default Server Prefix:\t "' + default_bot_prefix + '"\n' +
                                     'Current Server Prefix:\t "' + prefix + '"';
         let commandList: string = '';
         bot.commands.map(c => {
             let str = '';
-            const row =  `${c.help.name}:: ${c.help.description}`;
+            const row =  `${c.help.name} :: ${c.help.description}`;
 
             switch (c.help.name) {
                 case 'compare':
-                    str += `\n\n= PUBG Commands = \n${row}\n`
+                    str += `\n\n== PUBG Commands == \n\t${row}\n`
                     break;
                 case 'addUser':
-                    str += `\n\n= Server Commands = \n${row}\n`
+                    str += `\n\n== Server Commands == \n\t${row}\n`
                     break;
                 case 'help':
-                    str += `\n\n= Utility Commands = \n${row}\n`
+                    str += `\n\n== Utility Commands == \n\t${row}\n`
                     break;
                 default:
-                    str += `${row}\n`;
+                    str += `\t${row}\n`;
                     break;
             }
 
             commandList += str;
         });
-        let parameterExplanation: string = '= Parameter Explanation =\n\n' +
+        let parameterExplanation: string = '\n= Parameter Explanation =\n' +
                                     'See available parameters by calling the following commands: "modes", "regions", and "seasons".`\n\n' +
-                                    'required:: <parameter> \n' +
-                                    'optional:: [parameter]\n' +
-                                    'select one:: (option1 | option2 | option3)\n' +
-                                    'required select one:: <(option1 | option2 | option3)>\n' +
-                                    'optional select one:: [(option1 | option2 | option3)]\n\n';
-        let parameterExample: string = '= Parameter Example =\n\n' +
-                                'pubg-rank <pubg username> [season=] [region=] [mode=]\n\n' +
-                                '"pubg-rank" requires a <pubg username> parameter and takes the following optional parameters: "season=", "region=" and "mode=". Some valid call of this command is:\n\n' +
-                                '\tpubg-rank johndoe\n' +
-                                '\tpubg-rank johndoe season=2018-03 region=as mode=tpp\n' +
-                                '\tpubg-rank janedoe season=2018-03 mode=tpp\n' +
-                                '\tpubg-rank johndoe region=eu mode=fpp\n' +
-                                '\t...';
-        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n\n[Use "<prefix>help <commandname>" for details]${commandList}`, { code: 'asciidoc'}) as Discord.Message;
-        msg.channel.send(`${parameterExplanation}${parameterExample}`, { code: 'asciidoc'});
+                                    '\trequired :: <parameter> \n' +
+                                    '\toptional :: [parameter]\n' +
+                                    '\tselect one :: (option1 | option2 | option3)\n' +
+                                    '\trequired select one :: <(option1 | option2 | option3)>\n' +
+                                    '\toptional select one :: [(option1 | option2 | option3)]\n\n';
+
+        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n[Use "<prefix>help <commandname>" for details]${commandList}${parameterExplanation}`, { code: 'asciidoc'}) as Discord.Message;
     }
 
     private printCommandHelp(bot: DiscordClientWrapper, msg: Discord.Message, commandName : string) {
