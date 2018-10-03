@@ -1,22 +1,7 @@
-import * as Discord from 'discord.js';
 require('dotenv').config();
 
 
 export class CommonService {
-
-    /**
-     *
-     * @param {Discord.Message} msg: Discord.Message
-     * @param {string} errMessage: error string
-     * @param {obj} help: command help object
-     */
-    static handleError(msg: Discord.Message, errMessage: string, help: any): void {
-        let message = `${errMessage}\n`;
-        if(help) {
-            message += `\n== usage == \n${help.usage}\n\n= Examples =\n\n${help.examples.map(e => `${e}`).join('\n')}`;
-        }
-        msg.channel.send(message, { code: 'asciidoc'});
-    }
 
     /**
      * Returns index of position of a string if it exists as a

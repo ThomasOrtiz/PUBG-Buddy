@@ -1,16 +1,17 @@
 import * as Discord from 'discord.js';
-import { CommonService as cs } from '../../services/common.service';
 import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    DiscordMessageService as discordMessageService,
+    ImageService as imageService,
+    PubgService as pubgApiService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService,
-} from '../../services/sql-services';
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Player as User } from '../../interfaces';
-import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 import Jimp = require('jimp');
-import { ImageService as imageService } from '../../services/image.service';
 import { ImageLocation, FontLocation } from '../../shared/constants';
 
 
@@ -89,7 +90,7 @@ export class Top extends Command {
 
         this.registeredUsers = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         if (this.registeredUsers.length === 0) {
-            cs.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
+            discordMessageService.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
             return;
         }
 

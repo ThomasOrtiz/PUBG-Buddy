@@ -1,13 +1,14 @@
-import { CommonService as cs } from './common.service';
 import * as Discord from 'discord.js';
 import {
+    CacheService,
+    CommonService as cs,
+    DiscordMessageService as discordMessageService,
     SqlPlayersService as sqlPlayersService
- } from './sql-services';
+ } from './';
 import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
-import CacheService from './cache.service';
 import { TimeInSeconds } from '../shared/constants';
 
-const cache = new CacheService(); // create a new cache service instance
+const cache = new CacheService();
 
 
 export class PubgService {
@@ -329,7 +330,7 @@ export class PubgService {
         }
 
         if (!validSeason || !validRegion || !validMode) {
-            cs.handleError(msg, errMessage, help);
+            discordMessageService.handleError(msg, errMessage, help);
             return false;
         }
         return true;

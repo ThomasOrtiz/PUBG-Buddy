@@ -1,9 +1,9 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import CacheService from '../cache.service';
+import { CacheService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
 
-const cache = new CacheService(); // create a new cache service instance
+const cache = new CacheService();
 
 export class SqlUserRegisteryService {
 

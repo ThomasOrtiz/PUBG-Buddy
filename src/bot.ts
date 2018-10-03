@@ -1,13 +1,15 @@
-import { CommonService as cs } from './services/common.service';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as logger from './config/logger.config';
-import { SqlServerService as sqlService } from './services/sql-services';
+import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    SqlServerService as sqlService
+ } from './services';
 import { Command, DiscordClientWrapper } from './entities';
 import { Server } from './interfaces'
 import * as commands from './cmd';
-import { AnalyticsService as analyticsService } from './services/analytics.service';
+import * as logger from './config/logger.config';
 
 
 // Initialize Bot
@@ -19,7 +21,7 @@ bot.login(botToken);
 // Get commands from the cmd folder
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
-RegisterCommands();
+registerCommands();
 
 
 // Setup events
@@ -134,7 +136,7 @@ bot.elevation = function (msg): number {
 /**
  * Registers the commands in the src/cmd folder
  */
-function RegisterCommands() {
+function registerCommands() {
     const isDirectory = source => fs.lstatSync(source).isDirectory();
     const getDirectories = source => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory);
     const dirs: string[] = getDirectories('./src/cmd/');

@@ -1,15 +1,16 @@
 import * as Discord from 'discord.js';
-import { CommonService as cs } from '../../services/common.service';
 import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    DiscordMessageService as discordMessageService,
+    ImageService as imageService,
+    PubgService as pubgApiService,
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
-} from '../../services/sql-services';
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 import Jimp = require('jimp');
-import { ImageService as imageService } from '../../services/image.service';
 import { ImageLocation, FontLocation } from '../../shared/constants';
 
 
@@ -127,7 +128,7 @@ export class Compare extends Command {
 
         // Throw error if no username supplied
         if(!playerA || !playerB) {
-            cs.handleError(msg, 'Error:: Must specify two usernames or register with `register` command and supply one', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify two usernames or register with `register` command and supply one', this.help);
             throw 'Error:: Must specify a username';
         }
 

@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 
 

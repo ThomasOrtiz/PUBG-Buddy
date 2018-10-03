@@ -1,5 +1,5 @@
 import Jimp = require('jimp');
-import CacheService from './cache.service';
+import { CacheService } from './';
 import { TimeInSeconds } from '../shared/constants';
 
 const cache = new CacheService();

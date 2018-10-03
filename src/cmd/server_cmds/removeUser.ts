@@ -1,14 +1,15 @@
 import * as Discord from 'discord.js';
-import { CommonService as cs } from '../../services/common.service';
-import { PubgService as pubgService } from '../../services/pubg.api.service';
 import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    DiscordMessageService as discordMessageService,
+    PubgService as pubgService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
-} from '../../services/sql-services';
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class RemoveUser extends Command {
@@ -33,7 +34,7 @@ export class RemoveUser extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            cs.handleError(msg, 'Error:: Must specify at least one username', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify at least one username', this.help);
             return;
         }
 

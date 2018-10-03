@@ -1,8 +1,10 @@
 import * as Discord from 'discord.js';
-import { SqlServerRegisteryService as sqlServerRegisteryService } from '../../services/sql-services';
+import {
+    AnalyticsService as analyticsService,
+    SqlServerRegisteryService as sqlServerRegisteryService
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Player } from '../../interfaces';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class Users extends Command {

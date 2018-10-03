@@ -1,9 +1,9 @@
 import * as Discord from 'discord.js';
 import {
+    AnalyticsService as analyticsService,
     SqlUserRegisteryService
-} from '../../services/sql-services';
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class Profile extends Command {

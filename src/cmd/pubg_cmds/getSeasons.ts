@@ -1,9 +1,11 @@
-import { CommonService as cs } from '../../services/common.service';
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgService as pubgService } from '../../services/pubg.api.service';
+import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    PubgService as pubgService
+} from '../../services';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class GetSeasons extends Command {

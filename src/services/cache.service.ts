@@ -6,7 +6,7 @@ import { TimeInSeconds } from '../shared/constants';
 /**
  * A caching service wrapper
  */
-export default class CacheService {
+export class CacheService {
 
     cache: NodeCache;
 

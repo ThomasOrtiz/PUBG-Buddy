@@ -1,7 +1,9 @@
-import { CommonService as cs } from '../../services/common.service';
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
+import {
+    AnalyticsService as analyticsService,
+    DiscordMessageService as discordMessageService
+ } from '../../services';
 
 
 export class RandomDrop extends Command {
@@ -71,14 +73,14 @@ export class RandomDrop extends Command {
      */
     private getParameters(msg: Discord.Message, params: string[]): string {
         if (params.length < 1) {
-            cs.handleError(msg, 'Error:: Must specify a map name', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify a map name', this.help);
             throw 'Error:: Must use "e", "m", or "s"';
         }
 
         let mapName: string = params[0].toLowerCase();
 
         if (mapName !== 'e' && mapName !== 'm' && mapName !== 's') {
-            cs.handleError(msg, 'Error:: Must specify a map name', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify a map name', this.help);
             throw 'Error:: Must use "e", "m", or "s"';
         }
 

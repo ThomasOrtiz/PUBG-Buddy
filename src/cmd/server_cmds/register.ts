@@ -1,14 +1,15 @@
 import * as Discord from 'discord.js';
-import { CommonService as cs } from '../../services/common.service';
-import { PubgService as pubgService } from '../../services/pubg.api.service';
 import {
+    AnalyticsService as analyticsService,
+    CommonService as cs,
+    PubgService as pubgService,
+    DiscordMessageService as discordMessageService,
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
-} from '../../services/sql-services';
+} from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class Register extends Command {
@@ -33,7 +34,7 @@ export class Register extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            cs.handleError(msg, 'Error:: Must specify a username', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify a username', this.help);
             return;
         }
 

@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { AnalyticsService as analyticsService } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services';
 
 
 export class Ping extends Command {

@@ -1,4 +1,4 @@
-import { CommonService as cs } from '../services/common.service';
+import { CommonService as cs } from '../services';
 import { Pool } from 'pg';
 import * as logger from './logger.config';
 
