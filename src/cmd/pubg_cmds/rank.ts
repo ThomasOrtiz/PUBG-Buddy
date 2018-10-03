@@ -529,7 +529,7 @@ export class Rank extends Command {
         if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
             overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         } else {
-            overallRating = fppStats.rankPoints;
+            overallRating = cs.round(fppStats.rankPoints, 0) || 'NA';
         }
         const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
         const kda = cs.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
