@@ -1,7 +1,8 @@
-import * as pool from './sql.config.service';
+import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Server } from '../../models/models.module';
+import { Server } from '../../interfaces';
 import CacheService from '../cache.service';
+import { TimeInSeconds } from '../../shared/constants';
 
 const cache = new CacheService(); // create a new cache service instance
 
@@ -80,7 +81,7 @@ export class SqlServerService {
      */
     static async getServerDefaults(serverId: string): Promise<Server> {
         const cacheKey: string = `sql.server.getServerDefaults-${serverId}`; // This must match the key in setServerDefaults
-        const ttl: number = 60 * 60;  // caches for 60 min
+        const ttl: number = TimeInSeconds.ONE_HOUR;
         const storeFunction: Function = async (): Promise<Server> => {
             return pool.query('select * from servers where server_id = $1', [serverId]).then((res: QueryResult) => {
                 if(res.rowCount === 0) {

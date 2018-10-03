@@ -1,5 +1,6 @@
 import * as NodeCache from 'node-cache';
-import * as logger from './logger.service';
+import * as logger from '../config/logger.config';
+import { TimeInSeconds } from '../shared/constants';
 
 
 /**
@@ -8,14 +9,13 @@ import * as logger from './logger.service';
 export default class CacheService {
 
     cache: NodeCache;
-    private ONE_HOUR: number = 60*60*1;
 
     /**
      * Creates a node-cache object
      * @param {number} ttlSeconds time in seconds until cache is invalid - defaults to 1 hour
      */
     constructor(ttlSeconds?: number) {
-        const ttl = ttlSeconds ? ttlSeconds : this.ONE_HOUR;
+        const ttl = ttlSeconds ? ttlSeconds : TimeInSeconds.ONE_HOUR;
 
         this.cache = new NodeCache({
             stdTTL: ttl,

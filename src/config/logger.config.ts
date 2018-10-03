@@ -1,8 +1,8 @@
 import * as logger from 'winston';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 
 // Ensure that a log folder will exist for log files
-fs.mkdir('./logs', (err) => { /* no-op */ });
+// fs.mkdir('./logs', (err) => { /* no-op */ });
 
 // Standardize log settings
 logger.configure({
@@ -16,13 +16,13 @@ logger.configure({
         })
     ),
     transports: [
-        new logger.transports.Console(),
-        new logger.transports.File({ filename: 'logs/app.log'}),
-        new logger.transports.File({ filename: 'logs/info.log', level: 'info' }),
-        new logger.transports.File({ filename: 'logs/error.log', level: 'error' })
+        new logger.transports.Console()
+        // new logger.transports.File({ filename: 'logs/app.log'}),
+        // new logger.transports.File({ filename: 'logs/info.log', level: 'info' }),
+        // new logger.transports.File({ filename: 'logs/error.log', level: 'error' })
     ],
     exceptionHandlers: [
-        new logger.transports.File({ filename: 'logs/exceptions.log' })
+        // new logger.transports.File({ filename: 'logs/exceptions.log' })
     ]
 });
 

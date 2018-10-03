@@ -1,16 +1,16 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
-} from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
+} from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 import Jimp = require('jimp');
 import { ImageService as imageService } from '../../services/image.service';
+import { ImageLocation, FontLocation } from '../../shared/constants';
 
 
 interface ParameterMap {
@@ -151,7 +151,7 @@ export class Compare extends Command {
             }
         }
 
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -199,7 +199,7 @@ export class Compare extends Command {
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
         one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            mixpanel.track(`${this.help.name} - Click 1`, {
+            analyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -224,7 +224,7 @@ export class Compare extends Command {
 
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            mixpanel.track(`${this.help.name} - Click 2`, {
+            analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -249,7 +249,7 @@ export class Compare extends Command {
 
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            mixpanel.track(`${this.help.name} - Click 4`, {
+            analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -280,8 +280,8 @@ export class Compare extends Command {
     }
 
     private async createImage(fppStats_A: GameModeStats, tppStats_A: GameModeStats, fppStats_B: GameModeStats, tppStats_B: GameModeStats, mode: string): Promise<Discord.Attachment> {
-        let baseHeaderImg: Jimp = await imageService.loadImage('./assets/rank/Black_1050_130.png');
-        let baseImg: Jimp = await imageService.loadImage('./assets/rank/Body.png');
+        let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.BLACK_1050_130);
+        let baseImg: Jimp = await imageService.loadImage(ImageLocation.RANK_BODY);
 
         const baseImageWidth = baseImg.getWidth();
         const baseImageHeight = baseImg.getHeight();
@@ -333,7 +333,7 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32: Jimp.Font = await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-32.fnt');
+        const font_32: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
 
         textObj.text = `Players havn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32, textObj.text);
@@ -350,9 +350,9 @@ export class Compare extends Command {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
 
-        const font_bold_52: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-52.fnt');
-        const font_bold_48: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-48.fnt');
-        const font_bold_42: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-42.fnt');
+        const font_bold_52: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_52);
+        const font_bold_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_bold_42: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
@@ -389,8 +389,8 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_48_white: Jimp.Font =  await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-36.fnt');
-        const font_48_orange: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/orange/Teko-Orange-30.fnt');
+        const font_48_white: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
+        const font_48_orange: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
         let textWidth: number;
 
         const body_subheading_x: number = 50;

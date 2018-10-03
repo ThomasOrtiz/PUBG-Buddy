@@ -1,7 +1,8 @@
-import * as pool from './sql.config.service';
+import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Player } from '../../models/models.module';
+import { Player } from '../../interfaces';
 import CacheService from '../cache.service';
+import { TimeInSeconds } from '../../shared/constants';
 
 const cache = new CacheService(); // create a new cache service instance
 
@@ -39,7 +40,7 @@ export class SqlPlayersService {
      */
     static async getPlayer(username: string): Promise<Player> {
         const cacheKey = `sql.player.getPlayer-${username}`;
-        const ttl: number = 60 * 5;  // caches for 5 minutes
+        const ttl: number = TimeInSeconds.FIVE_MINUTES;
         const storeFunction: Function = async (): Promise<Player> => {
             return pool.query('select * from players where username = $1', [username]).then((res: QueryResult) => {
                 if(res.rowCount === 1) {

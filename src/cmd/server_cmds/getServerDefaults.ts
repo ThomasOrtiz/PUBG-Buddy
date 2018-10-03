@@ -1,8 +1,8 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { SqlServerService as sqlServerService } from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { SqlServerService as sqlServerService } from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { Server } from '../../interfaces';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class GetServerDefaults extends Command {
@@ -24,7 +24,7 @@ export class GetServerDefaults extends Command {
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,

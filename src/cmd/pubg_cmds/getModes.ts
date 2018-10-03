@@ -1,8 +1,7 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class GetModes extends Command {
@@ -24,7 +23,7 @@ export class GetModes extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,

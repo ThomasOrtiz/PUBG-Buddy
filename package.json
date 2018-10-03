@@ -19,7 +19,7 @@
     "mixpanel": "^0.9.2",
     "node-cache": "^4.2.0",
     "pg": "^7.4.3",
-    "pubg-typescript-api": "^1.4.0",
+    "pubg-typescript-api": "^1.5.0",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "winston": "^3.0.0"

@@ -1,16 +1,17 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService,
-} from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp, Player as User } from '../../models/models.module';
+} from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { Player as User } from '../../interfaces';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 import Jimp = require('jimp');
 import { ImageService as imageService } from '../../services/image.service';
+import { ImageLocation, FontLocation } from '../../shared/constants';
 
 
 interface ParameterMap {
@@ -143,7 +144,7 @@ export class Top extends Command {
             useText: indexOfUseText >= 0
         }
 
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -249,7 +250,7 @@ export class Top extends Command {
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
         one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 1`, {
+            analyticsService.track(`${this.help.name} - Click 1`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode,
@@ -282,7 +283,7 @@ export class Top extends Command {
             }
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 2`, {
+            analyticsService.track(`${this.help.name} - Click 2`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode,
@@ -314,7 +315,7 @@ export class Top extends Command {
             }
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 4`, {
+            analyticsService.track(`${this.help.name} - Click 4`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode,
@@ -494,7 +495,7 @@ export class Top extends Command {
 
         // Create/Merge error message
         if(!fppImg && !tppImg) {
-            const black_header: Jimp = await imageService.loadImage('./assets/top/Black_1200_130.png');
+            const black_header: Jimp = await imageService.loadImage(ImageLocation.BLACK_1200_130);
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(black_header, mode);
             image = imageService.combineImagesVertically(image, errMessageImage);
         }
@@ -504,8 +505,8 @@ export class Top extends Command {
     }
 
     private async createImage(playerSeasons: PlayerWithSeasonData[], mode: string): Promise<Jimp> {
-        let baseHeaderImg: Jimp = await imageService.loadImage('./assets/top/Header.png');
-        let baseImg: Jimp = await imageService.loadImage('./assets/top/Body-Single.png');
+        let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.TOP_BANNER);
+        let baseImg: Jimp = await imageService.loadImage(ImageLocation.TOP_BODY_SINGLE);
 
         const headerImg: Jimp = await this.addHeaderImageText(baseHeaderImg.clone(), mode);
         const bodyImg: Jimp = await this.stitchBody(baseImg.clone(), playerSeasons, mode);
@@ -522,8 +523,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-72.fnt');
-        const font_48: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/white/Teko-White-48.fnt');
+        const font_64: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
+        const font_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
@@ -590,8 +591,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const body_font: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/orange/Teko-Orange-42.fnt');
-        const username_font: Jimp.Font = await imageService.loadFont('./assets/font/Teko/bold/black/Teko-Black-42.fnt');
+        const body_font: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
+        const username_font: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
 
         const x_centers : any = {
             username: 90,
@@ -651,8 +652,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-60.fnt');
-        const font_32: Jimp.Font = await imageService.loadFont('./assets/font/Teko/regular/white/Teko-White-48.fnt');
+        const font_64: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_64);
+        const font_32: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
 
 
         // Add top header

@@ -1,6 +1,7 @@
-import * as pool from './sql.config.service';
+import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import CacheService from '../cache.service';
+import { TimeInSeconds } from '../../shared/constants';
 
 const cache = new CacheService(); // create a new cache service instance
 
@@ -10,7 +11,7 @@ export class SqlUserRegisteryService {
 
     static async getRegisteredUser(discordId: string): Promise<string> {
         const cacheKey: string = `sql.userRegistery.getPlayerSeasonStatsById-${discordId}`;
-        const ttl: number = 60 * 5;  // caches for 5 minutes
+        const ttl: number = TimeInSeconds.FIVE_MINUTES;
         const storeFunction: Function = async (): Promise<string> => {
             return pool.query(`select P.username from ${this.tableName} as UR left join players as P on P.id = UR.fk_players_id where discord_id = $1`, [discordId]).then((res: QueryResult) => {
                 if(res.rowCount !== 0){
@@ -30,7 +31,7 @@ export class SqlUserRegisteryService {
      */
     static async getUserProfile(discordId: string): Promise<string> {
         const cacheKey: string = `sql.userRegistery.getUser-${discordId}`; // This must match the key in registerUser
-        const ttl: number = 60 * 60;  // caches for 60 min
+        const ttl: number = TimeInSeconds.ONE_HOUR;
         const storeFunction: Function = async (): Promise<string> => {
             const query: string = `select UR.*, P.username from ${this.tableName} as UR left join players as P on UR.fk_players_id = P.id where discord_id = $1`;
             return pool.query(query, [discordId]).then((res: QueryResult) => {

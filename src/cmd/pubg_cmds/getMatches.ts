@@ -1,14 +1,13 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
-import { Command, CommandConfiguration, CommandHelp } from '../../models/models.module';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { CommonService as cs } from '../../services/common.service';
 import {
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
-} from '../../services/sql-services/sql.module';
+} from '../../services/sql-services';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
 import { PubgAPI, PlatformRegion, Player, PlayerSeason } from 'pubg-typescript-api';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 interface ParameterMap {
@@ -49,7 +48,7 @@ export class GetMatches extends Command {
             return;
         }
 
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const api: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
 
         const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
 
@@ -122,7 +121,7 @@ export class GetMatches extends Command {
             }
         }
 
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -176,7 +175,7 @@ export class GetMatches extends Command {
         const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
 
         one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 1`, {
+            analyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -196,7 +195,7 @@ export class GetMatches extends Command {
             await msg.edit(warningMessage, { embed });
         });
         two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 2`, {
+            analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -216,7 +215,7 @@ export class GetMatches extends Command {
             await msg.edit(warningMessage, { embed });
         });
         four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
-            mixpanel.track(`${this.help.name} - Click 4`, {
+            analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,

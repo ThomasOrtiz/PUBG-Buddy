@@ -1,10 +1,10 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
-import { SqlServerService as sqlServerService } from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
+import { SqlServerService as sqlServerService } from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { Server } from '../../interfaces';
 import { PubgService as pubgApiService } from '../../services/pubg.api.service';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
 interface ParameterMap {
@@ -84,7 +84,7 @@ export class SetServerDefaults extends Command {
             mode: cs.getParamValue('mode=', params, server.default_mode || 'solo_fpp').toUpperCase().replace('-', '_'),
         }
 
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,

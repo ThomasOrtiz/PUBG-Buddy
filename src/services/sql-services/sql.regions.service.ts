@@ -1,6 +1,6 @@
-import * as pool from './sql.config.service';
+import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Region } from '../../models/models.module';
+import { Region } from '../../interfaces';
 
 
 export class SqlRegionsService {

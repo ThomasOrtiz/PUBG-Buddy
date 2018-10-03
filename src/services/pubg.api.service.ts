@@ -2,14 +2,67 @@ import { CommonService as cs } from './common.service';
 import * as Discord from 'discord.js';
 import {
     SqlPlayersService as sqlPlayersService
- } from './sql-services/sql.module';
+ } from './sql-services';
 import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
 import CacheService from './cache.service';
+import { TimeInSeconds } from '../shared/constants';
 
 const cache = new CacheService(); // create a new cache service instance
 
 
 export class PubgService {
+
+    //////////////////////////////////////
+    // PubgApi
+    //////////////////////////////////////
+    static getSeasonStatsApi(platform: PlatformRegion, season: string): PubgAPI {
+        const apiKey: string = cs.getEnvironmentVariable('pubg_api_key');
+
+        if (this.isPlatformXbox(platform) || (this.isPlatformPC(platform) && this.isPreSeasonTen(season))) {
+            return new PubgAPI(apiKey, platform);
+        }
+
+        return new PubgAPI(apiKey, PlatformRegion.STEAM);
+    }
+
+    static isPreSeasonTen(season: string): boolean {
+        const seasonTenYear: number = 2018;
+        const seasonTenMonth: number = 10;
+
+        let parts: string[] = season.split('-');
+        const seasonYear: number = +parts[0];
+        const seasonMonth: number = +parts[1];
+
+        if (seasonYear === seasonTenYear && seasonMonth < seasonTenMonth) { return true; }
+
+        return false;
+    }
+
+    static isPlatformXbox(platform: PlatformRegion): boolean {
+        return platform === PlatformRegion.XBOX_AS ||
+            platform === PlatformRegion.XBOX_EU ||
+            platform === PlatformRegion.XBOX_NA ||
+            platform === PlatformRegion.XBOX_OC;
+    }
+
+    static isPlatformPC(platform: PlatformRegion): boolean {
+        return platform === PlatformRegion.PC_KRJP ||
+            platform === PlatformRegion.PC_JP ||
+            platform === PlatformRegion.PC_NA ||
+            platform === PlatformRegion.PC_EU ||
+            platform === PlatformRegion.PC_OC ||
+            platform === PlatformRegion.PC_KAKAO ||
+            platform === PlatformRegion.PC_SEA ||
+            platform === PlatformRegion.PC_SA ||
+            platform === PlatformRegion.PC_AS
+    }
+
+
+
+
+
+
+
 
     //////////////////////////////////////
     // Player Data
@@ -38,7 +91,7 @@ export class PubgService {
      */
     static async getPlayerByName(api: PubgAPI, names: string[]): Promise<Player[]> {
         const cacheKey: string = `pubgApi.getPlayerByName-${api.platformRegion}-${names}`;
-        const ttl: number = 60 * 15;  // caches for 15 min
+        const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
         const storeFunction: Function = async (): Promise<Player[]> => {
             return Player.filterByName(api, names).catch(() => []);
         };
@@ -54,7 +107,7 @@ export class PubgService {
      */
     static async getPlayerIdByName(api: PubgAPI, name: string): Promise<string> {
         const cacheKey: string = `pubgApi.getPlayerIdByName-${name}-${api.platformRegion}`;
-        const ttl: number = 60 * 60 * 2;  // caches for 2 hour
+        const ttl: number = TimeInSeconds.TWO_HOUR;
         const storeFunction: Function = async (): Promise<string> => {
             const result: Player[] = await Player.filterByName(api, [name]).catch(() => { return []; });
 
@@ -79,7 +132,7 @@ export class PubgService {
      */
     static async getPlayerSeasonStatsById(api: PubgAPI, id: string, season: string): Promise<PlayerSeason> {
         const cacheKey: string = `pubgApi.getPlayerSeasonStatsById-${id}-${season}-${api.platformRegion}`;
-        const ttl: number = 60 * 5;  // caches for 5 minutes
+        const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
         const storeFunction: Function = async (): Promise<PlayerSeason> => {
             const seasonId: string = this.getPubgSeasonId(season);
             return PlayerSeason.get(api, id, seasonId);
@@ -87,6 +140,7 @@ export class PubgService {
 
         return await cache.get<PlayerSeason>(cacheKey, storeFunction, ttl);
     }
+
 
     //////////////////////////////////////
     // Seasons
@@ -109,7 +163,7 @@ export class PubgService {
      */
     static async getAvailableSeasons(api: PubgAPI, removeBeta?: boolean): Promise<Season[]> {
         const cacheKey: string = 'pubgApi.getAvailableSeasons';
-        const ttl: number = 60 * 60 * 2;  // caches for 2 hour
+        const ttl: number = TimeInSeconds.TWO_HOUR;
         const storeFunction: Function = async (): Promise<Season[]> => {
             return await Season.list(api);
         };
@@ -124,7 +178,19 @@ export class PubgService {
             });
         }
 
-        return seasons
+        // Handle specical case of pubg api not returning seasons
+        if (!seasons || seasons.length === 0) {
+            const seasonsIds: string[] = [
+                '2018-01', '2018-02', '2018-03', '2018-04', '2018-05', '2018-06', '2018-07', '2018-08', '2018-09'
+            ]
+
+            for(let i = 0; i < seasonsIds.length; i++) {
+                seasons.push({ id: this.getPubgSeasonId(seasonsIds[i]) } as Season)
+            }
+
+        }
+
+        return seasons;
     }
 
     static async getSeasonDisplayName(api: PubgAPI, seasonYearMonth: string): Promise<string> {
@@ -146,7 +212,7 @@ export class PubgService {
      */
     static async getCurrentSeason(api: PubgAPI): Promise<Season> {
         const cacheKey: string = 'pubgApi.getCurrentSeason';
-        const ttl: number = 60 * 60 * 2;  // caches for 2 hour
+        const ttl: number = TimeInSeconds.TWO_HOUR;
         const storeFunction: Function = async (): Promise<Season> => {
             let seasons: Season[] = await Season.list(api);
             const currentSeason = seasons.filter(season => season.isCurrentSeason)[0];
@@ -276,7 +342,7 @@ export class PubgService {
      * @returns {Promise<boolean>} is valid
      */
     static async isValidSeason(api: PubgAPI, checkSeason: string): Promise<boolean> {
-        let api_seasons: Season[] = await this.getAvailableSeasons(api);
+        let api_seasons: Season[] = await this.getAvailableSeasons(api, true);
 
         for (let i = 0; i < api_seasons.length; i++) {
             let season: Season = api_seasons[i];

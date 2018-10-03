@@ -1,13 +1,13 @@
 import { CommonService as cs } from './services/common.service';
-import { DiscordClientWrapper } from './DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as logger from './services/logger.service';
-import { SqlServerService as sqlService } from './services/sql-services/sql.module';
-import { Command, Server } from './models/models.module';
-import * as commands from './cmd/command_module';
-import { AnalyticsService as mixpanel } from './services/analytics.service';
+import * as logger from './config/logger.config';
+import { SqlServerService as sqlService } from './services/sql-services';
+import { Command, DiscordClientWrapper } from './entities';
+import { Server } from './interfaces'
+import * as commands from './cmd';
+import { AnalyticsService as analyticsService } from './services/analytics.service';
 
 
 // Initialize Bot
@@ -29,7 +29,7 @@ bot.on('warn', logger.warn);
 bot.on('guildCreate', guild => {
     sqlService.registerServer(guild.id).then(() => {
         logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
-        mixpanel.track('New Discord server', {
+        analyticsService.track('New Discord server', {
             guildName: guild.name,
             guildId: guild.id,
             memberCount: guild.memberCount
@@ -38,7 +38,7 @@ bot.on('guildCreate', guild => {
 });
 bot.on('guildDelete', guild => {
     sqlService.unRegisterServer(guild.id).then(() => {
-        mixpanel.track('Removed Discord server', {
+        analyticsService.track('Removed Discord server', {
             guildName: guild.name,
             guildId: guild.id,
             memberCount: guild.memberCount
@@ -93,7 +93,7 @@ bot.on('message', async (msg: Discord.Message) => {
 
     // Run command
     if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
-        mixpanel.setPerson(msg.author.id, {});
+        analyticsService.setPerson(msg.author.id, {});
         cmd.run(bot, msg, params, perms);
     }
 });

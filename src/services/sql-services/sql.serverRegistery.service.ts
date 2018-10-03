@@ -1,5 +1,5 @@
-import * as pool from './sql.config.service';
-import { Player } from '../../models/models.module';
+import * as pool from '../../config/sql.config';
+import { Player } from '../../interfaces';
 import { QueryResult } from 'pg';
 
 

@@ -1,6 +1,6 @@
-import { CommonService as cs } from '../common.service';
+import { CommonService as cs } from '../services/common.service';
 import { Pool } from 'pg';
-import * as logger from '../logger.service';
+import * as logger from './logger.config';
 
 
 const connectionString: string = cs.getEnvironmentVariable('DATABASE_URL');

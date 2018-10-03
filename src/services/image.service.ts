@@ -1,5 +1,6 @@
 import Jimp = require('jimp');
 import CacheService from './cache.service';
+import { TimeInSeconds } from '../shared/constants';
 
 const cache = new CacheService();
 
@@ -8,7 +9,7 @@ export class ImageService {
 
     public static async loadImage(imageLocation: string): Promise<Jimp> {
         const cacheKey: string = `loadImage-${imageLocation}`;
-        const ttl: number = 60 * 60;  // caches for 60 min
+        const ttl: number = TimeInSeconds.ONE_HOUR;
         const storeFunction: Function = async (): Promise<Jimp> => {
             return await Jimp.read(imageLocation);
         };
@@ -18,7 +19,7 @@ export class ImageService {
 
     public static async loadFont(font: string): Promise<Jimp.Font> {
         const cacheKey: string = `loadFont-${font}`;
-        const ttl: number = 60 * 60;  // caches for 60 min
+        const ttl: number = TimeInSeconds.ONE_HOUR;
         const storeFunction: Function = async (): Promise<Jimp.Font> => {
             return await Jimp.loadFont(font)
         };

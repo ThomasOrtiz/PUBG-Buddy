@@ -1,14 +1,14 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
 import { PubgService as pubgService } from '../../services/pubg.api.service';
 import {
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService
-} from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
+} from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { Server } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class Register extends Command {
@@ -42,7 +42,7 @@ export class Register extends Command {
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
         const username: string = params[0];
 
-        mixpanel.track(this.help.name, {
+        analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,

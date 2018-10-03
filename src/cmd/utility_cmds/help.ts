@@ -1,9 +1,9 @@
-import { DiscordClientWrapper } from '../../DiscordClientWrapper';
 import * as Discord from 'discord.js';
 import { CommonService as cs } from '../../services/common.service';
-import {SqlServerService as sqlService} from '../../services/sql-services/sql.module';
-import { Command, CommandConfiguration, CommandHelp, Server } from '../../models/models.module';
-import { AnalyticsService as mixpanel } from '../../services/analytics.service';
+import {SqlServerService as sqlService} from '../../services/sql-services';
+import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { Server } from '../../interfaces';
+import { AnalyticsService as analyticsService } from '../../services/analytics.service';
 
 
 export class Help extends Command {
@@ -30,7 +30,7 @@ export class Help extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            mixpanel.track(this.help.name, {
+            analyticsService.track(this.help.name, {
                 distinct_id: msg.author.id,
                 type: 'Help',
                 discord_id: msg.author.id,
@@ -38,7 +38,7 @@ export class Help extends Command {
             });
             this.printBotHelp(bot, msg);
         } else {
-            mixpanel.track(this.help.name, {
+            analyticsService.track(this.help.name, {
                 distinct_id: msg.author.id,
                 type: 'Command Help',
                 discord_id: msg.author.id,

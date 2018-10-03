@@ -1,4 +1,3 @@
-export * from './command';
 export * from './mode';
 export * from './player';
 export * from './region';
