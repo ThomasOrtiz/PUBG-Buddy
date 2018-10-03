@@ -167,10 +167,11 @@ export class Top extends Command {
     private async getPlayerInfoByBatching(names: string[]): Promise<Player[]> {
         let players: Player[] = new Array<Player>();
         const batchAmount: number = 5;
-
+        const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        
         let currBatch: string[] = names.splice(0, batchAmount);
         while (currBatch.length > 0) {
-            const batchedPlayers: Player[] = await pubgApiService.getPlayerByName(this.api, currBatch);
+            const batchedPlayers: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, currBatch);
             players = [...players, ...batchedPlayers];
 
             currBatch = names.splice(0, batchAmount);
@@ -187,7 +188,8 @@ export class Top extends Command {
      */
     private async getPlayersSeasonData(msg: Discord.Message, players: Player[]): Promise<PlayerWithSeasonData[]> {
         let playerSeasons: PlayerWithSeasonData[] = new Array();
-
+        const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+        
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
             const currentId = player.id;
@@ -198,7 +200,7 @@ export class Top extends Command {
             }
 
             try {
-                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(this.api, currentId, this.paramMap.season);
+                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, currentId, this.paramMap.season);
                 const info = new PlayerWithSeasonData(player.name, seasonInfo);
                 playerSeasons.push(info);
             } catch(e) {
