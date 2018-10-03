@@ -49,9 +49,8 @@ export class GetMatches extends Command {
             return;
         }
 
-        const api: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-
-        const players: Player[] = await pubgApiService.getPlayerByName(api, [this.paramMap.username]);
+        const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
         if(players.length === 0) {
             msg.channel.send(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
@@ -62,7 +61,8 @@ export class GetMatches extends Command {
 
         let seasonData: PlayerSeason;
         try {
-            seasonData = await pubgApiService.getPlayerSeasonStatsById(api, player.id, this.paramMap.season);
+            const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+            seasonData = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
         } catch(e) {
             msg.edit(`Could not find \`${this.paramMap.username}\`'s \`${this.paramMap.season}\` stats.`);
             return;
