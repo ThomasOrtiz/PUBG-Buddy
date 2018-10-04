@@ -82,14 +82,15 @@ export class Compare extends Command {
         // Get Player Data
         let seasonDataA: PlayerSeason;
         let seasonDataB: PlayerSeason;
+        const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
         try {
-            seasonDataA = await pubgApiService.getPlayerSeasonStatsById(api, playerA.id, this.paramMap.season);
+            seasonDataA = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
         } catch(e) {
             message.edit(`Could not find \`${this.paramMap.playerA}\`'s \`${this.paramMap.season}\` stats.`);
             return;
         }
         try {
-            seasonDataB = await pubgApiService.getPlayerSeasonStatsById(api, playerB.id, this.paramMap.season);
+            seasonDataB = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
         } catch(e) {
             message.edit(`Could not find \`${this.paramMap.playerB}\`'s \`${this.paramMap.season}\` stats.`);
             return;
@@ -282,7 +283,7 @@ export class Compare extends Command {
 
     private async createImage(fppStats_A: GameModeStats, tppStats_A: GameModeStats, fppStats_B: GameModeStats, tppStats_B: GameModeStats, mode: string): Promise<Discord.Attachment> {
         let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.BLACK_1050_130);
-        let baseImg: Jimp = await imageService.loadImage(ImageLocation.RANK_BODY);
+        let baseImg: Jimp = await imageService.loadImage(ImageLocation.RANK_BODY_CENTER_CLEARED);
 
         const baseImageWidth = baseImg.getWidth();
         const baseImageHeight = baseImg.getHeight();
@@ -397,54 +398,80 @@ export class Compare extends Command {
         const body_subheading_x: number = 50;
         const body_subheading_y: number = 10;
         const body_top_y: number = 95;
-        const body_mid_y: number = 255;
-        const body_bottom_y: number = 405;
+        const body_mid_y: number = 245;
+        const body_bottom_y: number = 395;
+
+        const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
+
+        let overallRating;
+        let badge_A: Jimp;
+        let badge_B: Jimp;
+        let rankTitle: string;
+        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(pubgApiService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA';
+        } else {
+            overallRating = cs.round(stats_A.rankPoints, 0) || 'NA';
+            badge_A = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(stats_A.rankPoints));
+            rankTitle = pubgApiService.getRankTitleFromRanking(stats_A.rankPoints);
+        }
 
         let formatted_stats_A = {
-            overallRating: cs.round(pubgApiService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA',
+            overallRating: overallRating,
+            rankTitle: rankTitle,
+            badge: badge_A,
             wins: stats_A.wins,
             top10s: stats_A.top10s,
             roundsPlayed: stats_A.roundsPlayed,
             kd: cs.round(stats_A.kills / stats_A.losses) || 0,
             kda: cs.round((stats_A.kills + stats_A.assists) / stats_A.losses) || 0,
-            winPercent: cs.getPercentFromFraction(stats_A.wins, stats_A.roundsPlayed),
-            topTenPercent: cs.getPercentFromFraction(stats_A.top10s, stats_A.roundsPlayed),
-            averageDamageDealt: cs.round(stats_A.damageDealt / stats_A.roundsPlayed) || 0,
+            winPercent: cs.getPercentFromFraction(stats_A.wins, stats_A.roundsPlayed, 0),
+            topTenPercent: cs.getPercentFromFraction(stats_A.top10s, stats_A.roundsPlayed, 0),
+            averageDamageDealt: cs.round(stats_A.damageDealt / stats_A.roundsPlayed, 0) || 0,
             kills: `${stats_A.kills}`,
             assists: `${stats_A.assists}`,
             dBNOs: `${stats_A.dBNOs}`,
-            longestKill: `${stats_A.longestKill.toFixed(2)}m`,
+            longestKill: `${stats_A.longestKill.toFixed(0)}m`,
             headshotKills: `${stats_A.headshotKills}`
         }
 
+        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(pubgApiService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA';
+        } else {
+            overallRating = cs.round(stats_B.rankPoints, 0) || 'NA';
+            badge_B = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(stats_B.rankPoints));
+            rankTitle = pubgApiService.getRankTitleFromRanking(stats_B.rankPoints);
+        }
+
         let formatted_stats_B = {
-            overallRating: cs.round(pubgApiService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA',
+            overallRating: overallRating,
+            rankTitle: rankTitle,
+            badge: badge_B,
             wins: stats_B.wins,
             top10s: stats_B.top10s,
             roundsPlayed: stats_B.roundsPlayed,
             kd: cs.round(stats_B.kills / stats_B.losses) || 0,
             kda: cs.round((stats_B.kills + stats_B.assists) / stats_B.losses) || 0,
-            winPercent: cs.getPercentFromFraction(stats_B.wins, stats_B.roundsPlayed),
-            topTenPercent: cs.getPercentFromFraction(stats_B.top10s, stats_B.roundsPlayed),
-            averageDamageDealt: cs.round(stats_B.damageDealt / stats_B.roundsPlayed) || 0,
+            winPercent: cs.getPercentFromFraction(stats_B.wins, stats_B.roundsPlayed, 0),
+            topTenPercent: cs.getPercentFromFraction(stats_B.top10s, stats_B.roundsPlayed, 0),
+            averageDamageDealt: cs.round(stats_B.damageDealt / stats_B.roundsPlayed, 0) || 0,
             kills: `${stats_B.kills}`,
             assists: `${stats_B.assists}`,
             dBNOs: `${stats_B.dBNOs}`,
-            longestKill: `${stats_B.longestKill.toFixed(2)}m`,
+            longestKill: `${stats_B.longestKill.toFixed(0)}m`,
             headshotKills: `${stats_B.headshotKills}`
         }
 
         let x_centers : any = {
-            kd: 160,
-            winPercent: 376,
-            topTenPercent: 605,
-            averageDamageDealt: 841,
-            kda: 162.5,
-            kills: 367.5,
-            assists: 605,
-            dBNOs: 846.5,
-            longestKill: 311,
-            headshotKills: 726.5
+            kd: 174,
+            winPercent: 404,
+            topTenPercent: 645.5,
+            averageDamageDealt: 881,
+            kda: 171.5,
+            kills: 407.5,
+            assists: 644,
+            dBNOs: 882.5,
+            longestKill: 205,
+            headshotKills: 834
         }
 
         // Sub Heading
@@ -452,13 +479,33 @@ export class Compare extends Command {
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, body_subheading_x+10, body_subheading_y, textObj);
 
+        if (formatted_stats_A.badge) {
+            const badge: Jimp = formatted_stats_A.badge.clone();
+
+            badge.scale(1);
+            img.composite(badge, 428-(badge.getWidth()/2), 380);
+            textObj.text = rankTitle;
+            textWidth = Jimp.measureText(font_48_orange, textObj.text);
+            img.print(font_48_orange, 428-(textWidth/2), 360, textObj);
+        }
+
+        if (formatted_stats_B.badge) {
+            const badge: Jimp = formatted_stats_B.badge.clone();
+
+            badge.scale(1);
+            img.composite(badge, 622-(badge.getWidth()/2), 380);
+            textObj.text = rankTitle;
+            textWidth = Jimp.measureText(font_48_orange, textObj.text);
+            img.print(font_48_orange, 622-(textWidth/2), 360, textObj);
+        }
+
         textObj.text = `${formatted_stats_A.wins} (${formatted_stats_B.wins})`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
-        img.print(font_48_white, 440-textWidth-5, body_subheading_y, textObj);
+        img.print(font_48_white, 510-textWidth-5, body_subheading_y, textObj);
 
         textObj.text = `${formatted_stats_A.top10s} (${formatted_stats_B.top10s})`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
-        img.print(font_48_white, 680-textWidth-5, body_subheading_y, textObj);
+        img.print(font_48_white, 685-textWidth-5, body_subheading_y, textObj);
 
         textObj.text = `${formatted_stats_A.roundsPlayed} (${formatted_stats_B.roundsPlayed})`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);

@@ -74,7 +74,6 @@ export class Top extends Command {
 
     private paramMap: ParameterMap;
     private registeredUsers: User[];
-    private api: PubgAPI;
     private batchEditAmount: number = 5;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
@@ -97,8 +96,6 @@ export class Top extends Command {
         checkingParametersMsg.edit(`Aggregating \`top ${this.paramMap.amount}\` on \`${this.registeredUsers.length} registered users\` ... give me a second`);
 
         msg.channel.send('Grabbing player data').then(async (msg: Discord.Message) => {
-            this.api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-
             // Get list of ids
             const registeredNames: string[] = this.registeredUsers.map(user => user.username);
             const players: Player[] = await this.getPlayerInfoByBatching(registeredNames);
@@ -168,7 +165,7 @@ export class Top extends Command {
         let players: Player[] = new Array<Player>();
         const batchAmount: number = 5;
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        
+
         let currBatch: string[] = names.splice(0, batchAmount);
         while (currBatch.length > 0) {
             const batchedPlayers: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, currBatch);
@@ -189,7 +186,7 @@ export class Top extends Command {
     private async getPlayersSeasonData(msg: Discord.Message, players: Player[]): Promise<PlayerWithSeasonData[]> {
         let playerSeasons: PlayerWithSeasonData[] = new Array();
         const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-        
+
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
             const currentId = player.id;
@@ -600,6 +597,7 @@ export class Top extends Command {
         const x_centers : any = {
             username: 90,
             rating: 519,
+            ratingBadge: 605,
             winsOverGames: 687,
             kd: 818,
             kda: 935,
@@ -609,8 +607,19 @@ export class Top extends Command {
         let textWidth: number;
 
         const seasonStats: GameModeStats = playerSeason.gameModeStats;
+        const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
+
+        let overallRating;
+        let badge: Jimp;
+        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
+        } else {
+            overallRating = cs.round(seasonStats.rankPoints, 0);
+            badge = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(overallRating));
+        }
+
         const username : string = playerSeason.name;
-        const rating: string = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
+        const rating: string = overallRating;
         let winsOverGames: string = `${seasonStats.wins}/${seasonStats.roundsPlayed}`;
         const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
         const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
@@ -629,6 +638,11 @@ export class Top extends Command {
         textObj.text = `${rating}`
         textWidth = Jimp.measureText(body_font, textObj.text);
         img.print(body_font, x_centers.rating-(textWidth/2), body_y, textObj);
+
+        if (badge) {
+            badge.scale(0.5);
+            img.composite(badge, x_centers.ratingBadge-(badge.getWidth()/2), -2);
+        }
 
         textObj.text = `${winsOverGames}`
         textWidth = Jimp.measureText(body_font, textObj.text);

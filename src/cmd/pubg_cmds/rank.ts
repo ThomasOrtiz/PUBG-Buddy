@@ -65,7 +65,7 @@ export class Rank extends Command {
         }
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for \`${this.paramMap.username}\``);
-        
+
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
@@ -518,18 +518,22 @@ export class Rank extends Command {
         let textWidth: number;
 
         const body_subheading_x: number = 50;
-        const body_subheading_y: number = 0;
+        const body_subheading_y: number = 5;
         const body_top_y: number = 95;
-        const body_mid_y: number = 255;
-        const body_bottom_y: number = 405;
+        const body_mid_y: number = 245;
+        const body_bottom_y: number = 395;
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
 
         let overallRating;
+        let badge: Jimp;
+        let rankTitle: string;
         if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
             overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(fppStats.rankPoints, 0) || 'NA';
+            badge = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(fppStats.rankPoints));
+            rankTitle = pubgApiService.getRankTitleFromRanking(fppStats.rankPoints);
         }
         const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
         const kda = cs.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
@@ -538,16 +542,16 @@ export class Rank extends Command {
         const averageDamageDealt = cs.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
 
         let x_centers : any = {
-            kd: 160,
-            winPercent: 376,
-            topTenPercent: 605,
-            averageDamageDealt: 841,
-            kda: 162.5,
-            kills: 367.5,
-            assists: 605,
-            dBNOs: 846.5,
-            longestKill: 311,
-            headshotKills: 726.5
+            kd: 174,
+            winPercent: 404,
+            topTenPercent: 645.5,
+            averageDamageDealt: 881,
+            kda: 171.5,
+            kills: 407.5,
+            assists: 644,
+            dBNOs: 882.5,
+            longestKill: 287.5,
+            headshotKills: 762.6
         }
 
         // Sub Heading
@@ -555,17 +559,25 @@ export class Rank extends Command {
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, body_subheading_x+10, body_subheading_y, textObj);
 
+        if (badge) {
+            badge.scale(1.1);
+            img.composite(badge, 525-(badge.getWidth()/2), 380);
+            textObj.text = rankTitle;
+            textWidth = Jimp.measureText(font_48_orange, textObj.text);
+            img.print(font_48_orange, 525-(textWidth/2), 360, textObj);
+        }
+
         textObj.text = `${fppStats.wins}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
-        img.print(font_48_white, 440-textWidth-5, body_subheading_y, textObj);
+        img.print(font_48_white, 510-textWidth, body_subheading_y, textObj);
 
         textObj.text = `${fppStats.top10s}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
-        img.print(font_48_white, 680-textWidth-5, body_subheading_y, textObj);
+        img.print(font_48_white, 685-textWidth, body_subheading_y, textObj);
 
         textObj.text = `${fppStats.roundsPlayed}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
-        img.print(font_48_white, imageWidth-textWidth-180, body_subheading_y+2, textObj);
+        img.print(font_48_white, imageWidth-textWidth-180, body_subheading_y, textObj);
 
         // Body - Top
         textObj.text = `${kd}`;

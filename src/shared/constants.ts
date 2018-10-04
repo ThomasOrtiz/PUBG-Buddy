@@ -12,8 +12,42 @@ export enum ImageLocation {
     BLACK_1050_130 = './assets/rank/Black_1050_130.png',
     BLACK_1200_130 = './assets/top/Black_1200_130.png',
     RANK_BODY = './assets/rank/Body.png',
+    RANK_BODY_CENTER_CLEARED = './assets/rank/Body-Center-Clear.png',
+    RANK_BODY_THREE = './assets/rank/Body-Center-Badge.png',
     TOP_BANNER = './assets/top/Header.png',
     TOP_BODY_SINGLE = './assets/top/Body-Single.png',
+}
+
+export enum PubgRankBreakPoints {
+    UNRANKED = 0,
+    MAX_BRONZE = 1399,
+    MAX_SILVER = 1499,
+    MAX_GOLD = 1599,
+    MAX_PLATINUM = 1699,
+    MAX_DIAMOND = 1799,
+    MAX_ELITE = 1899,
+    MAX_MASTER = 1999,
+    MIN_GRANDMASTER = 2000
+}
+
+export enum PubgRankImageLocation {
+    UNRANKED_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_Unranked.png',
+    BRONZE_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_01_bronze_145x145.png',
+    BRONZE_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_01_bronze.png',
+    SILVER_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_02_silver_145x145.png',
+    SILVER_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_02_silver.png',
+    GOLD_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_03_gold_145x145.png',
+    GOLD_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_03_gold.png',
+    PLATINUM_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_04_platinum_145x145.png',
+    PLATINUM_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_04_platinum.png',
+    DIAMOND_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_05_diamond_145x145.png',
+    DIAMOND_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_05_diamond.png',
+    ELITE_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_06_elite_145x145.png',
+    ELITE_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_06_elite.png',
+    MASTER_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_07_master_145x145.png',
+    MASTER_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_07_master.png',
+    GRANDMASTER_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_08_grandmaster_145x145.png',
+    GRANDMASTER_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_08_grandmaster.png',
 }
 
 export enum FontLocation {

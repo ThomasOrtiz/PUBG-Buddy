@@ -67,10 +67,11 @@ export class CommonService {
      * Given a fraction it will return the equivalent % with '%' tacked on
      * @param {number} num
      * @param {number} den
+     * @param {number} precision
      */
-    static getPercentFromFraction(num: number, den: number): string {
+    static getPercentFromFraction(num: number, den: number, precision: number = 2): string {
         if(num === 0 || den === 0) return '0%';
-        return this.round((num/den)*100) + '%';
+        return this.round((num/den)*100, precision) + '%';
         //Math.round((num/den)*100 * 100) / 100 + '%';
     }
 
