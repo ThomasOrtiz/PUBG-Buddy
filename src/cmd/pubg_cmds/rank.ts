@@ -560,7 +560,6 @@ export class Rank extends Command {
         img.print(font_48_white, body_subheading_x+10, body_subheading_y, textObj);
 
         if (badge) {
-            badge.scale(1.1);
             img.composite(badge, 525-(badge.getWidth()/2), 380);
             textObj.text = rankTitle;
             textWidth = Jimp.measureText(font_48_orange, textObj.text);
