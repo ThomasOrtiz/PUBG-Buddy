@@ -496,7 +496,7 @@ export class Top extends Command {
         // Create/Merge error message
         if(!fppImg && !tppImg) {
             const black_header: Jimp = await imageService.loadImage(ImageLocation.BLACK_1200_130);
-            const errMessageImage: Jimp = await this.addNoMatchesPlayedText(black_header, mode);
+            const errMessageImage: Jimp = await this.addNoMatchesPlayedText(black_header.clone(), mode);
             image = imageService.combineImagesVertically(image, errMessageImage);
         }
 
@@ -564,16 +564,24 @@ export class Top extends Command {
 
         if(userInfo.length === 0) { return null; }
 
-        // Sorting Array based off of ranking (higher ranking is better)
-        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-            const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
-            const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
-            return (+overallRatingB) - (+overallRatingA);
-        });
+        const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
+        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+            // Sorting Array based off of ranking (higher ranking is better)
+            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
+                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
+                return (+overallRatingB) - (+overallRatingA);
+            });
+        } else {
+            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.rankPoints, b.gameModeStats.rankPoints);
+                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.rankPoints, a.gameModeStats.rankPoints);
+                return (+overallRatingB) - (+overallRatingA);
+            });
+        }
 
         // Grab only the top 'x' players
         let topPlayers: PlayerWithGameModeStats[] = userInfo.slice(0, this.paramMap.amount);
-
 
         // Combine pictures
         let image: Jimp = new Jimp(0, 0);
@@ -615,7 +623,7 @@ export class Top extends Command {
             overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(seasonStats.rankPoints, 0);
-            badge = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(overallRating));
+            badge = (await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(overallRating))).clone();
         }
 
         const username : string = playerSeason.name;

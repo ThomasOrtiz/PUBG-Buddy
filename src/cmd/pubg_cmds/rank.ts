@@ -532,7 +532,7 @@ export class Rank extends Command {
             overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(fppStats.rankPoints, 0) || 'NA';
-            badge = await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(fppStats.rankPoints));
+            badge = (await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
             rankTitle = pubgApiService.getRankTitleFromRanking(fppStats.rankPoints);
         }
         const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
