@@ -61,6 +61,7 @@ export enum FontLocation {
     TEKO_REGULAR_WHITE_48 = './assets/font/Teko/regular/white/Teko-White-48.fnt',
     TEKO_REGULAR_WHITE_64 = './assets/font/Teko/regular/white/Teko-White-64.fnt',
     // Bold Black
+    TEKO_BOLD_BLACK_24 = './assets/font/Teko/bold/black/Teko-Black-24.fnt',
     TEKO_BOLD_BLACK_42 = './assets/font/Teko/bold/black/Teko-Black-42.fnt',
     TEKO_BOLD_BLACK_48 = './assets/font/Teko/bold/black/Teko-Black-48.fnt',
     // Bold Orange

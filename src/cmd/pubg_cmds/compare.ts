@@ -393,6 +393,7 @@ export class Compare extends Command {
         }
         const font_48_white: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
         const font_48_orange: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
+        const font_name_badge: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
         let textWidth: number;
 
         const body_subheading_x: number = 50;
@@ -479,26 +480,6 @@ export class Compare extends Command {
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, body_subheading_x+10, body_subheading_y, textObj);
 
-        if (formatted_stats_A.badge) {
-            const badge: Jimp = formatted_stats_A.badge.clone();
-
-            badge.scale(1);
-            img.composite(badge, 428-(badge.getWidth()/2), 380);
-            textObj.text = rankTitle;
-            textWidth = Jimp.measureText(font_48_orange, textObj.text);
-            img.print(font_48_orange, 428-(textWidth/2), 360, textObj);
-        }
-
-        if (formatted_stats_B.badge) {
-            const badge: Jimp = formatted_stats_B.badge.clone();
-
-            badge.scale(1);
-            img.composite(badge, 622-(badge.getWidth()/2), 380);
-            textObj.text = rankTitle;
-            textWidth = Jimp.measureText(font_48_orange, textObj.text);
-            img.print(font_48_orange, 622-(textWidth/2), 360, textObj);
-        }
-
         textObj.text = `${formatted_stats_A.wins} (${formatted_stats_B.wins})`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, 510-textWidth-5, body_subheading_y, textObj);
@@ -553,6 +534,28 @@ export class Compare extends Command {
         textObj.text = `${formatted_stats_A.headshotKills} (${formatted_stats_B.headshotKills})`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.headshotKills-(textWidth/2), body_bottom_y, textObj);
+
+        if (formatted_stats_A.badge) {
+            const badge: Jimp = formatted_stats_A.badge.clone();
+            img.composite(badge, 428-(badge.getWidth()/2), 380);
+            textObj.text = rankTitle;
+            textWidth = Jimp.measureText(font_48_orange, textObj.text);
+            img.print(font_48_orange, 428-(textWidth/2), 360, textObj);
+            textObj.text = this.paramMap.playerA;
+            textWidth = Jimp.measureText(font_name_badge, textObj.text);
+            img.print(font_name_badge, 428-(textWidth/2), 500, textObj);
+        }
+
+        if (formatted_stats_B.badge) {
+            const badge: Jimp = formatted_stats_B.badge.clone();
+            img.composite(badge, 622-(badge.getWidth()/2), 380);
+            textObj.text = rankTitle;
+            textWidth = Jimp.measureText(font_48_orange, textObj.text);
+            img.print(font_48_orange, 622-(textWidth/2), 360, textObj);
+            textObj.text = this.paramMap.playerB;
+            textWidth = Jimp.measureText(font_name_badge, textObj.text);
+            img.print(font_name_badge, 622-(textWidth/2), 500, textObj);
+        }
 
         return img;
     }
