@@ -357,13 +357,11 @@ export class Top extends Command {
      * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
      */
     private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
                 .setTitle('Top ' + this.paramMap.amount + ' local players')
-                .setDescription(`Season:\t ${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
+                .setDescription(`Season:\t ${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
                 .setColor(0x00AE86)
                 .setFooter(`Using PUBG's official API`)
                 .setTimestamp()
@@ -527,8 +525,6 @@ export class Top extends Command {
         const font_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         const gameModeSplit: string[] = mode.split('_');
@@ -542,7 +538,7 @@ export class Top extends Command {
         textWidth = Jimp.measureText(font_48, textObj.text);
         img.print(font_48, imageWidth-textWidth-25, 10, textObj);
 
-        textObj.text = seasonDisplayName;
+        textObj.text = this.paramMap.season;
         textWidth = Jimp.measureText(font_48, textObj.text);
         img.print(font_48, imageWidth-textWidth-25, 60, textObj);
 
@@ -682,8 +678,6 @@ export class Top extends Command {
 
 
         // Add top header
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
         const gameModeSplit: string[] = mode.split('_');
         let gameModeDescription: string = `${gameModeSplit[0]}s`;
@@ -699,7 +693,7 @@ export class Top extends Command {
         textWidth = Jimp.measureText(font_32, textObj.text);
         headerImg.print(font_32, imageWidth-textWidth-25, 20, textObj);
 
-        textObj.text = seasonDisplayName;
+        textObj.text = this.paramMap.season;
         textWidth = Jimp.measureText(font_32, textObj.text);
         headerImg.print(font_32, imageWidth-textWidth-25, 70, textObj);
 

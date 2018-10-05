@@ -141,13 +141,11 @@ export class GetMatches extends Command {
      * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
      */
     private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Matches')
-            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
+            .setDescription(`Season:\t${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
             .setColor(0x00AE86)
             .setFooter(`Powered by https://pubg-replay.com`)
             .setTimestamp()

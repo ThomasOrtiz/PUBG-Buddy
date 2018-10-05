@@ -356,8 +356,6 @@ export class Compare extends Command {
         const font_bold_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         const font_bold_42: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
 
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
         let textWidth: number;
 
@@ -377,7 +375,7 @@ export class Compare extends Command {
         textWidth = Jimp.measureText(font_bold_48, textObj.text);
         img.print(font_bold_48, imageWidth-textWidth-25, 10, textObj);
 
-        textObj.text = seasonDisplayName;
+        textObj.text = this.paramMap.season;
         textWidth = Jimp.measureText(font_bold_48, textObj.text);
         img.print(font_bold_48, imageWidth-textWidth-25, 60, textObj);
 

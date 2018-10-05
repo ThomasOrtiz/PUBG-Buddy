@@ -330,13 +330,11 @@ export class Rank extends Command {
      * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
      */
     private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Ranking: ' + this.paramMap.username)
-            .setDescription(`Season:\t${seasonDisplayName}\nRegion:\t${regionDisplayName}`)
+            .setDescription(`Season:\t${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
             .setColor(0x00AE86)
             .setFooter(`Using PUBG's official API`)
             .setTimestamp();
@@ -488,8 +486,6 @@ export class Rank extends Command {
         const font_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const seasonDisplayName: string = await pubgApiService.getSeasonDisplayName(api, this.paramMap.season);
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         textObj.text = this.paramMap.username;
@@ -499,7 +495,7 @@ export class Rank extends Command {
         textWidth = Jimp.measureText(font_48, textObj.text);
         img.print(font_48, imageWidth-textWidth-25, 10, textObj);
 
-        textObj.text = seasonDisplayName;
+        textObj.text = this.paramMap.season;
         textWidth = Jimp.measureText(font_48, textObj.text);
         img.print(font_48, imageWidth-textWidth-25, 60, textObj);
 
