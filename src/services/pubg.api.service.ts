@@ -231,7 +231,7 @@ export class PubgService {
      * @returns {Promise<Season[]} list of seasons
      */
     static async getAvailableSeasons(api: PubgAPI, removeBeta?: boolean): Promise<Season[]> {
-        const cacheKey: string = 'pubgApi.getAvailableSeasons';
+        const cacheKey: string = `pubgApi.getAvailableSeasons.${api.platformRegion}`;
         const ttl: number = TimeInSeconds.TWO_HOUR;
         const storeFunction: Function = async (): Promise<Season[]> => {
             return await Season.list(api);
