@@ -28,7 +28,7 @@ export class AddUser extends Command {
         examples: [
             '!pubg-addUser john',
             '!pubg-addUser john jane',
-            '!pubg-addUser john region=eu'
+            '!pubg-addUser john region=pc-eu'
         ]
     }
 

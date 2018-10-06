@@ -39,9 +39,9 @@ export class Rank extends Command {
             '!pubg-rank        (only valid if you have used the `register` command)',
             '!pubg-rank john',
             '!pubg-rank john season=2018-03',
-            '!pubg-rank john season=2018-03 region=eu',
-            '!pubg-rank john season=2018-03 region=na mode=tpp',
-            '!pubg-rank john region=as mode=tpp season=2018-03',
+            '!pubg-rank john season=2018-03 region=pc-eu',
+            '!pubg-rank john season=2018-03 region=pc-na mode=tpp',
+            '!pubg-rank john region=pc-as mode=tpp season=2018-03',
             '!pubg-rank john =all  (this will show in a text based format instead of the image)'
         ]
     };
@@ -209,20 +209,7 @@ export class Rank extends Command {
      * @param {PlayerSeason} seasonData
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason): Promise<void> {
-        const reaction_numbers = ["\u0030\u20E3","\u0031\u20E3","\u0032\u20E3","\u0033\u20E3","\u0034\u20E3","\u0035\u20E3", "\u0036\u20E3","\u0037\u20E3","\u0038\u20E3","\u0039\u20E3"]
-        await msg.react(reaction_numbers[1]);
-        await msg.react(reaction_numbers[2]);
-        await msg.react(reaction_numbers[4]);
-
-        const one_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[1] && originalPoster.id === user.id;
-        const two_filter: Discord.CollectorFilter = (reaction, user) =>  reaction.emoji.name === reaction_numbers[2] && originalPoster.id === user.id;
-        const four_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[4] && originalPoster.id === user.id;
-
-        const one_collector: Discord.ReactionCollector = msg.createReactionCollector(one_filter, { time: 15*1000 });
-        const two_collector: Discord.ReactionCollector = msg.createReactionCollector(two_filter, { time: 15*1000 });
-        const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
-
-        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onOneCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -246,15 +233,14 @@ export class Rank extends Command {
                 let attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
 
                 if(msg.deletable) {
-                    one_collector.removeAllListeners();
                     await msg.delete();
                 }
 
                 let newMsg = await msg.channel.send(attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
-        });
-        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        };
+        const onTwoCollect = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -278,15 +264,14 @@ export class Rank extends Command {
                 let attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
 
                 if(msg.deletable) {
-                    two_collector.removeAllListeners();
                     await msg.delete();
                 }
 
                 let newMsg = await msg.channel.send(attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
-        });
-        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        };
+        const onFourCollect = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -311,18 +296,14 @@ export class Rank extends Command {
                 let attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
 
                 if(msg.deletable) {
-                    four_collector.removeAllListeners();
                     await msg.delete();
                 }
 
                 let newMsg = await msg.channel.send(attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
-        });
-
-        one_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
-        two_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
-        four_collector.on('end', collected => { msg.clearReactions().catch(() => {}); });
+        };
+        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     /**

@@ -28,7 +28,7 @@ export class Register extends Command {
         examples: [
             '!pubg-register john',
             '!pubg-register jane',
-            '!pubg-register jane region=eu'
+            '!pubg-register jane region=pc-eu'
         ]
     }
 

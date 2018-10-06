@@ -55,20 +55,20 @@ export class Top extends Command {
 
     help: CommandHelp = {
         name: 'top',
-        description: 'Gets the top "x" players registered in the server',
+        description: `Gets the top "x" players registered in the server. Players that haven't played this season are excluded.`,
         usage: '<prefix>top [Number-Of-Users] [season=] [region=] [mode=] [=text]',
         examples: [
             '!pubg-top',
             '!pubg-top =text',
             '!pubg-top season=2018-03',
-            '!pubg-top season=2018-03 region=na',
-            '!pubg-top season=2018-03 region=na',
-            '!pubg-top season=2018-03 region=na mode=tpp',
+            '!pubg-top season=2018-03 region=pc-na',
+            '!pubg-top season=2018-03 region=pc-na',
+            '!pubg-top season=2018-03 region=pc-na mode=tpp',
             '!pubg-top 5',
             '!pubg-top 5 season=2018-03',
-            '!pubg-top 5 season=2018-03 region=na',
-            '!pubg-top 5 season=2018-03 region=na',
-            '!pubg-top 5 season=2018-03 region=na mode=tpp'
+            '!pubg-top 5 season=2018-03 region=pc-na',
+            '!pubg-top 5 season=2018-03 region=pc-na',
+            '!pubg-top 5 season=2018-03 region=pc-na mode=tpp'
         ]
     };
 

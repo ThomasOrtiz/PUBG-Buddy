@@ -35,7 +35,10 @@ export class GetMatches extends Command {
         usage: '<prefix>matches [pubg username] [season=] [region=] [mode=]',
         examples: [
             '!pubg-matches        (only valid if you have used the `register` command)',
-            '!pubg-matches Jane'
+            '!pubg-matches Jane',
+            '!pubg-matches Jane season=2018-03',
+            '!pubg-matches Jane season=2018-03 region=pc-na',
+            '!pubg-matches Jane season=2018-03 region=pc-na mode=solo-fpp',
         ]
     }
 

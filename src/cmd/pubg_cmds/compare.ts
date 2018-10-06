@@ -40,8 +40,8 @@ export class Compare extends Command {
             '!pubg-compare john jane',
             '!pubg-compare john jane season=2018-03',
             '!pubg-compare john jane season=2018-03 region=pc-eu',
-            '!pubg-compare john jane season=2018-03 region=na mode=solo',
-            '!pubg-compare john jane region=as mode=tpp season=2018-03',
+            '!pubg-compare john jane season=2018-03 region=pc-na mode=solo',
+            '!pubg-compare john jane region=pc-as mode=tpp season=2018-03',
         ]
     };
 
