@@ -54,7 +54,7 @@ bot.on('ready', () => {
     logger.info('Connected');
 
     if (!isDev) {
-        (bot.channels.find(i => i.id === '475770414413643786') as Discord.TextChannel).send('PUBG Ranking Bot is back online.');
+        (bot.channels.find(i => i.id === '423248493084409877') as Discord.TextChannel).send('PUBG Ranking Bot is back online.');
     }
     bot.user.setActivity("Use `!pubg-help`");
 });
