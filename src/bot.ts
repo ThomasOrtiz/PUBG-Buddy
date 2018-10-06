@@ -14,6 +14,7 @@ import * as logger from './config/logger.config';
 
 // Initialize Bot
 const botToken: string = cs.getEnvironmentVariable('bot_token');
+const isDev = cs.getEnvironmentVariable('isDev') === 'true';
 let prefix: string = cs.getEnvironmentVariable('prefix');
 const bot: DiscordClientWrapper = new DiscordClientWrapper();
 bot.login(botToken);
@@ -51,6 +52,10 @@ bot.on('guildDelete', guild => {
 bot.on('ready', () => {
     logger.info(`Bot has started, with ${bot.users.size} users, in ${bot.channels.size} channels of ${bot.guilds.size} guilds.`);
     logger.info('Connected');
+
+    if (!isDev) {
+        (bot.channels.find(i => i.id === '475770414413643786') as Discord.TextChannel).send('PUBG Ranking Bot is back online.');
+    }
     bot.user.setActivity("Use `!pubg-help`");
 });
 bot.on('message', async (msg: Discord.Message) => {
