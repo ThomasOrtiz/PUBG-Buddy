@@ -536,7 +536,7 @@ export class Compare extends Command {
         if (formatted_stats_A.badge) {
             const badge: Jimp = formatted_stats_A.badge.clone();
             img.composite(badge, 428-(badge.getWidth()/2), 380);
-            textObj.text = rankTitle;
+            textObj.text = formatted_stats_A.rankTitle;
             textWidth = Jimp.measureText(font_48_orange, textObj.text);
             img.print(font_48_orange, 428-(textWidth/2), 360, textObj);
             textObj.text = this.paramMap.playerA;
@@ -547,7 +547,7 @@ export class Compare extends Command {
         if (formatted_stats_B.badge) {
             const badge: Jimp = formatted_stats_B.badge.clone();
             img.composite(badge, 622-(badge.getWidth()/2), 380);
-            textObj.text = rankTitle;
+            textObj.text = formatted_stats_B.rankTitle;
             textWidth = Jimp.measureText(font_48_orange, textObj.text);
             img.print(font_48_orange, 622-(textWidth/2), 360, textObj);
             textObj.text = this.paramMap.playerB;
