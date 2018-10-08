@@ -5,7 +5,7 @@ import {
     DiscordMessageService as discordMessageService,
     SqlPlayersService as sqlPlayersService
  } from './';
-import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
+import { Player, PlayerSeason, PubgAPI, Season, PlatformRegion, GameMode, Match, MapName } from 'pubg-typescript-api';
 import { TimeInSeconds, PubgRankBreakPoints, PubgRankImageLocation } from '../shared/constants';
 
 const cache = new CacheService();
@@ -58,15 +58,8 @@ export class PubgService {
             platform === PlatformRegion.PC_AS
     }
 
-
-
-
-
-
-
-
     //////////////////////////////////////
-    // Player Data
+    // Players
     //////////////////////////////////////
 
     /**
@@ -142,6 +135,18 @@ export class PubgService {
         return await cache.get<PlayerSeason>(cacheKey, storeFunction, ttl);
     }
 
+    /**
+     * Calculates the character's rating with following formula:
+     *      overall_rating = win_rating + (kill_rating / 5)
+     * @param {number} winRating
+     * @param {number} killRating
+     * @returns {number} overall rating
+     */
+    static calculateOverallRating(winRating: number, killRating: number): number {
+        return winRating + (killRating / 5);
+    }
+
+
     static getRankBadgeImageFromRanking(ranking: number): PubgRankImageLocation {
         if (ranking === PubgRankBreakPoints.UNRANKED) {
             return PubgRankImageLocation.UNRANKED_BADGE;
@@ -166,7 +171,7 @@ export class PubgService {
 
     static getRankRibbionImageFromRanking(ranking: number): PubgRankImageLocation {
         if (ranking === PubgRankBreakPoints.UNRANKED) {
-            return PubgRankImageLocation.UNRANKED_BADGE;
+            return PubgRankImageLocation.UNRANKED_RIBBON;
         } else if (ranking <= PubgRankBreakPoints.MAX_BRONZE) {
             return PubgRankImageLocation.BRONZE_RIBBON;
         } else if (ranking <= PubgRankBreakPoints.MAX_SILVER) {
@@ -208,6 +213,19 @@ export class PubgService {
         } else {
             return 'GrandMaster';
         }
+    }
+
+    //////////////////////////////////////
+    // Matches
+    //////////////////////////////////////
+    static async getMatchInfo(api: PubgAPI, matchId: string): Promise<Match> {
+        const cacheKey: string = `pubgApi.getMatchInfo-${matchId}`;
+        const ttl: number = TimeInSeconds.ONE_HOUR;
+        const storeFunction: Function = async (): Promise<Match> => {
+            return await Match.get(api, matchId);
+        };
+
+        return await cache.get<Match>(cacheKey, storeFunction, ttl);
     }
 
 
@@ -262,16 +280,8 @@ export class PubgService {
         return seasons;
     }
 
-    static async getSeasonDisplayName(api: PubgAPI, seasonYearMonth: string): Promise<string> {
-        const seasons: Season[] = await this.getAvailableSeasons(api, true);
-
-        for (let i = 0; i < seasons.length; i++) {
-            let season: Season = seasons[i];
-            const season_ui_id: string = season.id.split('division.bro.official.')[1]
-            if(seasonYearMonth === season_ui_id) {
-                return `Season ${i+1}`;
-            }
-        }
+    static getSeasonDisplayName(season: Season): string {
+        return season.id.split('division.bro.official.')[1];
     }
 
     /**
@@ -313,21 +323,6 @@ export class PubgService {
     }
 
     //////////////////////////////////////
-    // Rating Calculation
-    //////////////////////////////////////
-
-    /**
-     * Calculates the character's rating with following formula:
-     *      overall_rating = win_rating + (kill_rating / 5)
-     * @param {number} winRating
-     * @param {number} killRating
-     * @returns {number} overall rating
-     */
-    static calculateOverallRating(winRating: number, killRating: number): number {
-        return winRating + (killRating / 5);
-    }
-
-    //////////////////////////////////////
     // Validation
     //////////////////////////////////////
 
@@ -343,17 +338,23 @@ export class PubgService {
     static async validateParameters(msg: Discord.Message, help: any, checkSeason: string, checkRegion: string, checkMode: string): Promise<boolean> {
         let errMessage: string   = '';
 
-        const api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA);
-        let validSeason: boolean = await this.isValidSeason(api, checkSeason);
         let validRegion: boolean = this.isValidRegion(checkRegion);
-        let validMode: boolean   = this.isValidGameMode(checkMode);
+        let validSeason: boolean = false;
+        let validMode: boolean = false;
 
-        if (!validSeason) {
+        let api: PubgAPI;
+        if (validRegion) {
+            api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[checkRegion]);
+            validSeason = await this.isValidSeason(api, checkSeason);
+        }
+        validMode = this.isValidGameMode(checkMode);
+
+        if (validRegion && !validSeason) {
             let seasons: Season[] = await this.getAvailableSeasons(api, true);
 
             let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
-                const seasonId = seasons[i].id.split('division.bro.official.')[1];
+                const seasonId = this.getSeasonDisplayName(seasons[i]);
                 if (i < seasons.length - 1) {
                     availableSeasons += `${seasonId}, `;
                 }
@@ -447,5 +448,21 @@ export class PubgService {
             return true;
         }
         return false;
+    }
+
+    //////////////////////////////////////
+    // Maps
+    //////////////////////////////////////
+    static getMapDisplayName(mapName: MapName): string {
+        switch(mapName) {
+            case MapName.ERANGEL_MAIN:
+                return 'Erangel';
+            case MapName.DESERT_MAIN:
+                return 'Desert';
+            case MapName.SANHOK_MAIN:
+                return 'Sanhok';
+            default:
+                return '';
+        }
     }
 }
