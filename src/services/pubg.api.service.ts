@@ -311,7 +311,9 @@ export class PubgService {
     }
 
     static getAvailableRegions(): string[] {
-        return Object.values(PlatformRegion);
+        let values: string[] = Object.values(PlatformRegion);
+        return values.filter((region => region.toLowerCase().indexOf('xbox') < 0));
+        //return Object.values(PlatformRegion);
     }
 
     //////////////////////////////////////
@@ -428,6 +430,11 @@ export class PubgService {
      * @returns {boolean} is valid
      */
     static isValidRegion(checkRegion: string): boolean {
+        // Temporarily not supporting Xbox
+        if (checkRegion.toLowerCase().indexOf('xbox') >= 0) {
+            return false;
+        }
+
         const region: PlatformRegion = PlatformRegion[checkRegion.toUpperCase()];
 
         if (region) {

@@ -3,12 +3,13 @@ import {
     AnalyticsService as analyticsService,
     CommonService as cs,
     DiscordMessageService as discordMessageService,
+    ParameterService as parameterService,
     PubgService as pubgService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { Server, PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
 
@@ -23,8 +24,8 @@ export class AddUser extends Command {
 
     help: CommandHelp = {
         name: 'addUser',
-        description: 'Adds user(s) to the server\'s registery. ** Name is case sensitive **',
-        usage: '<prefix>addUser <username ...> [region=]',
+        description: 'Adds a user to the server\'s registery. ** Name is case sensitive **',
+        usage: '<prefix>addUser <username> [region=]',
         examples: [
             '!pubg-addUser john',
             '!pubg-addUser john jane',
@@ -34,13 +35,13 @@ export class AddUser extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            discordMessageService.handleError(msg, 'Error:: Must specify at least one username', this.help);
+            discordMessageService.handleError(msg, 'Error:: Must specify a username', this.help);
             return;
         }
 
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-        const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+        const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_params.region]);
 
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
@@ -48,16 +49,10 @@ export class AddUser extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
-            region: region
+            region: pubg_params.region
         });
 
-        for(let i = 0; i < params.length; i++) {
-            let username: string = params[i];
-
-            if (username.indexOf('region=') >= 0){ continue; }
-
-            this.addUser(msg, api, region, username);
-        }
+        this.addUser(msg, api, pubg_params.region, pubg_params.username);
     }
 
     private async addUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {

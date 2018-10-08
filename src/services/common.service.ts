@@ -11,7 +11,7 @@ export class CommonService {
      */
     static isSubstringOfElement(s: string, arr: string[]): number {
         for(let i = 0; i < arr.length; i++) {
-            if(arr[i].indexOf(s) >= 0) {
+            if(arr[i] && arr[i].indexOf(s) >= 0) {
                 return i;
             }
         }

@@ -4,11 +4,12 @@ import {
     AnalyticsService as analyticsService,
     CommonService as cs,
     DiscordMessageService as discordMessageService,
+    ParameterService as parameterService,
     PubgService as pubgApiService,
-    SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService
+    SqlServerService as sqlServerService
 } from '../../services';
-import { PubgAPI, PlatformRegion, Player, PlayerSeason } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from 'pubg-typescript-api';
+import { PubgParameters } from '../../interfaces';
 
 
 interface ParameterMap {
@@ -52,33 +53,38 @@ export class GetMatches extends Command {
             return;
         }
 
+        const reply: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
+        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        if(!isValidParameters) {
+            reply.delete();
+            return;
+        }
+
+        await reply.edit('Getting matches');
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
         if(players.length === 0) {
-            msg.channel.send(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
+            reply.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
         const player: Player = players[0];
-
         let seasonData: PlayerSeason;
         try {
             const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
             seasonData = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
         } catch(e) {
-            msg.edit(`Could not find \`${this.paramMap.username}\`'s \`${this.paramMap.season}\` stats.`);
+            reply.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
         // Create base embed to send
         let embed: Discord.RichEmbed = await this.createBaseEmbed();
-        this.addDefaultStats(embed, seasonData);
+        await this.addDefaultStats(embed, seasonData);
 
-        // Send the message and setup reactions
-        let message: Discord.Message = await msg.channel.send('Getting matches') as Discord.Message;
-        this.setupReactions(message, msg.author, seasonData);
-        message.edit({ embed });
+        this.setupReactions(reply, msg.author, seasonData);
+        reply.edit(`**${msg.author.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
     };
 
     /**
@@ -89,40 +95,26 @@ export class GetMatches extends Command {
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         let paramMap: ParameterMap;
-        let username: string;
 
-        // Try to get username from user registery
-        if(!params[0] || cs.stringContains(params[0], '=')) {
-            username = await sqlUserRegisteryService.getRegisteredUser(msg.author.id);
-        }
-
-        // Check if user had registered name, if not check if supplied
-        if(!username) {
-            username = params[0];
+        let pubg_params: PubgParameters;
+        if (msg.guild) {
+            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        } else {
+            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
 
         // Throw error if no username supplied
-        if(!username) {
+        if (!pubg_params.username) {
             discordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
             throw 'Error:: Must specify a username';
         }
 
-        if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
-            paramMap = {
-                username: username,
-                season: cs.getParamValue('season=', params, serverDefaults.default_season),
-                region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
-            }
-        } else {
-            const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
-            paramMap = {
-                username: username,
-                season: cs.getParamValue('season=', params, currentSeason),
-                region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
-            }
+        paramMap = {
+            username: pubg_params.username,
+            season: pubg_params.season,
+            region: pubg_params.region.toUpperCase().replace('-', '_'),
+            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
         }
 
         analyticsService.track(this.help.name, {
@@ -130,7 +122,7 @@ export class GetMatches extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
-            pubg_name: username,
+            pubg_name: pubg_params.username,
             season: paramMap.season,
             region: paramMap.region,
             mode: paramMap.mode
@@ -191,8 +183,8 @@ export class GetMatches extends Command {
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
 
             await msg.edit(warningMessage, { embed });
         });
@@ -211,8 +203,8 @@ export class GetMatches extends Command {
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
 
             await msg.edit(warningMessage, { embed });
         });
@@ -231,8 +223,8 @@ export class GetMatches extends Command {
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
 
             await msg.edit(warningMessage, { embed });
         });
@@ -247,18 +239,18 @@ export class GetMatches extends Command {
      * @param {Discord.RichEmbed} embed
      * @param {PlayerSeason} seasonData
      */
-    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason): void {
+    private async addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
         let mode = this.paramMap.mode;
 
         if (cs.stringContains(mode, 'solo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
         } else if (cs.stringContains(mode, 'duo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
         } else if (cs.stringContains(mode, 'squad', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
+            await this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
         }
     }
 
@@ -269,9 +261,9 @@ export class GetMatches extends Command {
      * @param {GameModeStats} duoData
      * @param {GameModeStats} squadData
      */
-    private addSpecificDataToEmbed(embed: Discord.RichEmbed, matchIds: string[], type: string): void {
+    private async addSpecificDataToEmbed(embed: Discord.RichEmbed, matchIds: string[], type: string) {
         if (matchIds.length > 0) {
-            this.addEmbedFields(embed, type, matchIds);
+            await this.addEmbedFields(embed, type, matchIds);
         } else {
             embed.addBlankField(false);
             embed.addField(`${type} Status`, `Player hasn't played ${type} games this season`, false);
@@ -284,14 +276,28 @@ export class GetMatches extends Command {
      * @param {string} gameMode
      * @param {GameModeStats} playerData
      */
-    private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, matchIds: string[]): void {
+    private async addEmbedFields(embed: Discord.RichEmbed, gameMode: string, matchIds: string[]) {
         let reply: string = '';
         const finalLength: number = matchIds.length <= this.MAX_MATCHES ? matchIds.length : this.MAX_MATCHES;
 
-        for(let i = 0; i < finalLength; i++) {
-            const url = this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, matchIds[i]);
+        const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
 
-            reply += `[Match ${i+1}](${url})\n`
+        let matches: Match[] = [];
+        for(let i = 0; i < finalLength; i++) {
+            let match: Match = await pubgApiService.getMatchInfo(seasonStatsApi, matchIds[i]);
+            matches.push(match);
+        }
+
+
+
+        for(let i = 0; i < finalLength; i++) {
+            const match: Match = matches[i];
+            const url: string = this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id);
+
+            const mapDisplay: string = pubgApiService.getMapDisplayName(match.map);
+            const dateTime: string = match.dateCreated.toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' EST';
+
+            reply += `[${mapDisplay} Match](${url}) at \`${dateTime}\`\n`
         }
 
         embed.addField(`${gameMode} Matches`, reply, true);

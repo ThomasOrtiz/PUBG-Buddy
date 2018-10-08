@@ -4,14 +4,15 @@ import {
     CommonService as cs,
     DiscordMessageService as discordMessageService,
     ImageService as imageService,
+    ParameterService as parameterService,
     PubgService as pubgApiService,
-    SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService
+    SqlServerService as sqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
+import { PubgParameters } from '../../interfaces';
 
 
 interface ParameterMap {
@@ -40,8 +41,8 @@ export class Rank extends Command {
             '!pubg-rank john',
             '!pubg-rank john season=2018-03',
             '!pubg-rank john season=2018-03 region=pc-eu',
-            '!pubg-rank john season=2018-03 region=pc-na mode=tpp',
-            '!pubg-rank john region=pc-as mode=tpp season=2018-03',
+            '!pubg-rank john season=2018-03 region=pc-na mode=solo-fpp',
+            '!pubg-rank john region=pc-as mode=duo season=2018-03',
             '!pubg-rank john =all  (this will show in a text based format instead of the image)'
         ]
     };
@@ -69,13 +70,13 @@ export class Rank extends Command {
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
-        if(players.length === 0) {
-            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
+        if (players.length === 0) {
+            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
         const player: Player = players[0];
         if (!player.id) {
-            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region. Double check the username and region.`);
+            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
@@ -85,7 +86,7 @@ export class Rank extends Command {
             const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
             seasonData = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
         } catch(e) {
-            message.edit(`Could not find \`${this.paramMap.username}\`'s \`${this.paramMap.season}\` stats.`);
+            message.edit(`Could not find \`${this.paramMap.username}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
@@ -96,11 +97,11 @@ export class Rank extends Command {
 
             // Send the message and setup reactions
             this.setupReactions(message, originalPoster, seasonData);
-            message.edit({ embed });
+            message.edit(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
         } else {
-            let attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonData);
-            let msg = await message.channel.send(attatchment) as Discord.Message;
-            this.setupReactions(msg, originalPoster, seasonData);
+            const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonData);
+            const imageReply: Discord.Message = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(imageReply, originalPoster, seasonData);
         }
 
     };
@@ -113,46 +114,30 @@ export class Rank extends Command {
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         let paramMap: ParameterMap;
-        let username: string;
 
-        // Try to get username from user registery
-        if(!params[0] || cs.stringContains(params[0], '=')) {
-            username = await sqlUserRegisteryService.getRegisteredUser(msg.author.id);
-        }
+        const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
+        if (indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
 
-        // Check if user had registered name, if not check if supplied
-        if(!username) {
-            username = params[0];
+        let pubg_params: PubgParameters;
+        if (msg.guild) {
+            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        } else {
+            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
 
         // Throw error if no username supplied
-        if(!username) {
+        if (!pubg_params.username) {
             discordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
             throw 'Error:: Must specify a username';
         }
 
-        const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
-        if(indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
-
-        if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
-
-            paramMap = {
-                username: username,
-                season: cs.getParamValue('season=', params, serverDefaults.default_season),
-                region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
-                useText: indexOfUseText >= 0
-            }
-        } else {
-            const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
-            paramMap = {
-                username: username,
-                season: cs.getParamValue('season=', params, currentSeason),
-                region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_'),
-                useText: indexOfUseText >= 0
-            }
+        paramMap = {
+            username: pubg_params.username,
+            season: pubg_params.season,
+            region: pubg_params.region.toUpperCase().replace('-', '_'),
+            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
+            useText: indexOfUseText >= 0
         }
 
         analyticsService.track(this.help.name, {
@@ -160,7 +145,7 @@ export class Rank extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
-            pubg_name: username,
+            pubg_name: paramMap.username,
             season: paramMap.season,
             region: paramMap.region,
             mode: paramMap.mode,
@@ -230,13 +215,13 @@ export class Rank extends Command {
                 this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
+                const attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
 
                 if(msg.deletable) {
                     await msg.delete();
                 }
 
-                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
@@ -261,13 +246,13 @@ export class Rank extends Command {
                 this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
+                const attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
 
                 if(msg.deletable) {
                     await msg.delete();
                 }
 
-                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
@@ -293,13 +278,13 @@ export class Rank extends Command {
 
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
+                const attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
 
                 if(msg.deletable) {
                     await msg.delete();
                 }
 
-                let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };

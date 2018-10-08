@@ -41,7 +41,7 @@ export class Compare extends Command {
             '!pubg-compare john jane season=2018-03',
             '!pubg-compare john jane season=2018-03 region=pc-eu',
             '!pubg-compare john jane season=2018-03 region=pc-na mode=solo',
-            '!pubg-compare john jane region=pc-as mode=tpp season=2018-03',
+            '!pubg-compare john jane region=pc-as mode=duo season=2018-03',
         ]
     };
 
@@ -70,11 +70,11 @@ export class Compare extends Command {
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
 
         if (!playerA || !playerA.id) {
-            message.edit(`Could not find \`${this.paramMap.playerA}\` on the \`${this.paramMap.region}\`-- double check the usernames and region.`);
+            message.edit(`Could not find \`${this.paramMap.playerA}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
         if (!playerB || !playerB.id) {
-            message.edit(`Could not find \`${this.paramMap.playerB}\` on the \`${this.paramMap.region}\` -- double check the usernames and region.`);
+            message.edit(`Could not find \`${this.paramMap.playerB}\` on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
@@ -86,19 +86,19 @@ export class Compare extends Command {
         try {
             seasonDataA = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
         } catch(e) {
-            message.edit(`Could not find \`${this.paramMap.playerA}\`'s \`${this.paramMap.season}\` stats.`);
+            message.edit(`Could not find \`${this.paramMap.playerA}\`'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
         try {
             seasonDataB = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
         } catch(e) {
-            message.edit(`Could not find \`${this.paramMap.playerB}\`'s \`${this.paramMap.season}\` stats.`);
+            message.edit(`Could not find \`${this.paramMap.playerB}\`'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
 
-        let attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonDataA, seasonDataB);
-        let imgMsg = await message.channel.send(attatchment) as Discord.Message;
+        const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonDataA, seasonDataB);
+        const imgMsg = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
         this.setupReactions(imgMsg, originalPoster, seasonDataA, seasonDataB);
     };
 
@@ -214,14 +214,14 @@ export class Compare extends Command {
                 //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            let attatchment: Discord.Attachment = await this.createImage(seasonDataA.soloFPPStats, seasonDataA.soloStats, seasonDataB.soloFPPStats, seasonDataB.soloStats, 'Solo');
+            const attatchment: Discord.Attachment = await this.createImage(seasonDataA.soloFPPStats, seasonDataA.soloStats, seasonDataB.soloFPPStats, seasonDataB.soloStats, 'Solo');
 
             if(msg.deletable) {
                 one_collector.removeAllListeners();
                 await msg.delete();
             }
 
-            let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
 
         });
@@ -239,14 +239,14 @@ export class Compare extends Command {
                 //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            let attatchment: Discord.Attachment = await this.createImage(seasonDataA.duoFPPStats, seasonDataA.duoStats, seasonDataB.duoFPPStats, seasonDataB.duoStats, 'Duo');
+            const attatchment: Discord.Attachment = await this.createImage(seasonDataA.duoFPPStats, seasonDataA.duoStats, seasonDataB.duoFPPStats, seasonDataB.duoStats, 'Duo');
 
             if(msg.deletable) {
                 two_collector.removeAllListeners();
                 await msg.delete();
             }
 
-            let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
 
         });
@@ -264,14 +264,14 @@ export class Compare extends Command {
                 //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            let attatchment: Discord.Attachment = await this.createImage(seasonDataA.squadFPPStats, seasonDataA.squadStats, seasonDataB.squadFPPStats, seasonDataB.squadStats, 'Squad');
+            const attatchment: Discord.Attachment = await this.createImage(seasonDataA.squadFPPStats, seasonDataA.squadStats, seasonDataB.squadFPPStats, seasonDataB.squadStats, 'Squad');
 
             if(msg.deletable) {
                 four_collector.removeAllListeners();
                 await msg.delete();
             }
 
-            let newMsg = await msg.channel.send(attatchment) as Discord.Message;
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
 
         });

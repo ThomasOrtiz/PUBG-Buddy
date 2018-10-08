@@ -34,7 +34,7 @@ export class SetServerDefaults extends Command {
             '!pubg-setServerDefaults prefix=!pubg-',
             '!pubg-setServerDefaults prefix=!pubg- season=2018-08 ',
             '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na ',
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na mode=SQUAD-FPP',
+            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na mode=squad-fpp',
         ]
     };
 

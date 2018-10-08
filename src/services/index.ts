@@ -5,4 +5,5 @@ export * from './analytics.service';
 export * from './sql-services';
 export * from './image.service';
 export * from './message.service';
+export * from './parameter.service';
 export * from './pubg.api.service';

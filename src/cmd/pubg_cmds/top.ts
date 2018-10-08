@@ -4,12 +4,13 @@ import {
     CommonService as cs,
     DiscordMessageService as discordMessageService,
     ImageService as imageService,
+    ParameterService as parameterService,
     PubgService as pubgApiService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Player as User } from '../../interfaces';
+import { Player as User, Server, PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
@@ -63,12 +64,12 @@ export class Top extends Command {
             '!pubg-top season=2018-03',
             '!pubg-top season=2018-03 region=pc-na',
             '!pubg-top season=2018-03 region=pc-na',
-            '!pubg-top season=2018-03 region=pc-na mode=tpp',
+            '!pubg-top season=2018-03 region=pc-na mode=solo',
             '!pubg-top 5',
             '!pubg-top 5 season=2018-03',
             '!pubg-top 5 season=2018-03 region=pc-na',
             '!pubg-top 5 season=2018-03 region=pc-na',
-            '!pubg-top 5 season=2018-03 region=pc-na mode=tpp'
+            '!pubg-top 5 season=2018-03 region=pc-na mode=duo-fpp'
         ]
     };
 
@@ -109,10 +110,10 @@ export class Top extends Command {
 
                 // Send the message and setup reactions
                 this.setupReactions(msg, originalPoster, playerSeasons);
-                msg.edit({ embed });
+                msg.edit(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
-                let imgMessage = await msg.channel.send(attatchment) as Discord.Message;
+                const attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
+                const imgMessage = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(imgMessage, originalPoster, playerSeasons);
             }
         });
@@ -130,15 +131,17 @@ export class Top extends Command {
             amount = +params[0];
         }
 
-        const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
         const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
         if(indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
 
+        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
+
         const paramMap: ParameterMap = {
             amount : amount,
-            season: cs.getParamValue('season=', params, serverDefaults.default_season),
-            region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-            mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
+            season: pubg_params.season,
+            region: pubg_params.region.toUpperCase().replace('-', '_'),
+            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
             useText: indexOfUseText >= 0
         }
 
@@ -270,7 +273,7 @@ export class Top extends Command {
 
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImages(players, 'solo');
+                const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
 
                 if(msg.deletable) {
                     one_collector.removeAllListeners();
@@ -278,7 +281,7 @@ export class Top extends Command {
                 }
 
 
-                let newMsg: Discord.Message = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
         });
@@ -303,14 +306,14 @@ export class Top extends Command {
 
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImages(players, 'duo');
+                const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
 
                 if(msg.deletable) {
                     two_collector.removeAllListeners();
                     await msg.delete();
                 }
 
-                let newMsg: Discord.Message = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
         });
@@ -335,14 +338,14 @@ export class Top extends Command {
 
                 await msg.edit(warningMessage, { embed });
             } else {
-                let attatchment: Discord.Attachment = await this.createImages(players, 'squad');
+                const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
 
                 if(msg.deletable) {
                     four_collector.removeAllListeners();
                     await msg.delete();
                 }
 
-                let newMsg: Discord.Message = await msg.channel.send(attatchment) as Discord.Message;
+                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
         });

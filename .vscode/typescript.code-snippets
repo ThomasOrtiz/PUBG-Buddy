@@ -1,0 +1,47 @@
+{
+	// Place your snippets for typescript here. Each snippet is defined under a snippet name and has a prefix, body and
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the
+	// same ids are connected.
+	// Example:
+	"Create base command class": {
+		"prefix": "command",
+		"body": [
+            "import * as Discord from 'discord.js';",
+            "import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';",
+            "",
+            "",
+            "export class NewCommand extends Command {",
+                "\t",
+                "\tconf: CommandConfiguration = {",
+                "\t\tenabled: true,",
+                "\t\tguildOnly: true,",
+                "\t\taliases: [],",
+                "\t\tpermLevel: 0,",
+                "\t}",
+                "",
+                "\thelp: CommandHelp = {",
+                "\t\tname: '',",
+                "\t\tdescription: '',",
+                "\t\tusage: '',",
+                "\t\texamples: []",
+                "\t}",
+                "",
+                "\tasync run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {",
+                "",
+                "\t}",
+			"}"
+		],
+		"description": "Create base class for command"
+    },
+    "For_Loop": {
+        "prefix": "for",
+        "scope": "javascript,typescript",
+        "body": [
+          "for (const ${2:element} of ${1:array}) {",
+          "\t$0",
+          "}"
+        ],
+        "description": "For Loop"
+    }
+}

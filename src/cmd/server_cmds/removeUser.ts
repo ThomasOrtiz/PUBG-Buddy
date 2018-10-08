@@ -3,12 +3,13 @@ import {
     AnalyticsService as analyticsService,
     CommonService as cs,
     DiscordMessageService as discordMessageService,
+    ParameterService as parameterService,
     PubgService as pubgService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { Server, PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
 
@@ -39,8 +40,8 @@ export class RemoveUser extends Command {
         }
 
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-        const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+        const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_params.region]);
 
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
@@ -48,16 +49,10 @@ export class RemoveUser extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
-            region: region
+            region: pubg_params.region
         });
 
-        for (let i = 0; i < params.length; i++) {
-            let username: string = params[i];
-
-            if (username.indexOf('region=') >= 0) { continue; }
-
-            this.removeUser(msg, api, region, username);
-        }
+        this.removeUser(msg, api, pubg_params.region, pubg_params.username);
     };
 
     private async removeUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {

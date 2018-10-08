@@ -46,7 +46,7 @@ export class Profile extends Command {
             user = msg.author;
         }
 
-        let pubg_name: string = await SqlUserRegisteryService.getUserProfile(discordId);
+        let pubg_name: string = await SqlUserRegisteryService.getRegisteredUser(discordId);
 
         if (!pubg_name && !usedMention) {
             msg.channel.send(`You haven't registered yet -- run \`register\`.`);
