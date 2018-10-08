@@ -31,7 +31,8 @@ export enum PubgRankBreakPoints {
 }
 
 export enum PubgRankImageLocation {
-    UNRANKED_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_Unranked.png',
+    UNRANKED_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_Unranked_145x145.png',
+    UNRANKED_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_Unranked.png',
     BRONZE_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_01_bronze_145x145.png',
     BRONZE_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_01_bronze.png',
     SILVER_BADGE = './assets/pubg/assets/icons/ranks/Rank_Icon_02_silver_145x145.png',
