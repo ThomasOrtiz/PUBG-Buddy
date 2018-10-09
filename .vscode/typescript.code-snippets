@@ -3,7 +3,17 @@
 	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
 	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the
 	// same ids are connected.
-	// Example:
+    // Example:
+    "Console log": {
+        "prefix": "clog",
+        "body": "console.log('$1');",
+        "description": "Log output to console"
+    },
+    "Console choice": {
+        "prefix": "conc",
+        "body": "console.${1|log,warn,error|}('$2');",
+        "description": "Log output to console"
+    },
 	"Create base command class": {
 		"prefix": "command",
 		"body": [
@@ -11,7 +21,7 @@
             "import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';",
             "",
             "",
-            "export class NewCommand extends Command {",
+            "export class ${1/(.*)/${1:/capitalize}/} extends Command {",
                 "\t",
                 "\tconf: CommandConfiguration = {",
                 "\t\tenabled: true,",
@@ -21,27 +31,27 @@
                 "\t}",
                 "",
                 "\thelp: CommandHelp = {",
-                "\t\tname: '',",
+                "\t\tname: '${1/(.*)/${1:/downcase}/}',",
                 "\t\tdescription: '',",
                 "\t\tusage: '',",
                 "\t\texamples: []",
                 "\t}",
                 "",
                 "\tasync run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {",
-                "",
+                "\t\t$0",
                 "\t}",
 			"}"
 		],
 		"description": "Create base class for command"
     },
-    "For_Loop": {
-        "prefix": "for",
-        "scope": "javascript,typescript",
+    "For": {
+        "prefix": "forarr",
         "body": [
-          "for (const ${2:element} of ${1:array}) {",
-          "\t$0",
-          "}"
+            "for (let ${i} = 0; ${i} < ${array}.length; ${i}++) {",
+            "\tconst ${element} = ${array}[${i}];",
+            "\t$0",
+            "}"
         ],
         "description": "For Loop"
-    }
+    },
 }

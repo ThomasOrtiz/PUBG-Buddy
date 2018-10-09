@@ -225,7 +225,7 @@ export class Rank extends Command {
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
-        const onTwoCollect = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -256,7 +256,7 @@ export class Rank extends Command {
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
-        const onFourCollect = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,

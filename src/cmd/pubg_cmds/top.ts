@@ -239,20 +239,7 @@ export class Top extends Command {
      * @param {PlayerSeason} seasonData
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, players: PlayerWithSeasonData[]): Promise<void> {
-        const reaction_numbers = ["\u0030\u20E3","\u0031\u20E3","\u0032\u20E3","\u0033\u20E3","\u0034\u20E3","\u0035\u20E3", "\u0036\u20E3","\u0037\u20E3","\u0038\u20E3","\u0039\u20E3"]
-        await msg.react(reaction_numbers[1]);
-        await msg.react(reaction_numbers[2]);
-        await msg.react(reaction_numbers[4]);
-
-        const one_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[1] && originalPoster.id === user.id;
-        const two_filter: Discord.CollectorFilter = (reaction, user) =>  reaction.emoji.name === reaction_numbers[2] && originalPoster.id === user.id;
-        const four_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[4] && originalPoster.id === user.id;
-
-        const one_collector: Discord.ReactionCollector = msg.createReactionCollector(one_filter, { time: 15*1000 });
-        const two_collector: Discord.ReactionCollector = msg.createReactionCollector(two_filter, { time: 15*1000 });
-        const four_collector: Discord.ReactionCollector = msg.createReactionCollector(four_filter, { time: 15*1000 });
-
-        one_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        const onOneCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 1`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -276,7 +263,6 @@ export class Top extends Command {
                 const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
 
                 if(msg.deletable) {
-                    one_collector.removeAllListeners();
                     await msg.delete();
                 }
 
@@ -284,8 +270,8 @@ export class Top extends Command {
                 const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
-        });
-        two_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        };
+        const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -309,15 +295,14 @@ export class Top extends Command {
                 const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
 
                 if(msg.deletable) {
-                    two_collector.removeAllListeners();
                     await msg.delete();
                 }
 
                 const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
-        });
-        four_collector.on('collect', async (reaction: Discord.MessageReaction, reactionCollector) => {
+        };
+        const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -341,18 +326,14 @@ export class Top extends Command {
                 const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
 
                 if(msg.deletable) {
-                    four_collector.removeAllListeners();
                     await msg.delete();
                 }
 
                 const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, players);
             }
-        });
-
-        one_collector.on('end', collected => msg.clearReactions());
-        two_collector.on('end', collected => msg.clearReactions());
-        four_collector.on('end', collected => msg.clearReactions());
+        };
+        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     /**
