@@ -67,7 +67,7 @@ export class AddUser extends Command {
                 message.edit(`Could not add \`${username}\``);
             }
         } else {
-            message.edit(`Could not find \`${username}\` on the \`${region}\` region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
         }
     }
 

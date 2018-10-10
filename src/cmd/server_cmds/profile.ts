@@ -65,7 +65,7 @@ export class Profile extends Command {
 
         const date: Date = user.createdAt;
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle(`\`${user.tag}\`'s profile`)
+            .setTitle(`**${user.tag}**'s profile`)
             .setThumbnail(user.displayAvatarURL)
             .setColor(0x00AE86)
             .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)

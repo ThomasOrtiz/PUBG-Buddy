@@ -77,7 +77,7 @@ export class Register extends Command {
                 message.edit(`Failed to register your Discord user with PUBG name \`${username}\``);
             }
         } else {
-            message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
         }
     }
 

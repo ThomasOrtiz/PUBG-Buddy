@@ -60,7 +60,7 @@ export class RemoveUser extends Command {
         const pubgId: string = await pubgService.getPlayerId(api, username);
 
         if (!pubgId) {
-            message.edit(`Could not find ${username} on the ${region} region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
             return;
         }
 
