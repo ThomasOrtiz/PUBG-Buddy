@@ -21,7 +21,6 @@ interface ParameterMap {
     season: string;
     region: string;
     mode: string;
-    useText: boolean;
 }
 
 class PlayerWithSeasonData {
@@ -57,10 +56,9 @@ export class Top extends Command {
     help: CommandHelp = {
         name: 'top',
         description: `Gets the top "x" players registered in the server. Players that haven't played this season are excluded.`,
-        usage: '<prefix>top [Number-Of-Users] [season=] [region=] [mode=] [=text]',
+        usage: '<prefix>top [Number-Of-Users] [season=] [region=] [mode=]',
         examples: [
             '!pubg-top',
-            '!pubg-top =text',
             '!pubg-top season=2018-03',
             '!pubg-top season=2018-03 region=pc-na',
             '!pubg-top season=2018-03 region=pc-na',
@@ -81,10 +79,10 @@ export class Top extends Command {
         const originalPoster: Discord.User = msg.author;
         this.paramMap = await this.getParameters(msg, params);
 
-        let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
+        let reply: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
         const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
         if(!isValidParameters) {
-            checkingParametersMsg.delete();
+            reply.delete();
             return;
         }
 
@@ -94,29 +92,20 @@ export class Top extends Command {
             return;
         }
 
-        checkingParametersMsg.edit(`Aggregating \`top ${this.paramMap.amount}\` on \`${this.registeredUsers.length} registered users\` ... give me a second`);
+        await reply.edit(`Aggregating **Top ${this.paramMap.amount}** on **${this.registeredUsers.length} registered users** ... give me a second`);
 
-        msg.channel.send('Grabbing player data').then(async (msg: Discord.Message) => {
-            // Get list of ids
-            const registeredNames: string[] = this.registeredUsers.map(user => user.username);
-            const players: Player[] = await this.getPlayerInfoByBatching(registeredNames);
+        // Get list of ids
+        const registeredNames: string[] = this.registeredUsers.map(user => user.username);
+        const players: Player[] = await this.getPlayerInfoByBatching(registeredNames);
 
-            // Retrieve Season data for player
-            let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(msg, players);
+        // Retrieve Season data for player
+        let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(reply, players);
 
-            if(this.paramMap.useText) {
-                let embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addDefaultStats(embed, playerSeasons);
+        const attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
 
-                // Send the message and setup reactions
-                this.setupReactions(msg, originalPoster, playerSeasons);
-                msg.edit(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
-                const imgMessage = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(imgMessage, originalPoster, playerSeasons);
-            }
-        });
+        await reply.delete();
+        const imgMessage: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+        this.setupReactions(imgMessage, originalPoster, playerSeasons);
     };
 
     /**
@@ -131,9 +120,6 @@ export class Top extends Command {
             amount = +params[0];
         }
 
-        const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
-        if (indexOfUseText >= 0) { params.splice(indexOfUseText, 1); }
-
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
 
@@ -141,8 +127,7 @@ export class Top extends Command {
             amount : amount,
             season: pubg_params.season,
             region: pubg_params.region.toUpperCase().replace('-', '_'),
-            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
-            useText: indexOfUseText >= 0
+            mode: pubg_params.mode.toUpperCase().replace('-', '_')
         }
 
         analyticsService.track(this.help.name, {
@@ -152,8 +137,7 @@ export class Top extends Command {
             number_parameters: params.length,
             season: paramMap.season,
             region: paramMap.region,
-            mode: paramMap.mode,
-            useText: paramMap.useText
+            mode: paramMap.mode
         });
 
         return paramMap;
@@ -190,13 +174,14 @@ export class Top extends Command {
         let playerSeasons: PlayerWithSeasonData[] = new Array();
         const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
 
+        let progressMsg: Discord.Message = await msg.channel.send('Grabbing player data') as Discord.Message;
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
             const currentId = player.id;
 
             if (i % this.batchEditAmount === 0) {
                 let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
-                msg.edit(`Grabbing data for players ${i + 1} - ${max}`);
+                progressMsg.edit(`Grabbing data for players **${i + 1} - ${max}**`);
             }
 
             try {
@@ -209,27 +194,8 @@ export class Top extends Command {
 
         }
 
+        await progressMsg.delete();
         return playerSeasons;
-    }
-
-    /**
-     * Depending on the user's default mode get one of three stats
-     * @param {Discord.RichEmbed} embed
-     * @param {PlayerSeason} seasonData
-     */
-    private addDefaultStats(embed: Discord.RichEmbed, players: PlayerWithSeasonData[]): void {
-        let mode = this.paramMap.mode;
-
-        if (cs.stringContains(mode, 'solo', true)) {
-            this.addSpecificDataToEmbed(embed, players, 'SOLO_FPP');
-            this.addSpecificDataToEmbed(embed, players, 'SOLO');
-        } else if (cs.stringContains(mode, 'duo', true)) {
-            this.addSpecificDataToEmbed(embed, players, 'DUO_FPP');
-            this.addSpecificDataToEmbed(embed, players, 'DUO');
-        } else if (cs.stringContains(mode, 'squad', true)) {
-            this.addSpecificDataToEmbed(embed, players, 'SQUAD_FPP');
-            this.addSpecificDataToEmbed(embed, players, 'SQUAD');
-        }
     }
 
     /**
@@ -243,8 +209,7 @@ export class Top extends Command {
             analyticsService.track(`${this.help.name} - Click 1`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
             let warningMessage;
@@ -253,30 +218,20 @@ export class Top extends Command {
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            if(this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, players, 'SOLO_FPP');
-                this.addSpecificDataToEmbed(embed, players, 'SOLO');
-
-                await msg.edit(warningMessage, { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
-
-                if(msg.deletable) {
-                    await msg.delete();
-                }
-
-
-                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, players);
+            if(msg.deletable) {
+                await msg.delete();
             }
+
+            const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
+            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, players);
+
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
             let warningMessage;
@@ -285,147 +240,42 @@ export class Top extends Command {
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
             });
 
-            if(this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, players, 'DUO_FPP');
-                this.addSpecificDataToEmbed(embed, players, 'DUO');
-
-                await msg.edit(warningMessage, { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
-
-                if(msg.deletable) {
-                    await msg.delete();
-                }
-
-                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, players);
+            if(msg.deletable) {
+                await msg.delete();
             }
+
+            const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
+            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, players);
+
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
-            let warningMessage;
+            let warningMessage: string;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:\n';
             });
 
-            if(this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, players, 'SQUAD_FPP');
-                this.addSpecificDataToEmbed(embed, players, 'SQUAD');
 
-                await msg.edit(warningMessage, { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
-
-                if(msg.deletable) {
-                    await msg.delete();
-                }
-
-                const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, players);
+            if(msg.deletable) {
+                await msg.delete();
             }
+
+            const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
+            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, players);
+
         };
         discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
-    /**
-     * Creates the base embed that the command will respond with
-     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
-     */
-    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
-        let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                .setTitle('Top ' + this.paramMap.amount + ' local players')
-                .setDescription(`Season:\t ${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
-                .setColor(0x00AE86)
-                .setFooter(`Using PUBG's official API`)
-                .setTimestamp()
-
-        return embed;
-    }
-
-    /**
-     * Adds game stats to the embed
-     * @param {Discord.RichEmbed} embed
-     * @param {GameModeStats} soloData
-     * @param {GameModeStats} duoData
-     * @param {GameModeStats} squadData
-     */
-    private addSpecificDataToEmbed(embed: Discord.RichEmbed, players: PlayerWithSeasonData[], gameMode: string): void {
-        this.addEmbedFields(embed, gameMode, players);
-    }
-
-    /**
-     * Add the game mode data to the embed
-     * @param {Discord.Message} embed
-     * @param {string} gameMode
-     * @param {GameModeStats} playerData
-     */
-    private async addEmbedFields(embed: Discord.RichEmbed, gameMode: string, players: PlayerWithSeasonData[]) {
-        const statsToGetKey: string = this.getWhichStatsToGet(gameMode);
-
-        // Create UserInfo array with specific season data
-        let userInfo: PlayerWithGameModeStats[] = new Array();
-        for(let i = 0; i < players.length; i++) {
-            const data: PlayerWithSeasonData = players[i];
-            const info = new PlayerWithGameModeStats(data.name, data.seasonData[statsToGetKey]);
-            userInfo.push(info);
-        }
-
-        // Sorting Array based off of ranking (higher ranking is better)
-        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-            const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
-            const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
-            return (+overallRatingB) - (+overallRatingA);
-        });
-
-        // Grab only the top 'x' players
-        let topPlayers: PlayerWithGameModeStats[] = userInfo.slice(0, this.paramMap.amount);
-
-        // Construct top strings
-        let names: string = '';
-        let ratings: string = '';
-        let kds: string = '';
-
-        for (let i = 0; i < topPlayers.length; i++) {
-            const playerInfo = topPlayers[i];
-            const seasonStats: GameModeStats = playerInfo.gameModeStats;
-
-            if(seasonStats.roundsPlayed === 0) { continue; }
-
-            const overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0);
-            const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
-            const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
-            const averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
-            const ratingStr: string = overallRating ? `${overallRating}` : 'Not available';
-            const kdsStr: string    = `${kd} / ${kda} / ${averageDamageDealt}`;
-
-            names += `${playerInfo.name}\n`;
-            ratings += `${ratingStr}\n`;
-            kds += `${kdsStr}\n`;
-        }
-
-        const gameModeSplit: string[] = gameMode.split('_');
-        let gameModeDescription: string = gameModeSplit[0];
-        gameModeDescription += (gameModeSplit.length == 2) ? ` ${gameModeSplit[1]}` : '';
-
-        if(names.length === 0) { return; }
-
-        embed.addBlankField();
-        embed.addField('Game Type', gameModeDescription);
-        embed.addField('Name', names, true);
-        embed.addField('Rating', ratings, true);
-        embed.addField('KD / KDA / Avg Dmg', kds, true);
-    }
 
     /**
      * Give a mode, return the dict key relevant to that mode

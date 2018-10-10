@@ -331,7 +331,14 @@ export class Rank extends Command {
      * @param {GameModeStats} playerData
      */
     private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, playerData: GameModeStats): void {
-        const overallRating = cs.round(pubgApiService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
+        let overallRating;
+        const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
+        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(pubgApiService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
+        } else {
+            overallRating = cs.round(playerData.rankPoints, 0) || 'NA';
+        }
+
         const kd = cs.round(playerData.kills / playerData.losses) || 0;
         const kda = cs.round((playerData.kills + playerData.assists) / playerData.losses) || 0;
         const winPercent = cs.getPercentFromFraction(playerData.wins, playerData.roundsPlayed);
