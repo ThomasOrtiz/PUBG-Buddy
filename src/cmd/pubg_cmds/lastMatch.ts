@@ -118,7 +118,7 @@ export class LastMatch extends Command {
      * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
      */
     private async createEmbed(match: Match): Promise<Discord.RichEmbed> {
-        const roster: Roster = match.rosters.filter(roster => roster.participants.filter(p => p.name === 'Thomas-O')[0])[0];
+        const roster: Roster = match.rosters.filter(roster => roster.participants.filter(p => p.name === this.paramMap.username)[0])[0];
         const teamParticipanets = roster.participants;
 
         for (let i = 0; i < teamParticipanets.length; i++) {
