@@ -68,31 +68,23 @@ bot.on('message', async (msg: Discord.Message) => {
     let params: string[];
 
     // Grab relevant guild info if not DM
+    let customPrefix: string;
     if(msg.guild) {
         isGuildMessage = true;
         let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
-        prefix = server_defaults.default_bot_prefix.toLowerCase();
+        customPrefix = server_defaults.default_bot_prefix.toLowerCase();
         perms = bot.elevation(msg);
     }
 
-    // Check for special case with default help
-    const startsWithDefaultHelp = msg.content.toLowerCase().startsWith('!pubg-help');
-    if (startsWithDefaultHelp) {
-        command = msg.content.split(' ')[0].slice('!pubg-'.length);
-        params = msg.content.split(' ').slice(1);
-        // Get command
-        let cmd: Command = getCommand(command);
-
-        // Run command
-        if (cmd && checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
-            cmd.run(bot, msg, params, perms);
-        }
+    // Ignore requests without our prefix/customPrefix
+    if (msg.content.toLowerCase().startsWith(prefix)) {
+        command = msg.content.split(' ')[0].slice(prefix.length);
+    } else if (msg.content.toLowerCase().startsWith(customPrefix)) {
+        command = msg.content.split(' ')[0].slice(customPrefix.length);
+    } else {
         return;
     }
 
-    // Ignore requests without our prefix
-    if (!msg.content.toLowerCase().startsWith(prefix)) { return; }
-    command = msg.content.split(' ')[0].slice(prefix.length);
     params = msg.content.split(' ').slice(1);
 
     // Get command

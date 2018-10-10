@@ -80,7 +80,7 @@ export class SetServerDefaults extends Command {
         const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
         paramMap = {
-            prefix: cs.getParamValue('prefix=', params, server.default_bot_prefix || '!pubg-'),
+            prefix: cs.getParamValue('prefix=', params, server.default_bot_prefix || '!pubg-').trim() || '!pubg-',
             season: cs.getParamValue('season=', params, server.default_season || currentSeason),
             region: cs.getParamValue('region=', params, server.default_region || 'pc_na').toUpperCase().replace('-', '_'),
             mode: cs.getParamValue('mode=', params, server.default_mode || 'solo_fpp').toUpperCase().replace('-', '_'),
