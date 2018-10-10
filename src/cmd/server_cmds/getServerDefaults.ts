@@ -1,7 +1,8 @@
 import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
-    SqlServerService as sqlServerService
+    SqlServerService as sqlServerService,
+    CommonService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
@@ -39,10 +40,10 @@ export class GetServerDefaults extends Command {
             let embed: Discord.RichEmbed = new Discord.RichEmbed()
                 .setTitle('Server Defaults')
                 .setDescription('The defaults that a server has when running PUBG Bot commands.')
+                .setThumbnail(msg.guild.iconURL)
                 .setColor(0x00AE86)
-                .addField('Bot Prefix', server.default_bot_prefix, true)
-                .addBlankField(true)
-                .addBlankField(true)
+                .addField('Default Bot Prefix', CommonService.getEnvironmentVariable('prefix'), true)
+                .addField('Custom Bot Prefix', server.default_bot_prefix, true)
                 .addBlankField(false)
                 .addField('Default Season', server.default_season, true)
                 .addField('Default Region', server.default_region.replace('_', '-'), true)
