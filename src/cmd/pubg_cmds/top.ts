@@ -132,7 +132,7 @@ export class Top extends Command {
         }
 
         const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
-        if(indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
+        if (indexOfUseText >= 0) { params.splice(indexOfUseText, 1); }
 
         const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);

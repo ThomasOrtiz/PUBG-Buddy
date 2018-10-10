@@ -3,6 +3,41 @@ require('dotenv').config();
 
 export class CommonService {
 
+
+    static singleLineString = (strings, ...values) => {
+        let output = '';
+        for (let i = 0; i < values.length; i++) {
+          output += strings[i] + values[i];
+        }
+        output += strings[values.length];
+
+        // Split on newlines.
+        let lines = output.split(/(?:\r\n|\n|\r)/);
+
+        // Rip out the leading whitespace.
+        return lines.map((line) => {
+          return line.replace(/^\s+/gm, '');
+        }).join(' ').trim();
+    }
+
+    static multiLineStringNoLeadingWhitespace = (strings, ...values) => {
+        let output = '';
+        for (let i = 0; i < values.length; i++) {
+          output += strings[i] + values[i];
+        }
+        output += strings[values.length];
+
+        // Split on newlines.
+        let lines = output.split(/(?:\r\n|\n|\r)/);
+
+        // Rip out the leading whitespace.
+        lines = lines.map((line) => {
+          return `${line.replace(/^\s+/gm, '')}\n`;
+        });
+
+        return lines.join('').trim();
+    }
+
     /**
      * Returns index of position of a string if it exists as a
      * substring in any of the elements in the array.

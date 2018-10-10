@@ -131,32 +131,32 @@ export class LastMatch extends Command {
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle(`PUBG Match Summary - ${regionDisplayName} (${this.paramMap.season})`)
-            .setDescription(`
-            **Started at**: ${match.dateCreated.toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' EST'}
-            **Map**: ${PubgService.getMapDisplayName(match.map)}
-            **Length**: ${this.secondsToHms(match.duration)}
-            **Placement**: ${roster.rank}
-            **Replay Link**: [Link](${this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id)})`)
+            .setDescription(CommonService.multiLineStringNoLeadingWhitespace`
+                **Started at**: ${match.dateCreated.toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' EST'}
+                **Map**: ${PubgService.getMapDisplayName(match.map)}
+                **Length**: ${this.secondsToHms(match.duration)}
+                **Placement**: ${roster.rank}
+                **Replay Link**: [Link](${this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id)})`)
             .setColor(0x00AE86);
 
         for (let i = 0; i < teamParticipanets.length; i++) {
             const participant: Participant = teamParticipanets[i];
 
-            embed.addField('======================================================', `**${participant.name}**'s Match Stats`);
-            const killStats: string = `
-            **Kills**: ${participant.kills}
-            **Assists**: ${participant.assists}
-            **Damage**: ${participant.damageDealt.toFixed(2)}
-            **Headshot Kills**:  ${participant.headshotKills}
-            **Longest Kill**: ${participant.longestKill.toFixed(2)}
-            **Road Kills**: ${participant.roadKills}
-            **Team Kills**: ${participant.teamKills}`;
+            embed.addField('=================================', `**${participant.name}**'s Match Stats`);
+            const killStats: string = CommonService.multiLineStringNoLeadingWhitespace`
+                **Kills**: ${participant.kills}
+                **Assists**: ${participant.assists}
+                **Damage**: ${participant.damageDealt.toFixed(2)}
+                **Headshot Kills**:  ${participant.headshotKills}
+                **Longest Kill**: ${participant.longestKill.toFixed(2)}
+                **Road Kills**: ${participant.roadKills}
+                **Team Kills**: ${participant.teamKills}`;
 
-            const gameStats: string = `
-            **Survived For**: ${this.secondsToHms(participant.timeSurvived)}
-            **Revives**: ${participant.revives}
-            **Walk Distance**: ${participant.walkDistance.toFixed(2)}m
-            **Car Distance**: ${participant.rideDistance.toFixed(2)}m`;
+            const gameStats: string = CommonService.multiLineStringNoLeadingWhitespace`
+                **Survived For**: ${this.secondsToHms(participant.timeSurvived)}
+                **Revives**: ${participant.revives}
+                **Walk Distance**: ${participant.walkDistance.toFixed(2)}m
+                **Car Distance**: ${participant.rideDistance.toFixed(2)}m`;
 
             embed.addField('Kill Stats', killStats, true);
             embed.addField('Game Stats', gameStats, true);

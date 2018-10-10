@@ -116,7 +116,7 @@ export class Rank extends Command {
         let paramMap: ParameterMap;
 
         const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
-        if (indexOfUseText > 0) { params.splice(indexOfUseText, 1); }
+        if (indexOfUseText >= 0) { params.splice(indexOfUseText, 1); }
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
@@ -338,34 +338,31 @@ export class Rank extends Command {
         const topTenPercent = cs.getPercentFromFraction(playerData.top10s, playerData.roundsPlayed);
         const averageDamageDealt = cs.round(playerData.damageDealt / playerData.roundsPlayed) || 0;
 
-        let killStats: string = `
-        \`KD:\` ${kd}
-        \`KDA:\` ${kda}
-        \`Kills:\` ${playerData.kills}
-        \`Assists:\` ${playerData.assists}
-        \`DBNOs:\` ${playerData.dBNOs}
-        \`Suicides:\` ${playerData.suicides}
-        \`Headshots:\` ${playerData.headshotKills}
-        \`Longest kill:\` ${playerData.longestKill.toFixed(2)}
-        \`Road kill:\` ${playerData.roadKills}
-        `;
+        let killStats: string = cs.multiLineStringNoLeadingWhitespace`
+            \`KD:\` ${kd}
+            \`KDA:\` ${kda}
+            \`Kills:\` ${playerData.kills}
+            \`Assists:\` ${playerData.assists}
+            \`DBNOs:\` ${playerData.dBNOs}
+            \`Suicides:\` ${playerData.suicides}
+            \`Headshots:\` ${playerData.headshotKills}
+            \`Longest kill:\` ${playerData.longestKill.toFixed(2)}
+            \`Road kill:\` ${playerData.roadKills}`;
 
-        let gameStats: string = `
-        \`Total Damage Dealt:\` ${playerData.damageDealt.toFixed(2)}
-        \`Average damage dealt:\` ${averageDamageDealt}
-        \`Longest time survived:\` ${playerData.longestTimeSurvived.toFixed(2)}
-        \`Walk distance:\` ${playerData.walkDistance.toFixed(2)}
-        \`Ride distance:\` ${playerData.rideDistance.toFixed(2)}
-        \`Vehicles Destroyed:\` ${playerData.vehicleDestroys}
-        `;
+        let gameStats: string = cs.multiLineStringNoLeadingWhitespace`
+            \`Total Damage Dealt:\` ${playerData.damageDealt.toFixed(2)}
+            \`Average damage dealt:\` ${averageDamageDealt}
+            \`Longest time survived:\` ${playerData.longestTimeSurvived.toFixed(2)}
+            \`Walk distance:\` ${playerData.walkDistance.toFixed(2)}
+            \`Ride distance:\` ${playerData.rideDistance.toFixed(2)}
+            \`Vehicles Destroyed:\` ${playerData.vehicleDestroys}`;
 
-        let winStats: string = `
-        \`Win %:\` ${winPercent}
-        \`Wins:\` ${playerData.wins}
-        \`Top 10 %:\` ${topTenPercent}
-        \`Top 10s:\`  ${playerData.top10s}
-        \`Matches Played:\`  ${playerData.roundsPlayed}
-        `;
+        let winStats: string = cs.multiLineStringNoLeadingWhitespace`
+            \`Win %:\` ${winPercent}
+            \`Wins:\` ${playerData.wins}
+            \`Top 10 %:\` ${topTenPercent}
+            \`Top 10s:\`  ${playerData.top10s}
+            \`Matches Played:\`  ${playerData.roundsPlayed}`;
 
         embed.addBlankField();
         embed.addField(`${gameMode} Rating`, overallRating, false)
