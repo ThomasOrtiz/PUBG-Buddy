@@ -61,7 +61,7 @@ export class Help extends Command {
         }
 
         let prefix_explanation: string = '= Bot Prefix and PUBG Defaults Explanation = \n\n' +
-                                    'This bot\'s prefix and PUBG specific defaults are configurable if on a server through the `setServerDefaults` command.\n\n' +
+                                    'This bot\'s prefix and PUBG specific defaults are configurable through `setServerDefaults` command.\n\n' +
                                     'Default Server Prefix:\t "' + default_bot_prefix + '"\n' +
                                     'Current Server Prefix:\t "' + prefix + '"';
         let commandList: string = '';
@@ -94,7 +94,8 @@ export class Help extends Command {
                                     '\trequired select one :: <(option1 | option2 | option3)>\n' +
                                     '\toptional select one :: [(option1 | option2 | option3)]\n\n';
 
-        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n[Use "<prefix>help <commandname>" for details]${commandList}${parameterExplanation}`, { code: 'asciidoc'}) as Discord.Message;
+        msg = await msg.channel.send(`${prefix_explanation}\n\n= Command List =\n[Use "<prefix>help <commandname>" for details]${commandList}`, { code: 'asciidoc'}) as Discord.Message;
+        await msg.channel.send(`${parameterExplanation}`, { code: 'asciidoc'});
     }
 
     private printCommandHelp(bot: DiscordClientWrapper, msg: Discord.Message, commandName : string) {
