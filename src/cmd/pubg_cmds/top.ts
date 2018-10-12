@@ -212,7 +212,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage;
+            let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
@@ -234,7 +234,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage;
+            let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
@@ -256,7 +256,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage: string;
+            let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
                 warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:\n';
