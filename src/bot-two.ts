@@ -85,8 +85,9 @@ export class DiscordBot {
          */
         this.bot.elevation = function (msg): number {
             let permlvl: number = 0;
-            const hasAdminPermissions: boolean = msg.member.hasPermission('ADMINISTRATOR');
-            if(hasAdminPermissions) { permlvl = 4; }
+
+            const hasAdminPermissions: boolean = msg.member ? msg.member.hasPermission('ADMINISTRATOR'): false;
+            if (hasAdminPermissions) { permlvl = 4; }
 
             return permlvl;
         };
