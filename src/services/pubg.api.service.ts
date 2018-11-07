@@ -465,7 +465,7 @@ export class PubgService {
             case MapName.ERANGEL_MAIN:
                 return 'Erangel';
             case MapName.DESERT_MAIN:
-                return 'Desert';
+                return 'Miramar';
             case MapName.SANHOK_MAIN:
                 return 'Sanhok';
             default:
