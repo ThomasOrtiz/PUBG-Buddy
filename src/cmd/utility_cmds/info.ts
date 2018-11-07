@@ -29,7 +29,7 @@ export class Info extends Command {
         });
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle(`PUBG Bot Information`)
+            .setTitle(`PUBG Buddy Information`)
             .setThumbnail(bot.user.displayAvatarURL)
             .setColor(0x00AE86)
             .addField('Owner', 'Thomas Ortiz - Thomas#1442')
