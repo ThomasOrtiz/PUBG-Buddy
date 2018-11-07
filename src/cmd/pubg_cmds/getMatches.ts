@@ -139,7 +139,7 @@ export class GetMatches extends Command {
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
 
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle('Matches')
+            .setTitle(`Matches for ${this.paramMap.username}`)
             .setDescription(`Season:\t${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
             .setColor(0x00AE86)
             .setFooter(`Powered by https://pubg-replay.com`)
@@ -271,8 +271,6 @@ export class GetMatches extends Command {
             let match: Match = await pubgApiService.getMatchInfo(seasonStatsApi, matchIds[i]);
             matches.push(match);
         }
-
-
 
         for(let i = 0; i < finalLength; i++) {
             const match: Match = matches[i];
