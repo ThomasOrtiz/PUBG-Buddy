@@ -152,13 +152,13 @@ export class RandomDrop extends Command {
         });
 
         e_collector.on('end', collected => {
-            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
         });
         m_collector.on('end', collected => {
-            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
         });
         s_collector.on('end', collected => {
-            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
         });
     }
 
