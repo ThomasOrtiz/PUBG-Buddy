@@ -39,7 +39,7 @@ export class RandomDrop extends Command {
         const explanation: string = `**${msg.author.username}**, use the **E**, **M**, and **S** **reactions** to switch between **Erangel**, **Miramar**, and **Sanhok**.`;
         if (map) {
             const drop: string = this.getDrop(map);
-            response = await msg.channel.send(`${explanation}\nDrop **${drop}**!`) as Discord.Message;
+            response = await msg.channel.send(`${explanation}\nDrop at **${drop}**!`) as Discord.Message;
         } else {
             response = await msg.channel.send(`${explanation}`) as Discord.Message;
         }
@@ -126,7 +126,7 @@ export class RandomDrop extends Command {
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
-            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+            await msg.edit(`${warningMessage}\n${explanation}\nDrop at **${drop}**!`) as Discord.Message;
         });
         m_collector.on('collect', async (reaction: Discord.MessageReaction) => {
             drop = this.getDrop('m');
@@ -137,7 +137,7 @@ export class RandomDrop extends Command {
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
-            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+            await msg.edit(`${warningMessage}\n${explanation}\nDrop at **${drop}**!`) as Discord.Message;
         });
         s_collector.on('collect', async (reaction: Discord.MessageReaction) => {
             drop = this.getDrop('s');
@@ -148,17 +148,17 @@ export class RandomDrop extends Command {
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
-            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+            await msg.edit(`${warningMessage}\n${explanation}\nDrop at **${drop}**!`) as Discord.Message;
         });
 
         e_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**!` : '!'}`); });
         });
         m_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**!` : '!'}`); });
         });
         s_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+            msg.clearReactions().catch(() => { }).then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**!` : '!'}`); });
         });
     }
 
