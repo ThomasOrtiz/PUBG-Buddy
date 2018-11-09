@@ -4,6 +4,7 @@ import {
     AnalyticsService as analyticsService,
     DiscordMessageService as discordMessageService
  } from '../../services';
+import { CommonMessages } from '../../shared/constants';
 
 
 export class RandomDrop extends Command {
@@ -18,7 +19,7 @@ export class RandomDrop extends Command {
     help: CommandHelp = {
         name: 'drop',
         description: 'Gives you a random place to drop dependant on the map.',
-        usage: '<prefix>drop <e || m || s>',
+        usage: '<prefix>drop [(e | m | s)]',
         examples: [
             '!pubg-drop e',
             '!pubg-drop m',
@@ -27,43 +28,50 @@ export class RandomDrop extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        let mapName: string;
+        let map: string;
 
         try {
-            mapName = this.getParameters(msg, params);
+            map = await this.getParameters(msg, params);
         } catch { return; }
 
+        let response: Discord.Message;
+
+        const explanation: string = `**${msg.author.username}**, use the **E**, **M**, and **S** **reactions** to switch between **Erangel**, **Miramar**, and **Sanhok**.`;
+        if (map) {
+            const drop: string = this.getDrop(map);
+            response = await msg.channel.send(`${explanation}\nDrop **${drop}**!`) as Discord.Message;
+        } else {
+            response = await msg.channel.send(`${explanation}`) as Discord.Message;
+        }
+
+        this.setupReactions(response, msg.author);
+
+        analyticsService.track(this.help.name, {
+            distinct_id: msg.author.id,
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag
+        });
+    };
+
+    private getDrop(map: string): string {
         let randomDrop;
-        let fullMapName: string;
-        switch (mapName) {
+        switch (map) {
             case 'e': {
-                fullMapName = 'Erangel';
                 randomDrop = this.getRandomErangel();
                 break;
             }
             case 'm': {
-                fullMapName = 'Miramar';
                 randomDrop = this.getRandomMiramar();
                 break;
             }
             case 's': {
-                fullMapName = 'Sanhok';
                 randomDrop = this.getRandomSanhok();
                 break;
             }
         }
 
-        analyticsService.track(this.help.name, {
-            distinct_id: msg.author.id,
-            discord_id: msg.author.id,
-            discord_username: msg.author.tag,
-            mapName: fullMapName,
-            drop: randomDrop
-        });
-
-
-        msg.channel.send(`Drop \`${randomDrop}\`!`);
-    };
+        return randomDrop;
+    }
 
     /**
      * Retrieves the paramters for the command
@@ -71,22 +79,88 @@ export class RandomDrop extends Command {
      * @param {string[]} params
      * @returns {Promise<ParameterMap>}
      */
-    private getParameters(msg: Discord.Message, params: string[]): string {
-        if (params.length < 1) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a map name', this.help);
-            throw 'Error:: Must use "e", "m", or "s"';
+    private async getParameters(msg: Discord.Message, params: string[]): Promise<string> {
+        let map: string = '';
+
+        if (params.length > 0) {
+            map = params[0].toLowerCase();
+            if (map !== 'e' && map !== 'm' && map !== 's') {
+                discordMessageService.handleError(msg, 'Error:: Must specify a map name', this.help);
+                throw 'Error:: Must use "e", "m", or "s"';
+            }
+
+            return map;
         }
 
-        let mapName: string = params[0].toLowerCase();
-
-        if (mapName !== 'e' && mapName !== 'm' && mapName !== 's') {
-            discordMessageService.handleError(msg, 'Error:: Must specify a map name', this.help);
-            throw 'Error:: Must use "e", "m", or "s"';
-        }
-
-        return mapName;
+        return undefined;
     }
 
+    /**
+     * Adds reaction collectors and filters to make interactive messages
+     * @param {Discord.Message} msg
+     * @param {Discord.User} originalPoster
+     */
+    private async setupReactions(msg: Discord.Message, originalPoster: Discord.User): Promise<void> {
+        const reaction_numbers = ['🇪', '🇲', '🇸']
+        await msg.react(reaction_numbers[0]);
+        await msg.react(reaction_numbers[1]);
+        await msg.react(reaction_numbers[2]);
+
+        const e_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[0] && originalPoster.id === user.id;
+        const m_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[1] && originalPoster.id === user.id;
+        const s_filter: Discord.CollectorFilter = (reaction, user) => reaction.emoji.name === reaction_numbers[2] && originalPoster.id === user.id;
+
+        const e_collector: Discord.ReactionCollector = msg.createReactionCollector(e_filter, { time: 15 * 1000 });
+        const m_collector: Discord.ReactionCollector = msg.createReactionCollector(m_filter, { time: 15 * 1000 });
+        const s_collector: Discord.ReactionCollector = msg.createReactionCollector(s_filter, { time: 15 * 1000 });
+
+        const explanation: string = `**${originalPoster.username}**, use the **E**, **M**, and **S** **reactions** to switch between **Erangel**, **Miramar**, and **Sanhok**.`;
+        let drop: string = '';
+
+        e_collector.on('collect', async (reaction: Discord.MessageReaction) => {
+            drop = this.getDrop('e');
+
+            let warningMessage: string = '';
+            await reaction.remove(originalPoster).catch((err) => {
+                if (!msg.guild) { return; }
+                warningMessage = CommonMessages.REACTION_WARNING;
+            });
+
+            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+        });
+        m_collector.on('collect', async (reaction: Discord.MessageReaction) => {
+            drop = this.getDrop('m');
+
+            let warningMessage: string = '';
+            await reaction.remove(originalPoster).catch((err) => {
+                if (!msg.guild) { return; }
+                warningMessage = CommonMessages.REACTION_WARNING;
+            });
+
+            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+        });
+        s_collector.on('collect', async (reaction: Discord.MessageReaction) => {
+            drop = this.getDrop('s');
+
+            let warningMessage: string = '';
+            await reaction.remove(originalPoster).catch((err) => {
+                if (!msg.guild) { return; }
+                warningMessage = CommonMessages.REACTION_WARNING;
+            });
+
+            await msg.edit(`${warningMessage}${explanation}\nDrop **${drop}**`) as Discord.Message;
+        });
+
+        e_collector.on('end', collected => {
+            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+        });
+        m_collector.on('end', collected => {
+            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+        });
+        s_collector.on('end', collected => {
+            msg.clearReactions().then(() => { msg.edit(`Have a good drop${drop ? ` at **${drop}**` : '!'}`); });
+        });
+    }
 
     private getRandomErangel(): string {
         let drops: string[] = [

@@ -11,7 +11,7 @@ import {
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import Jimp = require('jimp');
-import { ImageLocation, FontLocation } from '../../shared/constants';
+import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
 
 
@@ -206,7 +206,7 @@ export class Rank extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             if(this.paramMap.useText) {
@@ -237,7 +237,7 @@ export class Rank extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             if(this.paramMap.useText) {
@@ -268,7 +268,7 @@ export class Rank extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             if(this.paramMap.useText) {

@@ -10,6 +10,7 @@ import {
 } from '../../services';
 import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from 'pubg-typescript-api';
 import { PubgParameters } from '../../interfaces';
+import { CommonMessages } from '../../shared/constants';
 
 
 interface ParameterMap {
@@ -166,7 +167,7 @@ export class GetMatches extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -186,7 +187,7 @@ export class GetMatches extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
@@ -206,7 +207,7 @@ export class GetMatches extends Command {
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();

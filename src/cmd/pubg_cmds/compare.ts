@@ -198,7 +198,7 @@ export class Compare extends Command {
 
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                //warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const attatchment: Discord.Attachment = await this.createImage(seasonDataA.soloFPPStats, seasonDataA.soloStats, seasonDataB.soloFPPStats, seasonDataB.soloStats, 'Solo');
@@ -221,7 +221,7 @@ export class Compare extends Command {
 
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                //warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const attatchment: Discord.Attachment = await this.createImage(seasonDataA.duoFPPStats, seasonDataA.duoStats, seasonDataB.duoFPPStats, seasonDataB.duoStats, 'Duo');
@@ -244,7 +244,7 @@ export class Compare extends Command {
 
             await reaction.remove(originalPoster).catch(async (err) => {
                 if(!msg.guild) { return; }
-                //warningMessage = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:';
+                //warningMessage = CommonMessages.REACTION_WARNING;
             });
 
             const attatchment: Discord.Attachment = await this.createImage(seasonDataA.squadFPPStats, seasonDataA.squadStats, seasonDataB.squadFPPStats, seasonDataB.squadStats, 'Squad');
