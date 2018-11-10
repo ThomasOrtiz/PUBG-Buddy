@@ -1,5 +1,5 @@
 import * as NodeCache from 'node-cache';
-import * as logger from '../config/logger.config';
+// import * as logger from '../config/logger.config';
 import { TimeInSeconds } from '../shared/constants';
 
 
@@ -30,10 +30,10 @@ export class CacheService {
      * @param {Function} storeFunction
      * @returns {Promise<T>}
      */
-    get<T>(key: string, storeFunction: Function, ttl?: number): Promise<T> {
+    public get<T>(key: string, storeFunction: Function, ttl?: number): Promise<T> {
         const value: T = this.cache.get<T>(key);
         if (value) {
-            logger.info(`CACHED: ${key}`);
+            //logger.info(`CACHED: ${key}`);
             return Promise.resolve(value);
         }
 
@@ -46,19 +46,19 @@ export class CacheService {
      * @param storeFunction
      * @returns {Promise<T>}
      */
-    put<T>(key, storeFunction, ttl?: number): Promise<T> {
+    public put<T>(key, storeFunction, ttl?: number): Promise<T> {
         return storeFunction().then((result) => {
-            logger.info(`CACHING: ${key}`);
+            //logger.info(`CACHING: ${key}`);
             this.cache.set<T>(key, result, ttl);
             return result;
         });
     }
 
-    del(keys) {
+    public del(keys) {
         this.cache.del(keys);
     }
 
-    delStartWith(startStr = '') {
+    public delStartWith(startStr = '') {
         if (!startStr) {
             return;
         }
@@ -74,7 +74,7 @@ export class CacheService {
     /**
      * Flushes the entire cache
      */
-    flush() {
+    public flush() {
         this.cache.flushAll();
     }
 }

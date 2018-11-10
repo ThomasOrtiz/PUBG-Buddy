@@ -21,6 +21,7 @@ export class RandomDrop extends Command {
         description: 'Gives you a random place to drop dependant on the map.',
         usage: '<prefix>drop [(e | m | s)]',
         examples: [
+            '!pubg-drop',
             '!pubg-drop e',
             '!pubg-drop m',
             '!pubg-drop s',
