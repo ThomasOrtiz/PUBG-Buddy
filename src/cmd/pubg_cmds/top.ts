@@ -5,15 +5,17 @@ import {
     DiscordMessageService as discordMessageService,
     ImageService as imageService,
     ParameterService as parameterService,
-    PubgService as pubgApiService,
+    PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService,
+    CommonService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Player as User, Server, PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
+import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
 
 interface ParameterMap {
@@ -73,15 +75,14 @@ export class Top extends Command {
 
     private paramMap: ParameterMap;
     private registeredUsers: User[];
-    private batchEditAmount: number = 5;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const originalPoster: Discord.User = msg.author;
         this.paramMap = await this.getParameters(msg, params);
 
         let reply: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
-        if(!isValidParameters) {
+        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        if (!isValidParameters) {
             reply.delete();
             return;
         }
@@ -150,15 +151,18 @@ export class Top extends Command {
      */
     private async getPlayerInfoByBatching(names: string[]): Promise<Player[]> {
         let players: Player[] = new Array<Player>();
-        const batchAmount: number = 5;
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
 
-        let currBatch: string[] = names.splice(0, batchAmount);
-        while (currBatch.length > 0) {
-            const batchedPlayers: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, currBatch);
-            players = [...players, ...batchedPlayers];
+        const batches: Array<string[]> = CommonService.chunkArray(names, 5);
+        let requests: Array<Promise<Player[]>> = [];
 
-            currBatch = names.splice(0, batchAmount);
+        for (let i = 0; i < batches.length; i++) {
+            requests.push(PubgPlayerService.getPlayerByName(pubgPlayersApi, batches[i]));
+        }
+
+        const results: Array<Player[]> = await Promise.all(requests);
+        for (let i = 0; i < results.length; i++) {
+            players = [...players, ...results[i]];
         }
 
         return players;
@@ -172,26 +176,20 @@ export class Top extends Command {
      */
     private async getPlayersSeasonData(msg: Discord.Message, players: Player[]): Promise<PlayerWithSeasonData[]> {
         let playerSeasons: PlayerWithSeasonData[] = new Array();
-        const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+        const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
 
         let progressMsg: Discord.Message = await msg.channel.send('Grabbing player data') as Discord.Message;
-        for(let i = 0; i < players.length; i++) {
+
+        let requests: Array<Promise<PlayerSeason>> = [];
+        for (let i = 0; i < players.length; i++) {
+            requests.push(PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, players[i].id, this.paramMap.season));
+        }
+
+        const results: PlayerSeason[] = await Promise.all(requests);
+        for (let i = 0; i < results.length; i++) {
             const player = players[i];
-            const currentId = player.id;
-
-            if (i % this.batchEditAmount === 0) {
-                let max: number = ((i + this.batchEditAmount) > this.registeredUsers.length) ? this.registeredUsers.length : i + this.batchEditAmount;
-                progressMsg.edit(`Grabbing data for players **${i + 1} - ${max}**`);
-            }
-
-            try {
-                const seasonInfo: PlayerSeason = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, currentId, this.paramMap.season);
-                const info = new PlayerWithSeasonData(player.name, seasonInfo);
-                playerSeasons.push(info);
-            } catch(e) {
-                // player hasn't played this season
-            }
-
+            const info = new PlayerWithSeasonData(player.name, results[i]);
+            playerSeasons.push(info);
         }
 
         await progressMsg.delete();
@@ -214,12 +212,12 @@ export class Top extends Command {
 
             let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
-            if(msg.deletable) {
-                await msg.delete();
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
 
             const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
@@ -236,12 +234,12 @@ export class Top extends Command {
 
             let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
-            if(msg.deletable) {
-                await msg.delete();
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
 
             const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
@@ -258,13 +256,13 @@ export class Top extends Command {
 
             let warningMessage: string = '';
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
 
-            if(msg.deletable) {
-                await msg.delete();
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
 
             const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
@@ -274,8 +272,6 @@ export class Top extends Command {
         };
         discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
-
-
 
     /**
      * Give a mode, return the dict key relevant to that mode
@@ -326,7 +322,7 @@ export class Top extends Command {
         }
 
         // Create/Merge error message
-        if(!fppImg && !tppImg) {
+        if (!fppImg && !tppImg) {
             const black_header: Jimp = await imageService.loadImage(ImageLocation.BLACK_1200_130);
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(black_header.clone(), mode);
             image = imageService.combineImagesVertically(image, errMessageImage);
@@ -384,28 +380,28 @@ export class Top extends Command {
 
         // Create UserInfo array with specific season data
         let userInfo: PlayerWithGameModeStats[] = new Array();
-        for(let i = 0; i < players.length; i++) {
+        for (let i = 0; i < players.length; i++) {
             const data: PlayerWithSeasonData = players[i];
-            if(!data.seasonData) { continue; }
+            if (!data.seasonData) { continue; }
             const info = new PlayerWithGameModeStats(data.name, data.seasonData[statsToGetKey]);
-            if(info.gameModeStats.roundsPlayed === 0) { continue; }
+            if (info.gameModeStats.roundsPlayed === 0) { continue; }
             userInfo.push(info);
         }
 
-        if(userInfo.length === 0) { return null; }
+        if (userInfo.length === 0) { return null; }
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
-        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
+        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
             // Sorting Array based off of ranking (higher ranking is better)
             userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
-                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
+                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
+                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
                 return (+overallRatingB) - (+overallRatingA);
             });
         } else {
             userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-                const overallRatingB = pubgApiService.calculateOverallRating(b.gameModeStats.rankPoints, b.gameModeStats.rankPoints);
-                const overallRatingA = pubgApiService.calculateOverallRating(a.gameModeStats.rankPoints, a.gameModeStats.rankPoints);
+                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.rankPoints, b.gameModeStats.rankPoints);
+                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.rankPoints, a.gameModeStats.rankPoints);
                 return (+overallRatingB) - (+overallRatingA);
             });
         }
@@ -415,7 +411,7 @@ export class Top extends Command {
 
         // Combine pictures
         let image: Jimp = new Jimp(0, 0);
-        for(let i = 0; i < topPlayers.length; i++) {
+        for (let i = 0; i < topPlayers.length; i++) {
             let bodyImage: Jimp = await this.addBodyTextToImage(img.clone(), topPlayers[i]);
             image = imageService.combineImagesVertically(image, bodyImage);
         }
@@ -435,13 +431,13 @@ export class Top extends Command {
         const x_centers : any = {
             username: 90,
             rating: 519,
-            ratingBadge: 605,
+            ratingBadge: 595,
             winsOverGames: 687,
             kd: 818,
             kda: 935,
             averageDamageDealt: 1061.5,
         }
-        const body_y: number = 5;
+        const body_y: number = 7;
         let textWidth: number;
 
         const seasonStats: GameModeStats = playerSeason.gameModeStats;
@@ -449,11 +445,11 @@ export class Top extends Command {
 
         let overallRating;
         let badge: Jimp;
-        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(pubgApiService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
+        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(PubgRatingService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(seasonStats.rankPoints, 0);
-            badge = (await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(overallRating))).clone();
+            badge = (await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(overallRating))).clone();
         }
 
         const username : string = playerSeason.name;
@@ -478,8 +474,12 @@ export class Top extends Command {
         img.print(body_font, x_centers.rating-(textWidth/2), body_y, textObj);
 
         if (badge) {
-            badge.scale(0.5);
-            img.composite(badge, x_centers.ratingBadge-(badge.getWidth()/2), -2);
+            let scale = 0.50;
+            if (PubgRatingService.getRankTitleFromRanking(overallRating) === 'GrandMaster') {
+                scale = 0.40;
+            }
+            badge.scale(scale);
+            img.composite(badge, x_centers.ratingBadge-(badge.getWidth()/2), 0);
         }
 
         textObj.text = `${winsOverGames}`

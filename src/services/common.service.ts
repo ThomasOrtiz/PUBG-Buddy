@@ -45,8 +45,8 @@ export class CommonService {
      * @param {string[]} arr array of string
      */
     static isSubstringOfElement(s: string, arr: string[]): number {
-        for(let i = 0; i < arr.length; i++) {
-            if(arr[i] && arr[i].indexOf(s) >= 0) {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] && arr[i].indexOf(s) >= 0) {
                 return i;
             }
         }
@@ -61,7 +61,7 @@ export class CommonService {
      */
     static getParamValue(search: string, params: Array<any>, defaultParam: any): string {
         let index = this.isSubstringOfElement(search, params);
-        if(index >= 0) {
+        if (index >= 0) {
             return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
         } else {
             return defaultParam;
@@ -74,11 +74,27 @@ export class CommonService {
      * @returns value if exists, errors out otherwise.
      */
     static getEnvironmentVariable(varName: string): string {
-        if(process.env[varName]) {
+        if (process.env[varName]) {
             return process.env[varName];
         } else {
             process.exit(-1);
         }
+    }
+
+    /**
+     * Returns an array with arrays of the given size.
+     *
+     * @param myArray {Array} Array to split
+     * @param chunkSize {Integer} Size of every group
+     */
+    static chunkArray(myArray: any[], chunk_size: number): Array<any[]> {
+        let results = [];
+
+        while (myArray.length) {
+            results.push(myArray.splice(0, chunk_size));
+        }
+
+        return results;
     }
 
     //////////////////////////////
@@ -92,7 +108,7 @@ export class CommonService {
      * @param {boolean} ignoreCase
      */
     static stringContains(str: string, searchStr: string, ignoreCase: boolean = false): boolean {
-        if(ignoreCase) {
+        if (ignoreCase) {
             return str.toLowerCase().indexOf(searchStr.toLowerCase()) >= 0;
         }
         return str.indexOf(searchStr) >= 0;
@@ -105,7 +121,7 @@ export class CommonService {
      * @param {number} precision
      */
     static getPercentFromFraction(num: number, den: number, precision: number = 2): string {
-        if(num === 0 || den === 0) return '0%';
+        if (num === 0 || den === 0) return '0%';
         return this.round((num/den)*100, precision) + '%';
         //Math.round((num/den)*100 * 100) / 100 + '%';
     }
@@ -118,7 +134,7 @@ export class CommonService {
     static round(num: number, precision: number = 2): string {
         const castedNum: number = Number(num);
 
-        if(isNaN(castedNum)) { return ''; }
+        if (isNaN(castedNum)) { return ''; }
 
         //return Math.round(num * 100) / 100;
         return num.toFixed(precision);

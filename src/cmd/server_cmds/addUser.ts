@@ -4,7 +4,7 @@ import {
     CommonService as cs,
     DiscordMessageService as discordMessageService,
     ParameterService as parameterService,
-    PubgService as pubgService,
+    PubgPlayerService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services';
@@ -57,7 +57,7 @@ export class AddUser extends Command {
 
     private async addUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
         const message: Discord.Message = await msg.channel.send(`Checking for \`${username}\`'s PUBG Id ... give me a second`) as Discord.Message;
-        const pubgId: string = await pubgService.getPlayerId(api, username);
+        const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (pubgId && pubgId !== '') {
             const registered: boolean = await sqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);

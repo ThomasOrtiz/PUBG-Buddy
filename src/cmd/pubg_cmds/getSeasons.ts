@@ -3,10 +3,11 @@ import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from
 import {
     AnalyticsService as analyticsService,
     CommonService as cs,
-    PubgService as pubgService,
+    PubgPlatformService, PubgValidationService,
     SqlServerService as sqlServerService
 } from '../../services';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
+import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
 
 interface ParameterMap {
@@ -42,8 +43,8 @@ export class GetSeasons extends Command {
         }
 
         const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgService.isValidRegion(this.paramMap.region);
-        if(!isValidParameters) {
+        const isValidParameters = await PubgValidationService.isValidRegion(this.paramMap.region);
+        if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
@@ -55,9 +56,9 @@ export class GetSeasons extends Command {
             region: this.paramMap.region
         });
 
-        let seasons: Season[] = await pubgService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]), true);
+        let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]), true);
 
-        const platform = pubgService.isPlatformPC(PlatformRegion[this.paramMap.region]) ? 'PC' : 'Xbox';
+        const platform = PubgPlatformService.isPlatformPC(PlatformRegion[this.paramMap.region]) ? 'PC' : 'Xbox';
         let seasonStr: string = `= ${platform}'s Seasons =\n`;
 
         for (let i = 0; i < seasons.length; i++) {

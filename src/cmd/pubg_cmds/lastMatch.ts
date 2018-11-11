@@ -1,7 +1,10 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgParameters } from '../../interfaces';
-import { CommonService, SqlServerService, ParameterService, DiscordMessageService, AnalyticsService, PubgService } from '../../services';
+import {
+    CommonService, SqlServerService, ParameterService, DiscordMessageService, AnalyticsService,
+    PubgPlayerService, PubgValidationService, PubgMatchesService, PubgMapService
+} from '../../services';
 import { PubgAPI, PlatformRegion, Player, Match, Roster, Participant } from 'pubg-typescript-api';
 
 interface ParameterMap {
@@ -43,7 +46,7 @@ export class LastMatch extends Command {
         }
 
         const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await PubgService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
         if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
@@ -51,7 +54,7 @@ export class LastMatch extends Command {
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.username}**`);
 
         const pubgPlayersApi: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
+        const players: Player[] = await PubgPlayerService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
         if (players.length === 0) {
             message.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
@@ -63,7 +66,7 @@ export class LastMatch extends Command {
         }
 
         const lastMatchId: string = player.matchIds[0];
-        const match: Match = await PubgService.getMatchInfo(new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM), lastMatchId);
+        const match: Match = await PubgMatchesService.getMatchInfo(new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM), lastMatchId);
 
         const embed: Discord.RichEmbed = await this.createEmbed(match);
         msg.channel.send(embed);
@@ -133,7 +136,7 @@ export class LastMatch extends Command {
             .setTitle(`PUBG Match Summary - ${regionDisplayName} (${this.paramMap.season})`)
             .setDescription(CommonService.multiLineStringNoLeadingWhitespace`
                 **Started at**: ${match.dateCreated.toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' EST'}
-                **Map**: ${PubgService.getMapDisplayName(match.map)}
+                **Map**: ${PubgMapService.getMapDisplayName(match.map)}
                 **Length**: ${this.secondsToHms(match.duration)}
                 **Placement**: ${roster.rank}
                 **Replay Link**: [Link](${this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id)})`)

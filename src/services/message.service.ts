@@ -53,21 +53,9 @@ export class DiscordMessageService {
         two_collector.on('collect', onTwoCollect);
         four_collector.on('collect', onFourCollect);
 
-        one_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => {
-                msg.edit('');
-            });
-        });
-        two_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => {
-                msg.edit('');
-            });
-        });
-        four_collector.on('end', collected => {
-            msg.clearReactions().catch(() => { }).then(() => {
-                msg.edit('');
-            });
-        });
+        one_collector.on('end', collected =>  { msg.clearReactions().catch(() => {}).then(() => { msg.edit('').catch(() => {}); }); });
+        two_collector.on('end', collected =>  { msg.clearReactions().catch(() => {}).then(() => { msg.edit('').catch(() => {}); }); });
+        four_collector.on('end', collected => { msg.clearReactions().catch(() => {}).then(() => { msg.edit('').catch(() => {}); }); });
     }
 
 }

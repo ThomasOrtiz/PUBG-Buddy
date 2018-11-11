@@ -2,8 +2,8 @@ import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
     CommonService as cs,
-    PubgService as pubgApiService,
-    SqlServerService as sqlServerService
+    PubgSeasonService, PubgValidationService,
+    SqlServerService as sqlServerService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
@@ -41,7 +41,7 @@ export class SetServerDefaults extends Command {
     private paramMap: ParameterMap;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        if(params.length === 0) {
+        if (params.length === 0) {
             const message: Discord.Message = await msg.channel.send('Getting server defaults ...') as Discord.Message;
             const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(message);
             message.edit({embed});
@@ -53,8 +53,8 @@ export class SetServerDefaults extends Command {
         } catch(e) { return; }
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
-        if(!isValidParameters) {
+        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
@@ -77,7 +77,7 @@ export class SetServerDefaults extends Command {
         let paramMap: ParameterMap;
 
         const server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
-        const currentSeason: string = (await pubgApiService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
+        const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
         paramMap = {
             prefix: cs.getParamValue('prefix=', params, server.default_bot_prefix || '!pubg-').trim() || '!pubg-',

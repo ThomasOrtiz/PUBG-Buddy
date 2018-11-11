@@ -19,7 +19,7 @@ export class SqlUserRegisteryService {
         const storeFunction: Function = async (): Promise<string> => {
             const query: string = `select P.username from ${this.tableName} as UR left join players as P on P.id = UR.fk_players_id where discord_id = $1`;
             return pool.query(query, [discordId]).then((res: QueryResult) => {
-                if(res.rowCount !== 0){
+                if (res.rowCount !== 0){
                     return res.rows[0].username;
                 } else {
                     return '';
@@ -39,7 +39,7 @@ export class SqlUserRegisteryService {
         cache.del(cacheKey);
 
         return pool.query(`select * from ${this.tableName} where discord_id = $1`, [discordId]).then(async (res: QueryResult) => {
-            if(res.rowCount === 0) {
+            if (res.rowCount === 0) {
                 pool.query(`
                     insert into ${this.tableName}
                     (discord_id, fk_players_id)

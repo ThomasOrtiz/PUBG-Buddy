@@ -1,6 +1,6 @@
 import {
     CommonService as cs,
-    PubgService as pubgService,
+    PubgSeasonService,
     SqlUserRegisteryService as sqlUserRegisteryService
 } from './'
 import { Server, PubgParameters } from '../interfaces';
@@ -43,8 +43,8 @@ export class ParameterService {
         } else {
             const region: string = this.getParamValue('region=', potential_region_season_mode, 'pc_na').toUpperCase().replace('-', '_');
             const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
-            const currentSeason: Season = await pubgService.getCurrentSeason(api);
-            const currentSeasonName: string = pubgService.getSeasonDisplayName(currentSeason);
+            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
+            const currentSeasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
             parameters = {
                 username: username,
@@ -72,7 +72,7 @@ export class ParameterService {
         if (!params) { return defaultParam; }
 
         let index = cs.isSubstringOfElement(search, params);
-        if(index >= 0) {
+        if (index >= 0) {
             return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
         } else {
             return defaultParam;

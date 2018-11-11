@@ -5,8 +5,10 @@ import {
     CommonService as cs,
     DiscordMessageService as discordMessageService,
     ParameterService as parameterService,
-    PubgService as pubgApiService,
-    SqlServerService as sqlServerService
+    PubgPlatformService, PubgPlayerService, PubgValidationService,
+    SqlServerService as sqlServerService,
+    PubgMatchesService,
+    PubgMapService
 } from '../../services';
 import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from 'pubg-typescript-api';
 import { PubgParameters } from '../../interfaces';
@@ -55,17 +57,17 @@ export class GetMatches extends Command {
         }
 
         const reply: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
-        if(!isValidParameters) {
+        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        if (!isValidParameters) {
             reply.delete();
             return;
         }
 
         await reply.edit('Getting matches');
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
+        const players: Player[] = await PubgPlayerService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
-        if(players.length === 0) {
+        if (players.length === 0) {
             reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
@@ -73,8 +75,8 @@ export class GetMatches extends Command {
         const player: Player = players[0];
         let seasonData: PlayerSeason;
         try {
-            const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-            seasonData = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
+            const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+            seasonData = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
         } catch(e) {
             reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
@@ -166,7 +168,7 @@ export class GetMatches extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
@@ -186,7 +188,7 @@ export class GetMatches extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
@@ -206,7 +208,7 @@ export class GetMatches extends Command {
 
             let warningMessage;
             await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
+                if (!msg.guild) { return; }
                 warningMessage = CommonMessages.REACTION_WARNING;
             });
 
@@ -265,19 +267,19 @@ export class GetMatches extends Command {
         let reply: string = '';
         const finalLength: number = matchIds.length <= this.MAX_MATCHES ? matchIds.length : this.MAX_MATCHES;
 
-        const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+        const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
 
         let matches: Match[] = [];
-        for(let i = 0; i < finalLength; i++) {
-            let match: Match = await pubgApiService.getMatchInfo(seasonStatsApi, matchIds[i]);
+        for (let i = 0; i < finalLength; i++) {
+            let match: Match = await PubgMatchesService.getMatchInfo(seasonStatsApi, matchIds[i]);
             matches.push(match);
         }
 
-        for(let i = 0; i < finalLength; i++) {
+        for (let i = 0; i < finalLength; i++) {
             const match: Match = matches[i];
             const url: string = this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id);
 
-            const mapDisplay: string = pubgApiService.getMapDisplayName(match.map);
+            const mapDisplay: string = PubgMapService.getMapDisplayName(match.map);
             const dateTime: string = match.dateCreated.toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' EST';
 
             reply += `[${mapDisplay} Match](${url}) at \`${dateTime}\`\n`

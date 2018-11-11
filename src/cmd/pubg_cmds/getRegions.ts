@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
-    PubgService as pubgApiService
+    PubgRegionService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 
@@ -31,7 +31,7 @@ export class GetRegions extends Command {
             number_parameters: params.length,
         });
 
-        let regions: string[] = pubgApiService.getAvailableRegions();
+        let regions: string[] = PubgRegionService.getAvailableRegions();
 
         let regionStr: string = `= Regions =\n`;
         for (let i = 0; i < regions.length; i++) {

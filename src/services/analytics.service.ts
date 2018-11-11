@@ -10,7 +10,7 @@ const isDev = cs.getEnvironmentVariable('isDev') === 'true';
 export class AnalyticsService {
 
     static track(eventName: string, properties: any) {
-        if(!isDev) {
+        if (!isDev) {
             mixpanel.track(eventName, properties);
         }
 

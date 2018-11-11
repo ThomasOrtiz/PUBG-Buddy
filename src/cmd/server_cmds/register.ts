@@ -2,10 +2,10 @@ import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
     CommonService as cs,
-    PubgService as pubgService,
     DiscordMessageService as discordMessageService,
+    PubgPlayerService,
     SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService
+    SqlUserRegisteryService as sqlUserRegisteryService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
@@ -57,7 +57,7 @@ export class Register extends Command {
 
     private async registerUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
         const message: Discord.Message = await msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`) as Discord.Message;
-        const pubgId: string = await pubgService.getPlayerId(api, username);
+        const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (pubgId && pubgId !== '') {
             const registered: boolean = await sqlUserRegisteryService.registerUser(msg.author.id, pubgId);

@@ -7,7 +7,7 @@ logger.info('Starting migrations ...');
 
 readdir('./migrations', function(err, files) {
     logger.info(`Migrating ${files.length} file(s)`);
-    if(err) {
+    if (err) {
         logger.error('Could not list the directory.', err);
         process.exit(1);
     }

@@ -5,14 +5,15 @@ import {
     DiscordMessageService as discordMessageService,
     ImageService as imageService,
     ParameterService as parameterService,
-    PubgService as pubgApiService,
+    PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
     SqlServerService as sqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
 import Jimp = require('jimp');
-import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
+import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
+import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
 
 interface ParameterMap {
@@ -59,8 +60,8 @@ export class Rank extends Command {
         }
 
         const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await pubgApiService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
-        if(!isValidParameters) {
+        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
@@ -68,7 +69,7 @@ export class Rank extends Command {
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.username}**`);
 
         const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await pubgApiService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
+        const players: Player[] = await PubgPlayerService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
 
         if (players.length === 0) {
             message.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
@@ -83,14 +84,14 @@ export class Rank extends Command {
         // Get Player Data
         let seasonData: PlayerSeason;
         try {
-            const seasonStatsApi: PubgAPI = pubgApiService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-            seasonData = await pubgApiService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
+            const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+            seasonData = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
         } catch(e) {
             message.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
-        if(this.paramMap.useText) {
+        if (this.paramMap.useText) {
             // Create base embed to send
             let embed: Discord.RichEmbed = await this.createBaseEmbed();
             this.addDefaultStats(embed, seasonData);
@@ -194,7 +195,7 @@ export class Rank extends Command {
      * @param {PlayerSeason} seasonData
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason): Promise<void> {
-        const onOneCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onOneCollect: Function = async () => {
             analyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -203,29 +204,23 @@ export class Rank extends Command {
                 useText: this.paramMap.useText
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
-
-            if(this.paramMap.useText) {
+            if (this.paramMap.useText) {
                 const embed: Discord.RichEmbed = await this.createBaseEmbed();
                 this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
                 this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
-                await msg.edit(warningMessage, { embed });
+                await msg.edit('', { embed });
             } else {
                 const attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
 
-                if(msg.deletable) {
-                    await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete().catch(() => {});
                 }
 
                 const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
-        const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onTwoCollect: Function = async () => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -234,29 +229,23 @@ export class Rank extends Command {
                 useText: this.paramMap.useText
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
-
-            if(this.paramMap.useText) {
+            if (this.paramMap.useText) {
                 const embed: Discord.RichEmbed = await this.createBaseEmbed();
                 this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
                 this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
-                await msg.edit(warningMessage, { embed });
+                await msg.edit('', { embed });
             } else {
                 const attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
 
-                if(msg.deletable) {
-                    await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete().catch(() => {});
                 }
 
                 const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
                 this.setupReactions(newMsg, originalPoster, seasonData);
             }
         };
-        const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
+        const onFourCollect: Function = async () => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
@@ -265,23 +254,17 @@ export class Rank extends Command {
                 useText: this.paramMap.useText
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if(!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
-
-            if(this.paramMap.useText) {
+            if (this.paramMap.useText) {
                 const embed: Discord.RichEmbed = await this.createBaseEmbed();
                 this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
                 this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
 
-                await msg.edit(warningMessage, { embed });
+                await msg.edit('', { embed });
             } else {
                 const attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
 
-                if(msg.deletable) {
-                    await msg.delete();
+                if (msg.deletable) {
+                    await msg.delete().catch(() => {});
                 }
 
                 const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
@@ -333,8 +316,8 @@ export class Rank extends Command {
     private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, playerData: GameModeStats): void {
         let overallRating;
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
-        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(pubgApiService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
+        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(PubgRatingService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(playerData.rankPoints, 0) || 'NA';
         }
@@ -421,7 +404,7 @@ export class Rank extends Command {
         }
 
         // Create/Merge error message
-        if(!fppStatsImage && !tppStatsImage) {
+        if (!fppStatsImage && !tppStatsImage) {
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(baseHeaderImg.clone(), mode);
             image = imageService.combineImagesVertically(image ,errMessageImage);
         }
@@ -494,12 +477,12 @@ export class Rank extends Command {
         let overallRating;
         let badge: Jimp;
         let rankTitle: string;
-        if (pubgApiService.isPlatformXbox(platform) || (pubgApiService.isPlatformPC(platform) && pubgApiService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(pubgApiService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
+        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+            overallRating = cs.round(PubgRatingService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         } else {
             overallRating = cs.round(fppStats.rankPoints, 0) || 'NA';
-            badge = (await imageService.loadImage(pubgApiService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
-            rankTitle = pubgApiService.getRankTitleFromRanking(fppStats.rankPoints);
+            badge = (await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
+            rankTitle = PubgRatingService.getRankTitleFromRanking(fppStats.rankPoints);
         }
         const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
         const kda = cs.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;

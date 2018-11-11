@@ -2,7 +2,7 @@ import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import {
     AnalyticsService as analyticsService,
-    PubgService as pubgApiService
+    PubgModeService,
 } from '../../services';
 
 
@@ -32,7 +32,7 @@ export class GetModes extends Command {
             number_parameters: params.length
         });
 
-        let modes: string[] = pubgApiService.getAvailableModes();
+        let modes: string[] = PubgModeService.getAvailableModes();
 
         let modeStr: string = `= Modes =\n`;
         for (let i = 0; i < modes.length; i++) {

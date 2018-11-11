@@ -4,7 +4,7 @@ import {
     CommonService as cs,
     DiscordMessageService as discordMessageService,
     ParameterService as parameterService,
-    PubgService as pubgService,
+    PubgPlayerService,
     SqlServerService as sqlServerService,
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services';
@@ -57,7 +57,7 @@ export class RemoveUser extends Command {
 
     private async removeUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
         const message: Discord.Message = await msg.channel.send(`Removing ${username} from server registry`) as Discord.Message;
-        const pubgId: string = await pubgService.getPlayerId(api, username);
+        const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (!pubgId) {
             message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
