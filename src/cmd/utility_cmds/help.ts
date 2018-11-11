@@ -61,13 +61,13 @@ export class Help extends Command {
         }
 
         let prefix_explanation: string = '= Bot Prefix and PUBG Defaults Explanation = \n\n' +
-                                    'This bot\'s prefix and PUBG specific defaults are configurable through `setServerDefaults` command.\n\n' +
-                                    'Default Server Prefix:\t "' + default_bot_prefix + '"\n' +
-                                    'Current Server Prefix:\t "' + prefix + '"';
+                                    `This bot's prefix and PUBG specific defaults are configurable through the "setup" command.\n\n` +
+                                    `Default Server Prefix:\t "${default_bot_prefix}"\n` +
+                                    `Current Server Prefix:\t "${prefix}"`;
         let commandList: string = '';
         bot.commands.map(c => {
-            let str = '';
-            const row =  `${c.help.name} :: ${c.help.description}`;
+            let str: string = '';
+            const row: string =  `${c.help.name} :: ${c.help.description}`;
 
             switch (c.help.name) {
                 case 'compare':
