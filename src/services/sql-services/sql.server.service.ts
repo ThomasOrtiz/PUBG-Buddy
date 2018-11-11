@@ -1,8 +1,10 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import { Server } from '../../interfaces';
-import { CacheService } from '../';
+import { CacheService, PubgSeasonService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
+import { PubgAPI, PlatformRegion, Season } from 'pubg-typescript-api';
+import { CommonService } from '../common.service';
 
 const cache = new CacheService();
 
@@ -54,12 +56,15 @@ export class SqlServerService {
      * @param {string} serverId
      */
     static async registerServer(serverId: string): Promise<QueryResult> {
-        return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then((res: QueryResult) => {
-                if (res.rowCount === 0) {
-                    return pool.query('insert into servers (server_id) values ($1)', [serverId]);
-                }
-            });
+        return pool.query('select server_id from servers where server_id = $1', [serverId]).then(async (res: QueryResult) => {
+            if (res.rowCount === 0) {
+                const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+                const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
+                const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
+
+                return pool.query('insert into servers (server_id, defualt_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
+            }
+        });
     }
 
     /**
