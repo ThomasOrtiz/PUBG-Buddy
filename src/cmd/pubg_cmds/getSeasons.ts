@@ -62,8 +62,9 @@ export class GetSeasons extends Command {
         let seasonStr: string = `= ${platform}'s Seasons =\n`;
 
         for (let i = 0; i < seasons.length; i++) {
-            const seasonId = seasons[i].id.split('division.bro.official.')[1];
-            seasonStr += `${seasonId}\n`;
+            const seasonId: string = seasons[i].id.split('division.bro.official.')[1];
+            const isCurrent: boolean = seasons[i].isCurrentSeason;
+            seasonStr += `${seasonId}${isCurrent ? ' (Current)' : ''}\n`;
         }
 
         msg.channel.send(seasonStr, { code: 'asciidoc' });
