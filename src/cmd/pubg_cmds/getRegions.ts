@@ -1,9 +1,10 @@
 import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
-    PubgRegionService,
+    PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { PlatformRegion } from 'pubg-typescript-api';
 
 
 export class GetRegions extends Command {
@@ -31,13 +32,23 @@ export class GetRegions extends Command {
             number_parameters: params.length,
         });
 
-        let regions: string[] = PubgRegionService.getAvailableRegions();
+        let regions: string[] = Object.values(PlatformRegion);
+        let pc_regions_str: string = regions.filter(region => {
+            region = region.toUpperCase().replace('-', '_');
+            return PubgPlatformService.isPlatformPC(PlatformRegion[region]);
+        }).join('\n');
+        let xbox_regions_str: string = regions.filter(region => {
+            region = region.toUpperCase().replace('-', '_');
+            return PubgPlatformService.isPlatformXbox(PlatformRegion[region]);
+        }).join('\n');
 
-        let regionStr: string = `= Regions =\n`;
-        for (let i = 0; i < regions.length; i++) {
-            regionStr += `${regions[i]}\n`;
-        }
+        const embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle('Regions')
+            .setDescription('The regions for each platform')
+            .setColor(0x00AE86)
+            .addField('PC Regions', pc_regions_str, true)
+            .addField('Xbox Regions', xbox_regions_str, true);
 
-        msg.channel.send(regionStr, { code: 'asciidoc' });
+        msg.channel.send({embed});
     };
 }

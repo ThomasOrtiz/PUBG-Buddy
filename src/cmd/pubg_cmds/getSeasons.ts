@@ -2,17 +2,11 @@ import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import {
     AnalyticsService as analyticsService,
-    CommonService as cs,
-    PubgPlatformService, PubgValidationService,
-    SqlServerService as sqlServerService
+    CommonService as cs
 } from '../../services';
 import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
-
-interface ParameterMap {
-    region: string;
-}
 
 export class GetSeasons extends Command {
 
@@ -26,70 +20,43 @@ export class GetSeasons extends Command {
     help: CommandHelp = {
         name: 'seasons',
         description: 'Returns all available seasons to use as parameters',
-        usage: '<prefix>seasons [region=]',
+        usage: '<prefix>seasons',
         examples: [
-            '!pubg-seasons',
-            '!pubg-seasons region=xbox-na'
+            '!pubg-seasons'
         ]
     };
 
-    private paramMap: ParameterMap;
-
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        try {
-            this.paramMap = await this.getParameters(msg, params);
-        } catch(e) {
-            return;
-        }
-
-        const checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await PubgValidationService.isValidRegion(this.paramMap.region);
-        if (!isValidParameters) {
-            checkingParametersMsg.delete();
-            return;
-        }
-
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
-            discord_username: msg.author.tag,
-            region: this.paramMap.region
+            discord_username: msg.author.tag
         });
 
-        let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]), true);
+        const pc_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM), true);
+        const xbox_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.XBOX_NA), true);
+        let pc_seasons_str: string = '';
+        let xbox_seasons_str: string = '';
 
-        const platform = PubgPlatformService.isPlatformPC(PlatformRegion[this.paramMap.region]) ? 'PC' : 'Xbox';
-        let seasonStr: string = `= ${platform}'s Seasons =\n`;
-
-        for (let i = 0; i < seasons.length; i++) {
-            const seasonId: string = seasons[i].id.split('division.bro.official.')[1];
-            const isCurrent: boolean = seasons[i].isCurrentSeason;
-            seasonStr += `${seasonId}${isCurrent ? ' (Current)' : ''}\n`;
+        for (let i = 0; i < pc_seasons.length; i++) {
+            const seasonId: string = pc_seasons[i].id.split('division.bro.official.')[1];
+            const isCurrent: boolean = pc_seasons[i].isCurrentSeason;
+            pc_seasons_str += `${seasonId}${isCurrent ? ' (Current)' : ''}\n`;
         }
 
-        msg.channel.send(seasonStr, { code: 'asciidoc' });
+        for (let i = 0; i < xbox_seasons.length; i++) {
+            const seasonId: string = xbox_seasons[i].id.split('division.bro.official.')[1];
+            const isCurrent: boolean = xbox_seasons[i].isCurrentSeason;
+            xbox_seasons_str += `${seasonId}${isCurrent ? ' (Current)' : ''}\n`;
+        }
+
+        const embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle('Seasons')
+            .setDescription('The seasons for each platform')
+            .setColor(0x00AE86)
+            .addField('PC Seasons', pc_seasons_str, true)
+            .addField('Xbox Seasons', xbox_seasons_str, true);
+
+        msg.channel.send({embed});
     };
-
-    /**
-     * Retrieves the paramters for the command
-     * @param {Discord.Message} msg
-     * @param {string[]} params
-     * @returns {Promise<ParameterMap>}
-     */
-    private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        let paramMap: ParameterMap;
-
-        if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
-            paramMap = {
-                region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-            }
-        } else {
-            paramMap = {
-                region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
-            }
-        }
-
-        return paramMap;
-    }
 }
