@@ -14,6 +14,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 -
 
+## 11/10/2018
+### Changed
+* `drop`: This coommand now uses an image format -- "x" marks the spot to drop!
+
+## 11/9/2018
+### Changed
+* `drop`: Added a way to "re-roll" the random drop by using emotes.
+
+## 11/7/2018
+### Changed
+* The bot is officially rebranded to **PUBG Buddy**
+* The bot is **officially** featured through [PUBG](https://developer.playbattlegrounds.com/featured_apps?locale=en).
+
+
 ## 10/10/18
 ### Changed
 * Servers can use the default prefix - `!pubg-` - as well as their server customized prefix. Both work now.

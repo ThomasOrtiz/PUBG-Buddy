@@ -143,7 +143,13 @@ export class Bot {
             return;
         }
 
-        let params: string[] = msg.content.split(' ').slice(1);
+        let params: string[] = [];
+        try {
+            params = this.getParams(msg.content);
+        }  catch (e) {
+            msg.channel.send(e, { code: 'asciidoc' });
+            return;
+        }
 
         // Get command
         let cmd: Command = this.getCommand(command);
@@ -153,6 +159,52 @@ export class Bot {
             analyticsService.setPerson(msg.author.id, {});
             cmd.run(this.bot, msg, params, perms);
         }
+    }
+
+    private getParams = (content: string): string[] => {
+        const params: string[] = content.split(' ').slice(1);
+        const retParams: string[] = [];
+
+        for (let i = 0; i < params.length; i++) {
+            let s: string = params[i];
+
+            if (s.startsWith('\"') && i < s.length) {
+                // find ending quote
+                let foundEndingQuote: boolean = false;
+
+                for (let j = i; j < params.length; j++) {
+                    let s2: string = params[j];
+
+                    if (j === i && s2.lastIndexOf('\"') === s2.length-1) {
+                        foundEndingQuote = true;
+                        break;
+                    }
+
+                    if (j === i) { continue; }
+
+                    if (s2.lastIndexOf('\"') === s2.length-1) {
+                        params.splice(j, 1);
+                        s += ` ${s2}`;
+                        foundEndingQuote = true;
+                        break;
+                    } else {
+                        params.splice(j, 1);
+                        j--
+                        s += ` ${s2}`;
+                    }
+                }
+
+                if (!foundEndingQuote) {
+                    throw 'Error:: Must specify both quotes when using quotes parameters.';
+                }
+
+                // clean up quotations
+                s = s.substring(1, s.length-1);
+            }
+            retParams.push(s);
+        }
+
+        return retParams;
     }
 
     /**
