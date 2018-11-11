@@ -16,35 +16,39 @@ interface ParameterMap {
     mode: string;
 }
 
-export class SetServerDefaults extends Command {
+export class Setup extends Command {
 
     conf: CommandConfiguration = {
         enabled: true,
         guildOnly: true,
-        aliases: [],
-        permLevel: 4
+        aliases: ['setServerDefaults', 'getServerDefaults'],
+        permLevel: 0
     };
 
     help: CommandHelp = {
-        name: 'setServerDefaults',
-        description: 'Set the server defaults for pubg commands. Only usable by users with administrator permissions.',
-        usage: '<prefix>setServerDefaults [prefix=] [season=] [region=] [mode=]',
+        name: 'setup',
+        description: 'Gets or sets up the server defaults for pubg commands. Only usable by users with administrator permissions.',
+        usage: '<prefix>setup [prefix=] [season=] [region=] [mode=]',
         examples: [
-            '!pubg-setServerDefaults',
-            '!pubg-setServerDefaults prefix=!pubg-',
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 ',
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na ',
-            '!pubg-setServerDefaults prefix=!pubg- season=2018-08 region=pc-na mode=squad-fpp',
+            '!pubg-setup',
+            '!pubg-setup prefix=!pubg-',
+            '!pubg-setup prefix=!pubg- season=2018-08 ',
+            '!pubg-setup prefix=!pubg- season=2018-08 region=pc-na ',
+            '!pubg-setup prefix=!pubg- season=2018-08 region=pc-na mode=squad-fpp',
         ]
     };
 
     private paramMap: ParameterMap;
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        if (params.length === 0) {
+        const hasAdminPermissions: boolean = msg.member ? msg.member.hasPermission('ADMINISTRATOR'): false;
+
+        if (params.length === 0 || (!hasAdminPermissions && params.length > 0)) {
             const message: Discord.Message = await msg.channel.send('Getting server defaults ...') as Discord.Message;
             const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(message);
-            message.edit({embed});
+
+            const reply: string = (!hasAdminPermissions && params.length > 0) ? ':warning: Insufficent permissions to set bot defaults - ask an admin. :warning:' : '';
+            message.edit(reply, {embed});
             return;
         }
 
@@ -53,7 +57,7 @@ export class SetServerDefaults extends Command {
         } catch(e) { return; }
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        const isValidParameters: boolean = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
         if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
@@ -74,12 +78,10 @@ export class SetServerDefaults extends Command {
      * @returns {Promise<ParameterMap>}
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        let paramMap: ParameterMap;
-
         const server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
         const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
-        paramMap = {
+        const paramMap: ParameterMap = {
             prefix: cs.getParamValue('prefix=', params, server.default_bot_prefix || '!pubg-').trim() || '!pubg-',
             season: cs.getParamValue('season=', params, server.default_season || currentSeason),
             region: cs.getParamValue('region=', params, server.default_region || 'pc_na').toUpperCase().replace('-', '_'),

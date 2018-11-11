@@ -14,7 +14,7 @@ interface DropLocation {
     y: number;
 }
 
-export class RandomDrop extends Command {
+export class Drop extends Command {
 
     conf: CommandConfiguration = {
         enabled: true,
