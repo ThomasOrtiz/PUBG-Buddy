@@ -192,7 +192,7 @@ export class Top extends Command {
             playerSeasons.push(info);
         }
 
-        await progressMsg.delete();
+        progressMsg.delete();
         return playerSeasons;
     }
 
@@ -223,7 +223,6 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
-
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 2`, {
@@ -245,7 +244,6 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
-
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             analyticsService.track(`${this.help.name} - Click 4`, {
@@ -268,7 +266,6 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
-
         };
         discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
@@ -300,18 +297,22 @@ export class Top extends Command {
     //////////////////////////////////////
 
     private async createImages(players: PlayerWithSeasonData[], mode: string): Promise<Discord.Attachment> {
-        let fppImg: Jimp;
-        let tppImg: Jimp;
+        let createImagePromises: Promise<Jimp>[] = [];
+
         if (cs.stringContains(mode, 'solo', true)) {
-            fppImg = await this.createImage(players, 'SOLO_FPP');
-            tppImg = await this.createImage(players, 'SOLO');
+            createImagePromises.push(this.createImage(players, 'SOLO_FPP'));
+            createImagePromises.push(this.createImage(players, 'SOLO'));
         } else if (cs.stringContains(mode, 'duo', true)) {
-            fppImg = await this.createImage(players, 'DUO_FPP');
-            tppImg = await this.createImage(players, 'DUO');
+            createImagePromises.push(this.createImage(players, 'DUO_FPP'));
+            createImagePromises.push(this.createImage(players, 'DUO'));
         } else if (cs.stringContains(mode, 'squad', true)) {
-            fppImg = await this.createImage(players, 'SQUAD_FPP');
-            tppImg = await this.createImage(players, 'SQUAD');
+            createImagePromises.push(this.createImage(players, 'SQUAD_FPP'));
+            createImagePromises.push(this.createImage(players, 'SQUAD'));
         }
+        const createImageResolved = await Promise.all(createImagePromises);
+
+        const fppImg: Jimp = createImageResolved[0];
+        const tppImg: Jimp = createImageResolved[1];
 
         let image: Jimp = new Jimp(0, 0);
         if (fppImg) {
@@ -376,6 +377,25 @@ export class Top extends Command {
     }
 
     private async stitchBody(img: Jimp, players: PlayerWithSeasonData[], mode: string): Promise<Jimp> {
+        const topPlayers: PlayerWithGameModeStats[] = this.orderSeasonStats(players, mode);
+
+        let image: Jimp = new Jimp(0, 0);
+
+        const imagePromises: Array<Promise<Jimp>> = [];
+        for (let i = 0; i < topPlayers.length; i++) {
+            imagePromises.push(this.addBodyTextToImage(img.clone(), topPlayers[i]));
+        }
+
+        const images: Jimp[] = await Promise.all(imagePromises);
+
+        for (let i = 0; i < images.length; i++) {
+            image = imageService.combineImagesVertically(image, images[i]);
+        }
+
+        return image;
+    }
+
+    private orderSeasonStats(players: PlayerWithSeasonData[], mode: string): PlayerWithGameModeStats[] {
         const statsToGetKey = this.getWhichStatsToGet(mode);
 
         // Create UserInfo array with specific season data
@@ -392,7 +412,6 @@ export class Top extends Command {
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            // Sorting Array based off of ranking (higher ranking is better)
             userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
                 const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
                 const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
@@ -407,16 +426,7 @@ export class Top extends Command {
         }
 
         // Grab only the top 'x' players
-        let topPlayers: PlayerWithGameModeStats[] = userInfo.slice(0, this.paramMap.amount);
-
-        // Combine pictures
-        let image: Jimp = new Jimp(0, 0);
-        for (let i = 0; i < topPlayers.length; i++) {
-            let bodyImage: Jimp = await this.addBodyTextToImage(img.clone(), topPlayers[i]);
-            image = imageService.combineImagesVertically(image, bodyImage);
-        }
-
-        return image;
+        return userInfo.slice(0, this.paramMap.amount);
     }
 
     private async addBodyTextToImage(img: Jimp, playerSeason: PlayerWithGameModeStats): Promise<Jimp> {
