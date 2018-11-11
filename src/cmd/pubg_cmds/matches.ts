@@ -40,6 +40,7 @@ export class Matches extends Command {
         examples: [
             '!pubg-matches        (only valid if you have used the `register` command)',
             '!pubg-matches Jane',
+            '!pubg-matches "Player A"',
             '!pubg-matches Jane season=2018-03',
             '!pubg-matches Jane season=2018-03 region=pc-na',
             '!pubg-matches Jane season=2018-03 region=pc-na mode=solo-fpp',

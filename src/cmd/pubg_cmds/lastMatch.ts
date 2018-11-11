@@ -31,6 +31,7 @@ export class LastMatch extends Command {
         examples: [
             '!pubg-lastMatch        (only valid if you have used the `register` command)',
             '!pubg-lastMatch john',
+            '!pubg-lastMatch "Player A"',
             '!pubg-lastMatch john season=pc-2018-01',
             '!pubg-lastMatch john season=pc-2018-01 region=pc-eu',
         ]

@@ -27,7 +27,7 @@ export class Register extends Command {
         usage: '<prefix>register <username ...> [region=]',
         examples: [
             '!pubg-register john',
-            '!pubg-register jane',
+            '!pubg-register "Player A"',
             '!pubg-register jane region=pc-eu'
         ]
     }

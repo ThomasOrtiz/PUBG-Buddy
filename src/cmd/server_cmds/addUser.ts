@@ -28,7 +28,7 @@ export class AddUser extends Command {
         usage: '<prefix>addUser <username> [region=]',
         examples: [
             '!pubg-addUser john',
-            '!pubg-addUser john jane',
+            '!pubg-addUser "Player A"',
             '!pubg-addUser john region=pc-eu'
         ]
     }

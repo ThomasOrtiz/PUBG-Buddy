@@ -88,6 +88,7 @@ export class Help extends Command {
         });
         let parameterExplanation: string = '\n= Parameter Explanation =\n' +
                                     'See available parameters by calling the following commands: "modes", "regions", and "seasons".`\n\n' +
+                                    'If a parameter has a space in it you will need to surround it with quotation marks (")\n\n' +
                                     '\trequired :: <parameter> \n' +
                                     '\toptional :: [parameter]\n' +
                                     '\tselect one :: (option1 | option2 | option3)\n' +

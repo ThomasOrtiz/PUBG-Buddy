@@ -40,6 +40,7 @@ export class Rank extends Command {
         examples: [
             '!pubg-rank        (only valid if you have used the `register` command)',
             '!pubg-rank john',
+            '!pubg-rank "Player A"',
             '!pubg-rank john season=2018-03',
             '!pubg-rank john season=2018-03 region=pc-eu',
             '!pubg-rank john season=2018-03 region=pc-na mode=solo-fpp',

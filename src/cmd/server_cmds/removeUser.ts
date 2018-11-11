@@ -28,7 +28,7 @@ export class RemoveUser extends Command {
         usage: '<prefix>removeUser <username ...> [region=]',
         examples: [
             '!pubg-removeUser john',
-            '!pubg-removeUser john jane',
+            '!pubg-removeUser "Player A"',
             '!pubg-removeUser john region=pc-na'
         ]
     };
