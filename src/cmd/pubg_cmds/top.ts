@@ -96,12 +96,14 @@ export class Top extends Command {
         await reply.edit(`Aggregating **Top ${this.paramMap.amount}** on **${this.registeredUsers.length} registered users** ... give me a second`);
 
         // Get list of ids
+        reply.edit(`${reply.content}\nGetting player data ...`);
         const registeredNames: string[] = this.registeredUsers.map(user => user.username);
         const players: Player[] = await this.getPlayerInfoByBatching(registeredNames);
 
         // Retrieve Season data for player
-        let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(reply, players);
+        let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(players);
 
+        reply.edit(`${reply.content}\nCreating the leadboard ...`);
         const attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
 
         await reply.delete();
@@ -174,11 +176,9 @@ export class Top extends Command {
      * @param {Player[]} players list of PUBG Players
      * @returns {Promise<PlayerWithSeasonData[]>}
      */
-    private async getPlayersSeasonData(msg: Discord.Message, players: Player[]): Promise<PlayerWithSeasonData[]> {
+    private async getPlayersSeasonData(players: Player[]): Promise<PlayerWithSeasonData[]> {
         let playerSeasons: PlayerWithSeasonData[] = new Array();
         const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-
-        let progressMsg: Discord.Message = await msg.channel.send('Grabbing player data') as Discord.Message;
 
         let requests: Array<Promise<PlayerSeason>> = [];
         for (let i = 0; i < players.length; i++) {
@@ -192,7 +192,6 @@ export class Top extends Command {
             playerSeasons.push(info);
         }
 
-        progressMsg.delete();
         return playerSeasons;
     }
 
@@ -220,7 +219,10 @@ export class Top extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = await msg.channel.send('Creating the leaderboard ...') as Discord.Message;
             const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
+
+            await reply.delete();
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
@@ -241,7 +243,10 @@ export class Top extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = await msg.channel.send('Creating the leaderboard ...') as Discord.Message;
             const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
+
+            await reply.delete();
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
@@ -263,7 +268,10 @@ export class Top extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = await msg.channel.send('Creating the leaderboard ...') as Discord.Message;
             const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
+
+            await reply.delete();
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
@@ -378,6 +386,8 @@ export class Top extends Command {
 
     private async stitchBody(img: Jimp, players: PlayerWithSeasonData[], mode: string): Promise<Jimp> {
         const topPlayers: PlayerWithGameModeStats[] = this.orderSeasonStats(players, mode);
+
+        if (!topPlayers) { return null; }
 
         let image: Jimp = new Jimp(0, 0);
 
