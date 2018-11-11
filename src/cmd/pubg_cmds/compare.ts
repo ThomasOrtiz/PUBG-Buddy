@@ -39,6 +39,8 @@ export class Compare extends Command {
         examples: [
             '!pubg-compare jane       (only valid if you have used the `register` command)',
             '!pubg-compare john jane',
+            '!pubg-compare "A player" (only valid if you have used the `register` command)',
+            '!pubg-compare "Player A" "Player B',
             '!pubg-compare john jane season=2018-03',
             '!pubg-compare john jane season=2018-03 region=pc-eu',
             '!pubg-compare john jane season=2018-03 region=pc-na mode=solo',
