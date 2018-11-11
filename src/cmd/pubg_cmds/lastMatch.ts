@@ -191,6 +191,7 @@ export class LastMatch extends Command {
         const split_region = platFormRegion.split('_');
         const platform: string = split_region[0];
         const region: string = split_region[1];
+        username = username.replace(' ', '%20');
         return `https://pubg-replay.com/match/${platform}/${region}/${matchId}?highlight=${username}`
     }
 

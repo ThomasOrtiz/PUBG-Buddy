@@ -8,9 +8,9 @@ export class PubgRegionService {
     }
 
     static getAvailableRegions(): string[] {
-        let values: string[] = Object.values(PlatformRegion);
-        return values.filter((region => region.toLowerCase().indexOf('xbox') < 0));
-        //return Object.values(PlatformRegion);
+        //let values: string[] = Object.values(PlatformRegion);
+        // return values.filter((region => region.toLowerCase().indexOf('xbox') < 0));
+        return Object.values(PlatformRegion);
     }
 
 }

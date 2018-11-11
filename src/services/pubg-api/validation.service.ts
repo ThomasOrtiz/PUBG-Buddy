@@ -114,9 +114,9 @@ export class PubgValidationService {
      */
     static isValidRegion(checkRegion: string): boolean {
         // Temporarily not supporting Xbox
-        if (checkRegion.toLowerCase().indexOf('xbox') >= 0) {
-            return false;
-        }
+        // if (checkRegion.toLowerCase().indexOf('xbox') >= 0) {
+        //     return false;
+        // }
 
         const region: PlatformRegion = PlatformRegion[checkRegion.toUpperCase()];
 
