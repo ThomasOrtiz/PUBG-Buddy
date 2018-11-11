@@ -55,6 +55,12 @@ export enum PubgRankImageLocation {
     GRANDMASTER_RIBBON = './assets/pubg/assets/icons/ranks/Rank_Icon_08_grandmaster.png',
 }
 
+export enum PubgMapImageLocation {
+    ERANGEL = './assets/pubg/assets/maps/Erangel_Main_Low_Res.jpg',
+    MIRAMAR = './assets/pubg/assets/maps/Miramar_Main_Low_Res.jpg',
+    SANHOK = './assets/pubg/assets/maps/Savage_Main_Low_Res.jpg'
+}
+
 export enum FontLocation {
     // Regular White
     TEKO_REGULAR_WHITE_16 = './assets/font/Teko/regular/white/Teko-White-16.fnt',
@@ -84,4 +90,6 @@ export enum FontLocation {
     TEKO_BOLD_WHITE_52 = './assets/font/Teko/bold/white/Teko-White-52.fnt',
     TEKO_BOLD_WHITE_64 = './assets/font/Teko/bold/white/Teko-White-64.fnt',
     TEKO_BOLD_WHITE_72 = './assets/font/Teko/bold/white/Teko-White-72.fnt',
+    // Bold Red Outline
+    TEKO_BOLD_RED_OUTLINE_128 = './assets/font/Teko/bold/red/Teko-Red-Outline-128.fnt',
 }
