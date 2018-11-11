@@ -62,7 +62,7 @@ export class SqlServerService {
                 const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
                 const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
-                return pool.query('insert into servers (server_id, defualt_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
+                return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
             }
         });
     }
