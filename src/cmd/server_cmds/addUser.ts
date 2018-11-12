@@ -56,18 +56,18 @@ export class AddUser extends Command {
     }
 
     private async addUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
-        const message: Discord.Message = await msg.channel.send(`Checking for \`${username}\`'s PUBG Id ... give me a second`) as Discord.Message;
+        const message: Discord.Message = await msg.channel.send(`Checking for **${username}**'s PUBG Id ... give me a second`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (pubgId && pubgId !== '') {
             const registered: boolean = await sqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
             if (registered) {
-                message.edit(`Added \`${username}\``);
+                message.edit(`Added **${username}**`);
             } else {
-                message.edit(`Could not add \`${username}\``);
+                message.edit(`Could not add **${username}**`);
             }
         } else {
-            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the **${region}** region. Double check the username and region.`);
         }
     }
 

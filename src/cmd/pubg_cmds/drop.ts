@@ -41,8 +41,11 @@ export class Drop extends Command {
         let response: Discord.Message;
         const explanation: string = `**${msg.author.username}**, use the **E**, **M**, and **S** **reactions** to switch between **Erangel**, **Miramar**, and **Sanhok**.`;
         if (map) {
+            let reply: Discord.Message = (await msg.channel.send('Finding a drop ...')) as Discord.Message;
             const drop: DropLocation = this.getDrop(map);
             const attatchment: Discord.Attachment = await this.createImage(map, drop);
+
+            await reply.delete();
             response = await msg.channel.send(`${explanation}\nDrop at **${drop.name}**!`, attatchment) as Discord.Message;
         } else {
             response = await msg.channel.send(`${explanation}`) as Discord.Message;
@@ -133,8 +136,11 @@ export class Drop extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = (await msg.channel.send('Finding a drop ...')) as Discord.Message;
             const drop: DropLocation = this.getDrop('e');
             const attatchment: Discord.Attachment = await this.createImage('e', drop);
+
+            await reply.delete();
             const newMsg = await msg.channel.send(`${explanation}\nDrop at **${drop.name}**!`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster);
         });
@@ -143,8 +149,11 @@ export class Drop extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = (await msg.channel.send('Finding a drop ...')) as Discord.Message;
             const drop: DropLocation = this.getDrop('m');
             const attatchment: Discord.Attachment = await this.createImage('m', drop);
+
+            await reply.delete();
             const newMsg = await msg.channel.send(`${explanation}\nDrop at **${drop.name}**!`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster);
         });
@@ -153,8 +162,11 @@ export class Drop extends Command {
                 await msg.delete().catch(() => {});
             }
 
+            let reply: Discord.Message = (await msg.channel.send('Finding a drop ...')) as Discord.Message;
             const drop: DropLocation = this.getDrop('s');
             const attatchment: Discord.Attachment = await this.createImage('s', drop);
+
+            await reply.delete();
             const newMsg = await msg.channel.send(`${explanation}\nDrop at **${drop.name}**!`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster);
         });

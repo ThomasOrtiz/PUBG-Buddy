@@ -103,7 +103,7 @@ export class Top extends Command {
         // Retrieve Season data for player
         let playerSeasons: PlayerWithSeasonData[] = await this.getPlayersSeasonData(players);
 
-        reply.edit(`${reply.content}\nCreating the leadboard ...`);
+        reply.edit(`${reply.content}\nCreating the leaderboard ...`);
         const attatchment: Discord.Attachment = await this.createImages(playerSeasons, this.paramMap.mode);
 
         await reply.delete();

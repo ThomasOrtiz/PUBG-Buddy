@@ -56,20 +56,20 @@ export class RemoveUser extends Command {
     };
 
     private async removeUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
-        const message: Discord.Message = await msg.channel.send(`Removing ${username} from server registry`) as Discord.Message;
+        const message: Discord.Message = await msg.channel.send(`Removing **${username}** from server registry`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (!pubgId) {
-            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the **${region}** region. Double check the username and region.`);
             return;
         }
 
         let unregistered: boolean = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
         if (unregistered) {
-            message.edit(`Removed ${username} from server registry`);
+            message.edit(`Removed **${username}** from server registry`);
         }
         else {
-            message.edit(`${username} does not exist on server registery`);
+            message.edit(`**${username}** does not exist on server registery`);
         }
 
     }

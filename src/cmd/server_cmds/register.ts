@@ -56,7 +56,7 @@ export class Register extends Command {
     }
 
     private async registerUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
-        const message: Discord.Message = await msg.channel.send(`Checking for ${username}'s PUBG Id ... give me a second`) as Discord.Message;
+        const message: Discord.Message = await msg.channel.send(`Checking for **${username}**'s PUBG Id ... give me a second`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
         if (pubgId && pubgId !== '') {
@@ -65,7 +65,7 @@ export class Register extends Command {
                 const user: Discord.User = msg.author;
                 const date: Date = user.createdAt;
                 let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                    .setTitle(`\`${user.tag}\`'s profile`)
+                    .setTitle(`**${user.tag}**'s profile`)
                     .setThumbnail(user.displayAvatarURL)
                     .setColor(0x00AE86)
                     .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
@@ -74,10 +74,10 @@ export class Register extends Command {
 
                 message.edit({embed});
             } else {
-                message.edit(`Failed to register your Discord user with PUBG name \`${username}\``);
+                message.edit(`Failed to register your Discord user with PUBG name **${username}**`);
             }
         } else {
-            message.edit(`Could not find **${username}** on the \`${region}\` region. Double check the username and region.`);
+            message.edit(`Could not find **${username}** on the **${region}** region. Double check the username and region.`);
         }
     }
 
