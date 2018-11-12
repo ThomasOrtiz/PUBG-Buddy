@@ -5,5 +5,4 @@ export interface Server {
     default_season: string;
     default_region: string;
     default_mode: string;
-    default_squadSize: string;
 }
