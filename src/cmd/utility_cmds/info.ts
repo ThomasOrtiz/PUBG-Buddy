@@ -28,16 +28,20 @@ export class Info extends Command {
             discord_username: msg.author.tag
         });
 
+        const links: string[] = [
+            '[Discord Bots Page](https://discordbots.org/bot/417828293019041804)',
+            '[Github](https://github.com/Tdortiz/PUBG-Discord-Bot)',
+            '[Discord Support Server](https://discord.gg/6kVvTwD)',
+            '[Paypal](https://www.paypal.me/thomasortiz95) or Venmo **@ThomasOrtiz95**'
+        ];
+
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle(`PUBG Buddy Information`)
             .setThumbnail(bot.user.displayAvatarURL)
             .setColor(0x00AE86)
             .addField('Owner', 'Thomas Ortiz - Thomas#1442')
             .addBlankField()
-            .addField('Discord Bots', '[Link](https://discordbots.org/bot/417828293019041804)', true)
-            .addField('Github', '[Link](https://github.com/Tdortiz/PUBG-Discord-Bot)', true)
-            .addField('Discord Link', 'https://discord.gg/6kVvTwD', true)
-            .addField('Donate', '[Paypal](https://www.paypal.me/thomasortiz95) or Venmo **@ThomasOrtiz95**', true)
+            .addField('Links', links.join('\n'))
             .addBlankField()
             .addField('Uptime', this.getUptime(bot.uptime))
             .addField('Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`, true)
