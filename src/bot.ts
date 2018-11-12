@@ -14,6 +14,7 @@ import * as logger from './config/logger.config';
 
 export class Bot {
 
+    private botUserId: string = cs.getEnvironmentVariable('bot_user_id');
     private botToken: string = cs.getEnvironmentVariable('bot_token');
     private prefix: string = cs.getEnvironmentVariable('prefix');
     private bot: DiscordClientWrapper;
@@ -118,6 +119,9 @@ export class Bot {
     }
 
     private onMessage = async (msg: Discord.Message) => {
+        // Ignore this bot's messages
+        if (msg.author.id === this.botUserId) { return; }
+
         // Ignore other bots
         //if (msg.author.bot) return;
 
@@ -128,7 +132,7 @@ export class Bot {
         let customPrefix: string;
         if (msg.guild) {
             isGuildMessage = true;
-            let server_defaults: Server = await sqlService.getOrRegisterServer(msg.guild.id);
+            let server_defaults: Server = await sqlService.getServer(msg.guild.id);
             customPrefix = server_defaults.default_bot_prefix.toLowerCase();
             perms = this.bot.elevation(msg);
         }

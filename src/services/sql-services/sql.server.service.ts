@@ -12,59 +12,21 @@ const cache = new CacheService();
 export class SqlServerService {
 
     /**
-     * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
-     * @param {string} serverId
-     */
-    static async getOrRegisterServer(serverId: string): Promise<Server> {
-        return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then(async (res: QueryResult) => {
-                if (res.rowCount === 0) {
-                    await pool.query('insert into servers (server_id) values ($1)', [serverId]);
-                    return this.getServerDefaults(serverId);
-                } else {
-                    return this.getServerDefaults(serverId);
-                }
-            });
-    }
-
-    /**
-     * Get a server
-     * @param {string} serverId
-     * @returns {Server} server id
-     */
-    static async getServer(serverId: string): Promise<Server> {
-        return pool.query('select * from servers where server_id = $1', [serverId])
-            .then((res: QueryResult) => {
-                if (res.rowCount === 0) { return null; }
-
-                let server: Server = {
-                    id: '',
-                    serverId: res.rows[0].id,
-                    default_bot_prefix: res.rows[0].default_bot_prefix,
-                    default_season: res.rows[0].default_season,
-                    default_region: res.rows[0].default_region,
-                    default_mode: res.rows[0].default_mode,
-                    default_squadSize: res.rows[0].default_squadsize
-                }
-
-                return server;
-            });
-    }
-
-    /**
      * Adds a server to the servers table if it doesn't exist already
      * @param {string} serverId
      */
     static async registerServer(serverId: string): Promise<QueryResult> {
-        return pool.query('select server_id from servers where server_id = $1', [serverId]).then(async (res: QueryResult) => {
-            if (res.rowCount === 0) {
-                const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
-                const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
-                const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
+        const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
+        if (res.rowCount === 0) {
+            const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
+            const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
-                return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
-            }
-        });
+            return pool.query(`insert into servers
+                (server_id, default_bot_prefix, default_season, default_region, default_mode)
+                values ($1, $2, $3, $4, $5)`,
+                [serverId, '!pubg-', seasonName, 'STEAM', 'SQUAD_FPP']);
+        }
     }
 
     /**
@@ -77,6 +39,32 @@ export class SqlServerService {
             .then(async () => {
                 return true;
             });
+    }
+
+    /**
+     * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
+     * @param {string} serverId
+     */
+    static async getServer(serverId: string): Promise<Server> {
+        const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
+
+        // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
+        if (res.rowCount === 0) {
+            const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
+            const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
+
+            return {
+                id: '',
+                serverId: '',
+                default_bot_prefix: '!pubg-',
+                default_season: seasonName,
+                default_region: 'STEAM',
+                default_mode: 'SQUAD_FPP'
+            }
+        } else {
+            return this.getServerDefaults(serverId);
+        }
     }
 
     /**
@@ -98,8 +86,7 @@ export class SqlServerService {
                     default_bot_prefix: res.rows[0].default_bot_prefix,
                     default_season: res.rows[0].default_season,
                     default_region: res.rows[0].default_region,
-                    default_mode: res.rows[0].default_mode,
-                    default_squadSize: res.rows[0].default_squadsize
+                    default_mode: res.rows[0].default_mode
                 }
 
                 return server;
