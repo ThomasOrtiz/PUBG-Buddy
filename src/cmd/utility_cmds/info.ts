@@ -37,6 +37,7 @@ export class Info extends Command {
             .addField('Discord Bots', '[Link](https://discordbots.org/bot/417828293019041804)', true)
             .addField('Github', '[Link](https://github.com/Tdortiz/PUBG-Discord-Bot)', true)
             .addField('Discord Link', 'https://discord.gg/6kVvTwD', true)
+            .addField('Donate', '[Paypal](https://www.paypal.me/thomasortiz95) or Venmo **@ThomasOrtiz95**', true)
             .addBlankField()
             .addField('Uptime', this.getUptime(bot.uptime))
             .addField('Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`, true)
