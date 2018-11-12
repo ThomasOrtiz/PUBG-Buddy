@@ -25,7 +25,7 @@ export class SqlServerService {
             return pool.query(`insert into servers
                 (server_id, default_bot_prefix, default_season, default_region, default_mode)
                 values ($1, $2, $3, $4, $5)`,
-                [serverId, '!pubg-', seasonName, 'STEAM', 'SQUAD_FPP']);
+                [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
         }
     }
 
@@ -59,7 +59,7 @@ export class SqlServerService {
                 serverId: '',
                 default_bot_prefix: '!pubg-',
                 default_season: seasonName,
-                default_region: 'STEAM',
+                default_region: 'PC_NA',
                 default_mode: 'SQUAD_FPP'
             }
         } else {
