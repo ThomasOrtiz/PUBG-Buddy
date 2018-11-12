@@ -24,6 +24,8 @@
   "devDependencies": {
     "@types/mixpanel": "^2.14.0",
     "@types/node": "^10.12.5",
-    "@types/pg": "^7.4.11"
+    "@types/pg": "^7.4.11",
+    "eslint": "^5.9.0",
+    "typescript": "^3.1.6"
   }
 }
