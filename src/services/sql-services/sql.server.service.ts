@@ -42,59 +42,47 @@ export class SqlServerService {
     }
 
     /**
-     * Attempts to get a server if it exists, otherwise insert the new server and return its defaults
-     * @param {string} serverId
-     */
-    static async getServer(serverId: string): Promise<Server> {
-        const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
-
-        // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
-        if (res.rowCount === 0) {
-            const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
-            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
-            const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
-
-            return {
-                id: '',
-                serverId: '',
-                default_bot_prefix: '!pubg-',
-                default_season: seasonName,
-                default_region: 'PC_NA',
-                default_mode: 'SQUAD_FPP'
-            }
-        } else {
-            return this.getServerDefaults(serverId);
-        }
-    }
-
-    /**
      * Get the sever's default settings
      * @param {string} serverId
-     * @returns {Server} server: server
+     * @returns {Server} server
      */
-    static async getServerDefaults(serverId: string): Promise<Server> {
-        const cacheKey: string = `sql.server.getServerDefaults-${serverId}`; // This must match the key in setServerDefaults
+    static async getServer(serverId: string): Promise<Server> {
+        const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in setServerDefaults
         const ttl: number = TimeInSeconds.ONE_HOUR;
         const storeFunction: Function = async (): Promise<Server> => {
-            return pool.query('select * from servers where server_id = $1', [serverId]).then((res: QueryResult) => {
-                if (res.rowCount === 0) {
-                    return null;
+            const res: QueryResult = await pool.query('select * from servers where server_id = $1', [serverId]);
+
+            // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
+            if (res.rowCount === 0) {
+                const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+                const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
+                const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
+
+                return {
+                    id: '',
+                    serverId: '',
+                    default_bot_prefix: '!pubg-',
+                    default_season: seasonName,
+                    default_region: 'PC_NA',
+                    default_mode: 'SQUAD_FPP',
+                    isStoredInDb: false
                 }
-                let server: Server = {
+            } else {
+                return {
                     id: '',
                     serverId: res.rows[0].id,
                     default_bot_prefix: res.rows[0].default_bot_prefix,
                     default_season: res.rows[0].default_season,
                     default_region: res.rows[0].default_region,
-                    default_mode: res.rows[0].default_mode
+                    default_mode: res.rows[0].default_mode,
+                    isStoredInDb: true
                 }
-
-                return server;
-            });
+            }
         };
 
         return await cache.get<Server>(cacheKey, storeFunction, ttl);
     }
+
 
     /**
      * Sets the server's default settings
@@ -105,7 +93,7 @@ export class SqlServerService {
      * @param {string} mode fpp or tpp
      */
     static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string): Promise<QueryResult> {
-        const cacheKey: string = `sql.server.getServerDefaults-${serverId}`; // This must match the key in getServerDefaults
+        const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in getServer
         cache.del(cacheKey);
 
         return pool.query('select server_id from servers where server_id = $1', [serverId])
@@ -116,5 +104,10 @@ export class SqlServerService {
                     return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
                 }
             });
+    }
+
+    static deleteServerCache(serverId: string) {
+        const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in getServer
+        cache.del(cacheKey);
     }
 }

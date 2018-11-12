@@ -78,7 +78,7 @@ export class Setup extends Command {
      * @returns {Promise<ParameterMap>}
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        const server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const server: Server = await sqlServerService.getServer(msg.guild.id);
         const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
         const paramMap: ParameterMap = {
@@ -104,7 +104,7 @@ export class Setup extends Command {
     }
 
     private async getCurrentServerDefaultsEmbed(msg: Discord.Message): Promise<Discord.RichEmbed> {
-        let server: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        let server: Server = await sqlServerService.getServer(msg.guild.id);
         const regionDisplayName: string = server.default_region.replace('_', '-');
         const modeDescription: string = server.default_mode.replace('_', '-');
 

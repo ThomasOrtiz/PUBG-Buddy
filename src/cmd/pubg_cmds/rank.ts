@@ -122,7 +122,7 @@ export class Rank extends Command {
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
             pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
             pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true);

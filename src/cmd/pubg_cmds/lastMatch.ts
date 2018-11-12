@@ -84,7 +84,7 @@ export class LastMatch extends Command {
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await SqlServerService.getServerDefaults(msg.guild.id);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);

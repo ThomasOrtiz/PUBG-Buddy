@@ -137,7 +137,7 @@ export class Compare extends Command {
         }
 
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServerDefaults(msg.guild.id);
+            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
             paramMap = {
                 playerA: playerA,
                 playerB: playerB,

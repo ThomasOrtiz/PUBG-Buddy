@@ -56,7 +56,7 @@ export class Help extends Command {
         let prefix: string = default_bot_prefix;
 
         if (msg.guild) {
-            let server_defaults: Server = await sqlService.getServerDefaults(msg.guild.id);
+            let server_defaults: Server = await sqlService.getServer(msg.guild.id);
             prefix = server_defaults.default_bot_prefix;
         }
 

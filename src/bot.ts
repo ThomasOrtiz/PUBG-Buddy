@@ -133,6 +133,11 @@ export class Bot {
         if (msg.guild) {
             isGuildMessage = true;
             let server_defaults: Server = await sqlService.getServer(msg.guild.id);
+
+            if (!server_defaults.isStoredInDb) {
+                sqlService.deleteServerCache(msg.guild.id);
+            }
+
             customPrefix = server_defaults.default_bot_prefix.toLowerCase();
             perms = this.bot.elevation(msg);
         }

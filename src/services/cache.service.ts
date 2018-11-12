@@ -55,6 +55,7 @@ export class CacheService {
     }
 
     public del(keys) {
+        //logger.info(`Cache-del: ${keys}`)
         this.cache.del(keys);
     }
 
@@ -75,6 +76,7 @@ export class CacheService {
      * Flushes the entire cache
      */
     public flush() {
+        //logger.info('Cache-flush');
         this.cache.flushAll();
     }
 }

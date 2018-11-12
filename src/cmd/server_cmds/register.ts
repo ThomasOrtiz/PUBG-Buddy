@@ -38,7 +38,7 @@ export class Register extends Command {
             return;
         }
 
-        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
         const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
         const username: string = params[0];

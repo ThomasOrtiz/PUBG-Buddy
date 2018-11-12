@@ -39,7 +39,7 @@ export class RemoveUser extends Command {
             return;
         }
 
-        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_params.region]);
 

@@ -123,7 +123,7 @@ export class Top extends Command {
             amount = +params[0];
         }
 
-        const serverDefaults: Server = await sqlServerService.getServerDefaults(msg.guild.id);
+        const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
 
         const paramMap: ParameterMap = {
