@@ -22,6 +22,9 @@ export class Bot {
 
     constructor() {
         this.bot = new DiscordClientWrapper();
+        const discordBotsApiToken: string = cs.getEnvironmentVariable('discord_bots_api_key');
+        this.discordBotsClient = new DBClient(discordBotsApiToken, this.bot);
+
         this.setupListeners();
         this.registerCommands();
     }
@@ -29,9 +32,6 @@ export class Bot {
     public start = async () => {
         const botToken: string = cs.getEnvironmentVariable('bot_token');
         await this.bot.login(botToken);
-
-        const discordBotsApiToken: string = cs.getEnvironmentVariable('discord_bots_api_key');
-        this.discordBotsClient = new DBClient(discordBotsApiToken, this.bot);
     }
 
     private setupListeners = () => {
@@ -63,8 +63,10 @@ export class Bot {
 
             const isDev: boolean = cs.getEnvironmentVariable('isDev') === 'true';
             if (!isDev) {
+                this.discordBotsClient.postStats(this.bot.guilds.size);
                 setInterval(() => {
-                    this.discordBotsClient.postStats(this.bot.guilds.size, this.bot.shard.id, this.bot.shard.count);
+                    logger.info('Updating discord bots stats');
+                    this.discordBotsClient.postStats(this.bot.guilds.size);
                 }, 1800000);
             }
 
