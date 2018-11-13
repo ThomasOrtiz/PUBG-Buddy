@@ -3,7 +3,10 @@
 */
 
 BEGIN;
-    CREATE TABLE IF NOT EXISTS players (id SERIAL PRIMARY KEY, pubg_id TEXT, username TEXT);
+    CREATE TABLE IF NOT EXISTS players
+        (id SERIAL PRIMARY KEY,
+        pubg_id TEXT UNIQUE,
+        username TEXT);
 
     CREATE TABLE IF NOT EXISTS servers
         (id SERIAL PRIMARY KEY,
@@ -20,6 +23,6 @@ BEGIN;
 
     CREATE TABLE IF NOT EXISTS user_registery
         (id SERIAL PRIMARY KEY,
-        discord_id TEXT,
+        discord_id TEXT UNIQUE,
         fk_players_id integer REFERENCES players (id) ON DELETE CASCADE);
 COMMIT;
