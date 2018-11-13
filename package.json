@@ -12,6 +12,7 @@
     "sql-test": "heroku pg:psql -a pubg-stat-discord-bot-dev"
   },
   "dependencies": {
+    "dblapi.js": "^2.3.0",
     "discord.js": "^11.4.2",
     "dotenv": "^6.1.0",
     "jimp": "^0.5.6",

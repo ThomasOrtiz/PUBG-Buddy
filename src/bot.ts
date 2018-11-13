@@ -1,4 +1,5 @@
 import * as Discord from 'discord.js';
+import DBClient = require("dblapi.js");
 import * as fs from 'fs';
 import { join } from 'path';
 import {
@@ -15,9 +16,9 @@ import * as logger from './config/logger.config';
 export class Bot {
 
     private botUserId: string = cs.getEnvironmentVariable('bot_user_id');
-    private botToken: string = cs.getEnvironmentVariable('bot_token');
     private prefix: string = cs.getEnvironmentVariable('prefix');
     private bot: DiscordClientWrapper;
+    private discordBotsClient: DBClient;
 
     constructor() {
         this.bot = new DiscordClientWrapper();
@@ -25,8 +26,12 @@ export class Bot {
         this.registerCommands();
     }
 
-    public start = () => {
-        this.bot.login(this.botToken);
+    public start = async () => {
+        const botToken: string = cs.getEnvironmentVariable('bot_token');
+        await this.bot.login(botToken);
+
+        const discordBotsApiToken: string = cs.getEnvironmentVariable('discord_bots_api_key');
+        this.discordBotsClient = new DBClient(discordBotsApiToken, this.bot);
     }
 
     private setupListeners = () => {
@@ -55,12 +60,17 @@ export class Bot {
         });
         this.bot.on('ready', () => {
             logger.info(`Bot has started, with ${this.bot.users.size} users, in ${this.bot.channels.size} channels of ${this.bot.guilds.size} guilds.`);
-            logger.info('Connected');
 
             const isDev: boolean = cs.getEnvironmentVariable('isDev') === 'true';
             if (!isDev) {
-                (this.bot.channels.find(i => i.id === '423248493084409877') as Discord.TextChannel).send('PUBG Ranking Bot is back online.');
+                setInterval(() => {
+                    this.discordBotsClient.postStats(this.bot.guilds.size, this.bot.shard.id, this.bot.shard.count);
+                }, 1800000);
             }
+
+            const alertChannelId: string = cs.getEnvironmentVariable('alert_channel_id');
+            (this.bot.channels.find(i => i.id === alertChannelId) as Discord.TextChannel).send(`**${this.bot.user.username}** is back online.`);
+
             this.bot.user.setActivity("Use `!pubg-help`");
         });
         this.bot.on('message', this.onMessage);
