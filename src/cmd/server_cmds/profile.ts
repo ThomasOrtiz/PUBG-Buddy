@@ -9,6 +9,7 @@ import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from
 export class Profile extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: [],

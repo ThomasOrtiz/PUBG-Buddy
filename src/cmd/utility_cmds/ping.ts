@@ -6,6 +6,7 @@ import { AnalyticsService as analyticsService } from '../../services';
 export class Ping extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Utility',
         enabled: true,
         guildOnly: false,
         aliases: [],

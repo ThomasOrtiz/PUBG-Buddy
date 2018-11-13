@@ -49,6 +49,7 @@ class PlayerWithGameModeStats {
 export class Top extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: true,
         aliases: [],

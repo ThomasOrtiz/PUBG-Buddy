@@ -18,6 +18,7 @@ interface ParameterMap {
 export class LastMatch extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: [],
@@ -26,7 +27,7 @@ export class LastMatch extends Command {
 
     help: CommandHelp = {
         name: 'lastMatch',
-        description: 'Returns a match summary of the last match.',
+        description: 'Returns a match summary of the last match. **Name is case sensitive**',
         usage: '<prefix>lastMatch [pubg username] [season=] [region=]',
         examples: [
             '!pubg-lastMatch        (only valid if you have used the `register` command)',

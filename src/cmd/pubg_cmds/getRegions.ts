@@ -10,6 +10,7 @@ import { PlatformRegion } from 'pubg-typescript-api';
 export class GetRegions extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: ['getRegions'],
@@ -17,7 +18,7 @@ export class GetRegions extends Command {
     };
     help: CommandHelp = {
         name: 'regions',
-        description: 'Returns all available regions to use as parameters',
+        description: 'Returns all available regions',
         usage: '<prefix>regions',
         examples: [
             '!pubg-regions'

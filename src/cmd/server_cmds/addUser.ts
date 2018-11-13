@@ -16,6 +16,7 @@ import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 export class AddUser extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: [],
@@ -24,7 +25,7 @@ export class AddUser extends Command {
 
     help: CommandHelp = {
         name: 'addUser',
-        description: 'Adds a user to the server\'s registery. ** Name is case sensitive **',
+        description: 'Adds a user to the server\'s registery. **Name is case sensitive**',
         usage: '<prefix>addUser <username> [region=]',
         examples: [
             '!pubg-addUser john',

@@ -19,6 +19,7 @@ interface ParameterMap {
 export class Setup extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: ['setServerDefaults', 'getServerDefaults'],
@@ -27,7 +28,7 @@ export class Setup extends Command {
 
     help: CommandHelp = {
         name: 'setup',
-        description: 'Gets or sets up the server defaults for pubg commands. Only usable by users with administrator permissions.',
+        description: 'Gets or sets up the server defaults for pubg commands.',
         usage: '<prefix>setup [prefix=] [season=] [region=] [mode=]',
         examples: [
             '!pubg-setup',

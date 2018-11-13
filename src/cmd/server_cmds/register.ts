@@ -15,6 +15,7 @@ import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 export class Register extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: [],
@@ -23,7 +24,7 @@ export class Register extends Command {
 
     help: CommandHelp = {
         name: 'register',
-        description: 'Register a Discord User with a PUBG username - ** Name is case sensitive **',
+        description: 'Register a Discord User with a PUBG username - **Name is case sensitive**',
         usage: '<prefix>register <username ...> [region=]',
         examples: [
             '!pubg-register john',

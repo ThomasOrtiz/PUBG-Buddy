@@ -10,6 +10,7 @@ import { Player } from '../../interfaces';
 export class Users extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: [],
@@ -18,7 +19,7 @@ export class Users extends Command {
 
     help: CommandHelp = {
         name: 'users',
-        description: 'List all users on this server\'s registery.',
+        description: 'List all users on the server\'s registery.',
         usage: '<prefix>users',
         examples: [
             '!pubg-users'

@@ -26,6 +26,7 @@ interface ParameterMap {
 export class Compare extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: [],
@@ -34,7 +35,7 @@ export class Compare extends Command {
 
     help: CommandHelp = {
         name: 'compare',
-        description: 'Compares two players',
+        description: 'Compares two players. **Name is case sensitive**',
         usage: '<prefix>compare <player-one> <player-two> [season=] [region=] [mode=]',
         examples: [
             '!pubg-compare jane       (only valid if you have used the `register` command)',

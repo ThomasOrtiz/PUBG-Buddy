@@ -6,6 +6,7 @@ import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from
 export class Shrug extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Utility',
         enabled: true,
         guildOnly: false,
         aliases: [],

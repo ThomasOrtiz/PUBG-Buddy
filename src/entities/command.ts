@@ -9,6 +9,7 @@ export interface CommandHelp {
 }
 
 export interface CommandConfiguration {
+    group: string;
     enabled: boolean;
     guildOnly: boolean;
     aliases: string[];

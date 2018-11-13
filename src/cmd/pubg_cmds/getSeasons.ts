@@ -11,6 +11,7 @@ import { PubgSeasonService } from '../../services/pubg-api/season.service';
 export class GetSeasons extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: ['getSeasons'],
@@ -19,7 +20,7 @@ export class GetSeasons extends Command {
 
     help: CommandHelp = {
         name: 'seasons',
-        description: 'Returns all available seasons to use as parameters',
+        description: 'Returns all available seasons',
         usage: '<prefix>seasons',
         examples: [
             '!pubg-seasons'

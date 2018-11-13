@@ -9,6 +9,7 @@ import {
 export class GetModes extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: ['getModes'],
@@ -17,7 +18,7 @@ export class GetModes extends Command {
 
     help: CommandHelp= {
         name: 'modes',
-        description: 'Returns all available modes to use as parameters',
+        description: 'Returns all available modes',
         usage: '<prefix>modes',
         examples: [
             '!pubg-modes'

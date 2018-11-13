@@ -17,6 +17,7 @@ interface DropLocation {
 export class Drop extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: [],
@@ -25,7 +26,7 @@ export class Drop extends Command {
 
     help: CommandHelp = {
         name: 'drop',
-        description: 'Gives you a random place to drop dependant on the map.',
+        description: 'Gives you a random place to drop.',
         usage: '<prefix>drop [(e | m | s)]',
         examples: [
             '!pubg-drop',

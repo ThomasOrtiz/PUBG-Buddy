@@ -27,6 +27,7 @@ interface ParameterMap {
 export class Rank extends Command {
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: [],
@@ -35,7 +36,7 @@ export class Rank extends Command {
 
     help: CommandHelp = {
         name: 'rank',
-        description: 'Returns a players solo, duo, and squad ranking details. Username IS case sensitive.',
+        description: `Returns a player's season stats. **Name is case sensitive**`,
         usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=text]',
         examples: [
             '!pubg-rank        (only valid if you have used the `register` command)',

@@ -16,6 +16,7 @@ import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 export class RemoveUser extends Command {
 
     conf: CommandConfiguration = {
+        group: 'Server',
         enabled: true,
         guildOnly: true,
         aliases: [],
@@ -24,7 +25,7 @@ export class RemoveUser extends Command {
 
     help: CommandHelp = {
         name: 'removeUser',
-        description: 'Removes a user from the server\'s registery. ** Name is case sensitive **',
+        description: 'Removes a user from the server\'s registery. **Name is case sensitive**',
         usage: '<prefix>removeUser <username ...> [region=]',
         examples: [
             '!pubg-removeUser john',

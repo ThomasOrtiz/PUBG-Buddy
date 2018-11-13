@@ -27,6 +27,7 @@ export class Matches extends Command {
     private MAX_MATCHES: number = 5;
 
     conf: CommandConfiguration = {
+        group: 'PUBG',
         enabled: true,
         guildOnly: false,
         aliases: [],
@@ -35,7 +36,7 @@ export class Matches extends Command {
 
     help: CommandHelp= {
         name: 'matches',
-        description: `Returns the last ${this.MAX_MATCHES} matches for a player with links to https://pubg-replay.com`,
+        description: `Returns links to the player's last ${this.MAX_MATCHES} matches. **Name is case sensitive**`,
         usage: '<prefix>matches [pubg username] [season=] [region=] [mode=]',
         examples: [
             '!pubg-matches        (only valid if you have used the `register` command)',
