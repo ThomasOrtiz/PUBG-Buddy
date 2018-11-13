@@ -8,7 +8,7 @@ import {
  } from './services';
 import { Command, DiscordClientWrapper } from './entities';
 import { Server } from './interfaces'
-import * as commands from './cmd';
+import * as Commands from './cmd';
 import * as logger from './config/logger.config';
 
 
@@ -106,8 +106,7 @@ export class Bot {
                 files.forEach((f: string) => {
                     const fileName: string = f.split('.')[0];
                     const uppercaseName: string = fileName.charAt(0).toUpperCase() + fileName.slice(1);
-                    const commandClass: any = commands[uppercaseName];
-                    const command: Command = new commandClass();
+                    const command: Command = new Commands[uppercaseName];
                     logger.info(`Loading Command: ${command.help.name}.`);
                     this.bot.commands.set(command.help.name, command);
                     command.conf.aliases.forEach(alias => {
