@@ -9,9 +9,9 @@ import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from
 export class Profile extends Command {
 
     conf: CommandConfiguration = {
-        group: 'Server',
+        group: 'User',
         enabled: true,
-        guildOnly: true,
+        guildOnly: false,
         aliases: [],
         permLevel: 0
     };
@@ -32,16 +32,19 @@ export class Profile extends Command {
 
         let user: Discord.User;
         if (params.length > 0) {
-            let mention: string = params[0];
+            const mention: string = params[0];
             discordId = mention.substring(2, mention.length-1);
             usedMention = true;
+            if (usedMention && !msg.guild) {
+                msg.channel.send(`Mentions are not supported in direct messages.`);
+                return;
+            }
             try {
                 user = await bot.fetchUser(discordId);
             } catch(e) {
                 msg.channel.send(`You must use a Discord Mention as a parameter.`);
                 return;
             }
-
         } else {
             discordId = msg.author.id;
             user = msg.author;

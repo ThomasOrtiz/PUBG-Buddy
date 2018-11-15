@@ -6,18 +6,24 @@ import {
     PubgPlayerService,
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService,
+    ParameterService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 
+
+interface ParameterMap {
+    username: string;
+    region: string;
+}
 
 export class Register extends Command {
 
     conf: CommandConfiguration = {
-        group: 'Server',
+        group: 'User',
         enabled: true,
-        guildOnly: true,
+        guildOnly: false,
         aliases: [],
         permLevel: 0
     };
@@ -33,30 +39,62 @@ export class Register extends Command {
         ]
     }
 
+    private paramMap: ParameterMap;
+
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        if (!params[0]) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a username', this.help);
+        try {
+            this.paramMap = await this.getParameters(msg, params);
+        } catch(e) {
             return;
         }
-
-        const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
-        const region: string  = cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase();
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
-        const username: string = params[0];
 
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
-            pubg_name: username,
-            number_parameters: params.length,
-            region: region
+            pubg_name: this.paramMap.username,
+            region: this.paramMap.region
         });
 
-        this.registerUser(msg, api, region, username);
+        this.registerUser(msg, this.paramMap.region, this.paramMap.username);
     }
 
-    private async registerUser(msg: Discord.Message, api: PubgAPI, region: string, username: string) {
+    private async getParameters(msg: Discord.Message, params: string[]) {
+        let paramMap: ParameterMap;
+
+        let pubg_params: PubgParameters;
+        if (msg.guild) {
+            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        } else {
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
+        }
+
+        // Throw error if no username supplied
+        if (!pubg_params.username) {
+            discordMessageService.handleError(msg, 'Error:: Must specify a username.', this.help);
+            throw 'Error:: Must specify a username';
+        }
+
+        paramMap = {
+            username: pubg_params.username,
+            region: pubg_params.region.toUpperCase().replace('-', '_'),
+        }
+
+        analyticsService.track(this.help.name, {
+            distinct_id: msg.author.id,
+            discord_id: msg.author.id,
+            discord_username: msg.author.tag,
+            number_parameters: params.length,
+            pubg_name: paramMap.username,
+            region: paramMap.region,
+        });
+
+        return paramMap;
+    }
+
+    private async registerUser(msg: Discord.Message, region: string, username: string) {
+        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
         const message: Discord.Message = await msg.channel.send(`Checking for **${username}**'s PUBG Id ... give me a second`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
