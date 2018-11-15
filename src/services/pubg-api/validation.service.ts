@@ -6,6 +6,7 @@ import { PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 import { PubgRegionService } from './region.service';
 import { PubgModeService } from './mode.service';
+import { PubgPlatformService } from './platform.service';
 
 
 
@@ -28,8 +29,9 @@ export class PubgValidationService {
         let validMode: boolean = false;
 
         let api: PubgAPI;
+        const region: PlatformRegion = PlatformRegion[checkRegion];
         if (validRegion) {
-            api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[checkRegion]);
+            api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), region);
             validSeason = await this.isValidSeason(api, checkSeason);
         }
         validMode = this.isValidGameMode(checkMode);
@@ -39,16 +41,21 @@ export class PubgValidationService {
 
             let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
-                const seasonId = PubgSeasonService.getSeasonDisplayName(seasons[i]);
+                const season: Season = seasons[i];
+                let seasonDisplayName = PubgSeasonService.getSeasonDisplayName(season);
+                seasonDisplayName += season.isCurrentSeason ? ' (current)': '';
+
                 if (i < seasons.length - 1) {
-                    availableSeasons += `${seasonId}, `;
+                    availableSeasons += `${seasonDisplayName}, `;
                 }
                 else {
-                    availableSeasons += seasonId;
+                    availableSeasons += seasonDisplayName;
                 }
             }
 
-            errMessage += `Error:: Invalid season parameter\n${availableSeasons}\n`;
+            const platformDisplaneName: string = PubgPlatformService.getPlatformDisplayName(region);
+
+            errMessage += `Error:: Invalid ${platformDisplaneName} season parameter - "${checkSeason}"\n${availableSeasons}\n`;
         }
         if (!validRegion) {
             const regionValues: string[] = PubgRegionService.getAvailableRegions();
@@ -64,7 +71,7 @@ export class PubgValidationService {
                     availableRegions += region;
                 }
             }
-            errMessage += `\nError:: Invalid region parameter\n${availableRegions}\n`;
+            errMessage += `\nError:: Invalid region parameter - "${checkRegion}"\n${availableRegions}\n`;
         }
         if (!validMode) {
             let gameModeValues: string[] = PubgModeService.getAvailableModes();
@@ -80,7 +87,7 @@ export class PubgValidationService {
                     availableModes += gameMode;
                 }
             }
-            errMessage += `\nError:: Invalid mode parameter\n${availableModes}\n`;
+            errMessage += `\nError:: Invalid mode parameter - "${checkMode}"\n${availableModes}\n`;
         }
 
         if (!validSeason || !validRegion || !validMode) {

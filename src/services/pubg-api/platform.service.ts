@@ -2,17 +2,36 @@ import { CommonService as cs } from '..';
 import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 
+const apiKey: string = cs.getEnvironmentVariable('pubg_api_key');
 
 export class PubgPlatformService {
 
-    static getSeasonStatsApi(platform: PlatformRegion, season: string): PubgAPI {
-        const apiKey: string = cs.getEnvironmentVariable('pubg_api_key');
+    // static getMatchesApi(platform: PlatformRegion): PubgAPI {
+    //     if (this.isPlatformXbox(platform)) {
+    //         return new PubgAPI(apiKey, PlatformRegion.XBOX);
+    //     } else if (this.isPlatformPC(platform) && platform !== PlatformRegion.PC_KAKAO) {
+    //         return new PubgAPI(apiKey, PlatformRegion.STEAM);
+    //     } else {
+    //         return new PubgAPI(apiKey, PlatformRegion.KAKAO);
+    //     }
+    // }
 
+    static getSeasonStatsApi(platform: PlatformRegion, season: string): PubgAPI {
         if (this.isPlatformXbox(platform) || (this.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(season))) {
             return new PubgAPI(apiKey, platform);
         }
 
         return new PubgAPI(apiKey, PlatformRegion.STEAM);
+    }
+
+    static getPlatformDisplayName(platform: PlatformRegion): string {
+        if (this.isPlatformXbox(platform)) {
+            return 'Xbox';
+        } else if (this.isPlatformPC(platform)) {
+            return 'PC';
+        } else {
+            return '';
+        }
     }
 
     static isPlatformXbox(platform: PlatformRegion): boolean {
