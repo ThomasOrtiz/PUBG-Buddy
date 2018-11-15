@@ -61,8 +61,8 @@ export class Help extends Command {
                 discord_username: msg.author.tag,
                 helpKey: params[0]
             });
-            const commandHelp: string = this.printCommandHelp(bot, msg, params[0]);
-            await msg.channel.send(commandHelp, { code: 'asciidoc'});
+            const embed: Discord.RichEmbed = this.printCommandHelp(bot, msg, params[0]);
+            await msg.channel.send({embed});
         }
     };
 
@@ -114,6 +114,8 @@ export class Help extends Command {
                 return `:video_game:  ${group} Commands :video_game:`;
             case 'Server':
                 return `:desktop: ${group} Commands :desktop:`;
+            case 'User':
+                return `:restroom: ${group} Commands :restroom:`;
             case 'Utility':
                 return `:gear: ${group} Commands :gear:`;
             default:
@@ -133,13 +135,19 @@ export class Help extends Command {
         return groups;
     }
 
-    private printCommandHelp(bot: DiscordClientWrapper, msg: Discord.Message, commandName : string): string {
+    private printCommandHelp(bot: DiscordClientWrapper, msg: Discord.Message, commandName : string): Discord.RichEmbed {
         if (bot.commands.has(commandName)) {
             const commandObj: Command = bot.commands.get(commandName);
-            let exampleList: string = commandObj.help.examples.map(e=>`${e}`).join('\n');
-            let examples: string = `\n\n= Examples =\n\n${exampleList}`;
+            const exampleList: string = commandObj.help.examples.map(e=>`${e}`).join('\n');
 
-            return `= ${commandObj.help.name} = \n${commandObj.help.description}\nusage:: ${commandObj.help.usage}${examples}`;
+            const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed(commandObj.help.name);
+            embed.setDescription(commandObj.help.description);
+            embed.setColor('F2A900');
+
+            embed.addBlankField();
+            embed.addField('Examples', exampleList);
+
+            return embed;
         }
     }
 }
