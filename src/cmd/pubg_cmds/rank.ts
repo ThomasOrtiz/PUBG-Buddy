@@ -21,7 +21,6 @@ interface ParameterMap {
     season: string;
     region: string;
     mode: string;
-    useText: boolean;
 }
 
 export class Rank extends Command {
@@ -37,7 +36,7 @@ export class Rank extends Command {
     help: CommandHelp = {
         name: 'rank',
         description: `Returns a player's season stats. **Name is case sensitive**`,
-        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=] [=text]',
+        usage: '<prefix>rank [pubg username] [season=] [region=] [mode=]',
         examples: [
             '!pubg-rank        (only valid if you have used the `register` command)',
             '!pubg-rank john',
@@ -45,8 +44,7 @@ export class Rank extends Command {
             '!pubg-rank john season=2018-03',
             '!pubg-rank john season=2018-03 region=pc-eu',
             '!pubg-rank john season=2018-03 region=pc-na mode=solo-fpp',
-            '!pubg-rank john region=pc-as mode=duo season=2018-03',
-            '!pubg-rank john =all  (this will show in a text based format instead of the image)'
+            '!pubg-rank john region=pc-as mode=duo season=2018-03'
         ]
     };
 
@@ -93,20 +91,9 @@ export class Rank extends Command {
             return;
         }
 
-        if (this.paramMap.useText) {
-            // Create base embed to send
-            let embed: Discord.RichEmbed = await this.createBaseEmbed();
-            this.addDefaultStats(embed, seasonData);
-
-            // Send the message and setup reactions
-            this.setupReactions(message, originalPoster, seasonData);
-            message.edit(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
-        } else {
-            const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonData);
-            const imageReply: Discord.Message = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-            this.setupReactions(imageReply, originalPoster, seasonData);
-        }
-
+        const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonData);
+        const imageReply: Discord.Message = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+        this.setupReactions(imageReply, originalPoster, seasonData);
     };
 
     /**
@@ -117,11 +104,8 @@ export class Rank extends Command {
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         let paramMap: ParameterMap;
-
-        const indexOfUseText : number = cs.isSubstringOfElement('=text', params);
-        if (indexOfUseText >= 0) { params.splice(indexOfUseText, 1); }
-
         let pubg_params: PubgParameters;
+
         if (msg.guild) {
             const serverDefaults = await sqlServerService.getServer(msg.guild.id);
             pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
@@ -139,8 +123,7 @@ export class Rank extends Command {
             username: pubg_params.username,
             season: pubg_params.season,
             region: pubg_params.region.toUpperCase().replace('-', '_'),
-            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
-            useText: indexOfUseText >= 0
+            mode: pubg_params.mode.toUpperCase().replace('-', '_')
         }
 
         analyticsService.track(this.help.name, {
@@ -151,8 +134,7 @@ export class Rank extends Command {
             pubg_name: paramMap.username,
             season: paramMap.season,
             region: paramMap.region,
-            mode: paramMap.mode,
-            useText: paramMap.useText
+            mode: paramMap.mode
         });
 
         return paramMap;
@@ -171,26 +153,6 @@ export class Rank extends Command {
     }
 
     /**
-     * Depending on the user's default mode get one of three stats
-     * @param {Discord.RichEmbed} embed
-     * @param {PlayerSeason} seasonData
-     */
-    private addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason): void {
-        let mode = this.paramMap.mode;
-
-        if (cs.stringContains(mode, 'solo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
-        } else if (cs.stringContains(mode, 'duo', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
-        } else if (cs.stringContains(mode, 'squad', true)) {
-            this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
-            this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
-        }
-    }
-
-    /**
      * Adds reaction collectors and filters to make interactive messages
      * @param {Discord.Message} msg
      * @param {Discord.User} originalPoster
@@ -202,165 +164,53 @@ export class Rank extends Command {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
-            if (this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, seasonData.soloFPPStats, 'Solo FPP');
-                this.addSpecificDataToEmbed(embed, seasonData.soloStats, 'Solo TPP');
-                await msg.edit('', { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
+            const attatchment: Discord.Attachment = await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
 
-                if (msg.deletable) {
-                    await msg.delete().catch(() => {});
-                }
-
-                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, seasonData);
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
+
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, seasonData);
         };
         const onTwoCollect: Function = async () => {
             analyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
-            if (this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, seasonData.duoFPPStats, 'Duo FPP');
-                this.addSpecificDataToEmbed(embed, seasonData.duoStats, 'Duo TPP');
-                await msg.edit('', { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
+            const attatchment: Discord.Attachment = await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
 
-                if (msg.deletable) {
-                    await msg.delete().catch(() => {});
-                }
-
-                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, seasonData);
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
+
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, seasonData);
         };
         const onFourCollect: Function = async () => {
             analyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
-                mode: this.paramMap.mode,
-                useText: this.paramMap.useText
+                mode: this.paramMap.mode
             });
 
-            if (this.paramMap.useText) {
-                const embed: Discord.RichEmbed = await this.createBaseEmbed();
-                this.addSpecificDataToEmbed(embed, seasonData.squadFPPStats, 'Squad FPP');
-                this.addSpecificDataToEmbed(embed, seasonData.squadStats, 'Squad TPP');
+            const attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
 
-                await msg.edit('', { embed });
-            } else {
-                const attatchment: Discord.Attachment = await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
-
-                if (msg.deletable) {
-                    await msg.delete().catch(() => {});
-                }
-
-                const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
-                this.setupReactions(newMsg, originalPoster, seasonData);
+            if (msg.deletable) {
+                await msg.delete().catch(() => {});
             }
+
+            const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            this.setupReactions(newMsg, originalPoster, seasonData);
         };
         discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
-    }
-
-    /**
-     * Creates the base embed that the command will respond with
-     * @returns {Promise<Discord.RichEmbed} a new RichEmbed with the base information for the command
-     */
-    private async createBaseEmbed(): Promise<Discord.RichEmbed> {
-        const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
-
-        let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle('Ranking: ' + this.paramMap.username)
-            .setDescription(`Season:\t${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
-            .setColor(0x00AE86)
-            .setFooter(`Using PUBG's official API`)
-            .setTimestamp();
-
-        return embed;
-    }
-
-    /**
-     * Adds game stats to the embed
-     * @param {Discord.RichEmbed} embed
-     * @param {GameModeStats} soloData
-     * @param {GameModeStats} duoData
-     * @param {GameModeStats} squadData
-     */
-    private addSpecificDataToEmbed(embed: Discord.RichEmbed, data: GameModeStats, type: string): void {
-        if (data.roundsPlayed > 0) {
-            this.addEmbedFields(embed, type, data);
-        } else {
-            embed.addBlankField(false);
-            embed.addField(`${type} Status`, `Player hasn\'t played ${type} games this season`, false);
-        }
-    }
-
-    /**
-     * Add the game mode data to the embed
-     * @param {Discord.Message} embed
-     * @param {string} gameMode
-     * @param {GameModeStats} playerData
-     */
-    private addEmbedFields(embed: Discord.RichEmbed, gameMode: string, playerData: GameModeStats): void {
-        let overallRating;
-        const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(PubgRatingService.calculateOverallRating(playerData.winPoints, playerData.killPoints), 0) || 'NA';
-        } else {
-            overallRating = cs.round(playerData.rankPoints, 0) || 'NA';
-        }
-
-        const kd = cs.round(playerData.kills / playerData.losses) || 0;
-        const kda = cs.round((playerData.kills + playerData.assists) / playerData.losses) || 0;
-        const winPercent = cs.getPercentFromFraction(playerData.wins, playerData.roundsPlayed);
-        const topTenPercent = cs.getPercentFromFraction(playerData.top10s, playerData.roundsPlayed);
-        const averageDamageDealt = cs.round(playerData.damageDealt / playerData.roundsPlayed) || 0;
-
-        let killStats: string = cs.multiLineStringNoLeadingWhitespace`
-            \`KD:\` ${kd}
-            \`KDA:\` ${kda}
-            \`Kills:\` ${playerData.kills}
-            \`Assists:\` ${playerData.assists}
-            \`DBNOs:\` ${playerData.dBNOs}
-            \`Suicides:\` ${playerData.suicides}
-            \`Headshots:\` ${playerData.headshotKills}
-            \`Longest kill:\` ${playerData.longestKill.toFixed(2)}
-            \`Road kill:\` ${playerData.roadKills}`;
-
-        let gameStats: string = cs.multiLineStringNoLeadingWhitespace`
-            \`Total Damage Dealt:\` ${playerData.damageDealt.toFixed(2)}
-            \`Average damage dealt:\` ${averageDamageDealt}
-            \`Longest time survived:\` ${playerData.longestTimeSurvived.toFixed(2)}
-            \`Walk distance:\` ${playerData.walkDistance.toFixed(2)}
-            \`Ride distance:\` ${playerData.rideDistance.toFixed(2)}
-            \`Vehicles Destroyed:\` ${playerData.vehicleDestroys}`;
-
-        let winStats: string = cs.multiLineStringNoLeadingWhitespace`
-            \`Win %:\` ${winPercent}
-            \`Wins:\` ${playerData.wins}
-            \`Top 10 %:\` ${topTenPercent}
-            \`Top 10s:\`  ${playerData.top10s}
-            \`Matches Played:\`  ${playerData.roundsPlayed}`;
-
-        embed.addBlankField();
-        embed.addField(`${gameMode} Rating`, overallRating, false)
-        embed.addField('Kill stats', killStats, true);
-        embed.addField('Game stats', gameStats, true);
-        embed.addField('Win stats', winStats);
     }
 
     //////////////////////////////////////
