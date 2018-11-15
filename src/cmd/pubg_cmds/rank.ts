@@ -9,7 +9,7 @@ import {
     SqlServerService as sqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
@@ -68,8 +68,8 @@ export class Rank extends Command {
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.username}**`);
 
-        const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
+        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.username]);
 
         if (players.length === 0) {
             message.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);

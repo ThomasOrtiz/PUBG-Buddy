@@ -1,16 +1,16 @@
 import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
-    CommonService as cs,
     DiscordMessageService as discordMessageService,
     PubgPlayerService,
     SqlServerService as sqlServerService,
     SqlUserRegisteryService as sqlUserRegisteryService,
     ParameterService,
+    PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgParameters } from '../../interfaces';
-import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
 interface ParameterMap {
@@ -94,7 +94,7 @@ export class Register extends Command {
     }
 
     private async registerUser(msg: Discord.Message, region: string, username: string) {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
         const message: Discord.Message = await msg.channel.send(`Checking for **${username}**'s PUBG Id ... give me a second`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 

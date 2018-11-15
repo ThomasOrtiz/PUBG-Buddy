@@ -7,7 +7,7 @@ import {
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server } from '../../interfaces';
-import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 interface ParameterMap {
     prefix: string;

@@ -4,7 +4,7 @@ import {
     AnalyticsService as analyticsService,
     CommonService as cs
 } from '../../services';
-import { PlatformRegion, PubgAPI, Season } from 'pubg-typescript-api';
+import { PlatformRegion, PubgAPI, Season } from '../../pubg-typescript-api';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
 

@@ -1,10 +1,11 @@
 import {
     CommonService as cs,
     PubgSeasonService,
-    SqlUserRegisteryService as sqlUserRegisteryService
+    SqlUserRegisteryService as sqlUserRegisteryService,
+    PubgPlatformService
 } from './'
 import { Server, PubgParameters } from '../interfaces';
-import { PubgAPI, PlatformRegion, Season } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Season } from '../pubg-typescript-api';
 
 
 export class ParameterService {
@@ -42,7 +43,7 @@ export class ParameterService {
             } as PubgParameters;
         } else {
             const region: string = this.getParamValue('region=', potential_region_season_mode, 'pc_na').toUpperCase().replace('-', '_');
-            const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[region]);
             const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
             const currentSeasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 

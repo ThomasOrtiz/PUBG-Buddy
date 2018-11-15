@@ -1,16 +1,16 @@
 import * as Discord from 'discord.js';
 import {
     AnalyticsService as analyticsService,
-    CommonService as cs,
     DiscordMessageService as discordMessageService,
     ParameterService as parameterService,
     PubgPlayerService,
     SqlServerService as sqlServerService,
-    SqlServerRegisteryService as sqlServerRegisteryService
+    SqlServerRegisteryService as sqlServerRegisteryService,
+    PubgPlatformService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Server, PubgParameters } from '../../interfaces';
-import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
 export class AddUser extends Command {
@@ -42,7 +42,7 @@ export class AddUser extends Command {
 
         const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[pubg_params.region]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[pubg_params.region]);
 
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,

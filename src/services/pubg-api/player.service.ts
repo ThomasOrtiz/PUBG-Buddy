@@ -2,9 +2,10 @@ import {
     CacheService,
     SqlPlayersService as sqlPlayersService
  } from '../';
-import { Player, PlayerSeason, PubgAPI } from 'pubg-typescript-api';
+import { Player, PlayerSeason, PubgAPI } from '../../pubg-typescript-api';
 import { TimeInSeconds } from '../../shared/constants';
 import { PubgSeasonService } from './season.service';
+import { PubgPlatformService } from './platform.service';
 
 const cache = new CacheService();
 
@@ -17,7 +18,8 @@ export class PubgPlayerService {
      * @returns {Promise<string>} a promise that resolves to a pubg id
      */
     static async getPlayerId(api: PubgAPI, name: string): Promise<string> {
-        const player = await sqlPlayersService.getPlayer(name);
+        const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion).toLowerCase();
+        const player = await sqlPlayersService.getPlayer(name, platform);
 
         if (player && player.pubg_id && player.pubg_id !== '') {
             return player.pubg_id;
@@ -56,7 +58,8 @@ export class PubgPlayerService {
 
             if (result.length > 0) {
                 const player = result[0];
-                await sqlPlayersService.addPlayer(player.name, player.id)
+                const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion).toLowerCase();
+                await sqlPlayersService.addPlayer(player.name, player.id, platform);
                 return player.id;
             } else {
                 return '';

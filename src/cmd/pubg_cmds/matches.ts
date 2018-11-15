@@ -10,7 +10,7 @@ import {
     PubgMatchesService,
     PubgMapService
 } from '../../services';
-import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from '../../pubg-typescript-api';
 import { PubgParameters } from '../../interfaces';
 import { CommonMessages } from '../../shared/constants';
 
@@ -66,8 +66,8 @@ export class Matches extends Command {
         }
 
         await reply.edit('Getting matches');
-        const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(pubgPlayersApi, [this.paramMap.username]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
+        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.username]);
 
         if (players.length === 0) {
             reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);

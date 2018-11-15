@@ -13,11 +13,10 @@ export class SqlPlayersService {
      * @param {string} username
      * @param {string} pubgId
      */
-    static async addPlayer(username: string, pubgId: string): Promise<any> {
-        // TODO: Add Region
-        const res: QueryResult = await pool.query('select pubg_id from players where pubg_id = $1', [pubgId]);
+    static async addPlayer(username: string, pubgId: string, platform: string): Promise<any> {
+        const res: QueryResult = await pool.query('select pubg_id from players where pubg_id = $1 and platform = $2', [pubgId, platform]);
         if (res.rowCount === 0) {
-            return await pool.query('insert into players (pubg_id, username) values ($1, $2)', [pubgId, username]);
+            return await pool.query('insert into players (pubg_id, username, platform) values ($1, $2, $3)', [pubgId, username, platform]);
         }
     }
 
@@ -25,12 +24,11 @@ export class SqlPlayersService {
      * Gets a player from their username
      * @param {string} username
      */
-    static async getPlayer(username: string): Promise<Player> {
-        // TODO: Add region
-        const cacheKey = `sql.player.getPlayer-${username}`;
+    static async getPlayer(username: string, platform: string): Promise<Player> {
+        const cacheKey = `sql.player.getPlayer-${username}-${platform}`;
         const ttl: number = TimeInSeconds.FIVE_MINUTES;
         const storeFunction: Function = async (): Promise<Player> => {
-            const res: QueryResult = await pool.query('select * from players where username = $1', [username])
+            const res: QueryResult = await pool.query('select * from players where username = $1 and platform = $2', [username, platform])
             if (res.rowCount === 1) {
                 return res.rows[0] as Player;
             }

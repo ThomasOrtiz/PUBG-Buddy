@@ -1,10 +1,9 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import { Server } from '../../interfaces';
-import { CacheService, PubgSeasonService } from '../';
+import { CacheService, PubgSeasonService, PubgPlatformService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
-import { PubgAPI, PlatformRegion, Season } from 'pubg-typescript-api';
-import { CommonService } from '../common.service';
+import { PubgAPI, PlatformRegion, Season } from '../../pubg-typescript-api';
 
 const cache = new CacheService();
 
@@ -18,7 +17,7 @@ export class SqlServerService {
     static async registerServer(serverId: string): Promise<QueryResult> {
         const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
         if (res.rowCount === 0) {
-            const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
             const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
             const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
@@ -54,7 +53,7 @@ export class SqlServerService {
 
             // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
             if (res.rowCount === 0) {
-                const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+                const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
                 const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
                 const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 

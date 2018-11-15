@@ -1,5 +1,5 @@
 import { CacheService } from '../';
-import { PubgAPI, Match } from 'pubg-typescript-api';
+import { PubgAPI, Match } from '../../pubg-typescript-api';
 import { TimeInSeconds } from '../../shared/constants';
 
 const cache = new CacheService();

@@ -1,4 +1,4 @@
-import { MapName } from 'pubg-typescript-api';
+import { MapName } from '../../pubg-typescript-api';
 
 
 export class PubgMapService {

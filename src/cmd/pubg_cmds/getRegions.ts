@@ -4,7 +4,7 @@ import {
     PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PlatformRegion } from 'pubg-typescript-api';
+import { PlatformRegion } from '../../pubg-typescript-api';
 
 
 export class GetRegions extends Command {

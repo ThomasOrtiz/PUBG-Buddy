@@ -9,7 +9,7 @@ import {
     SqlUserRegisteryService as sqlUserRegisteryService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
@@ -68,7 +68,7 @@ export class Compare extends Command {
         }
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.playerA}** and **${this.paramMap.playerB}**`);
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
         const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
         const playerA: Player = players.find(p => p.name === this.paramMap.playerA);
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);

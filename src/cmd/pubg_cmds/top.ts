@@ -12,7 +12,7 @@ import {
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { Player as User, Server, PubgParameters } from '../../interfaces';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
@@ -154,13 +154,13 @@ export class Top extends Command {
      */
     private async getPlayerInfoByBatching(names: string[]): Promise<Player[]> {
         let players: Player[] = new Array<Player>();
-        const pubgPlayersApi: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
 
         const batches: Array<string[]> = CommonService.chunkArray(names, 5);
         let requests: Array<Promise<Player[]>> = [];
 
         for (let i = 0; i < batches.length; i++) {
-            requests.push(PubgPlayerService.getPlayerByName(pubgPlayersApi, batches[i]));
+            requests.push(PubgPlayerService.getPlayerByName(api, batches[i]));
         }
 
         const results: Array<Player[]> = await Promise.all(requests);

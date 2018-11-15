@@ -2,7 +2,7 @@ import * as Discord from 'discord.js';
 import {
     CommonService as cs,
     DiscordMessageService as discordMessageService } from '../';
-import { PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
+import { PubgAPI, Season, PlatformRegion, GameMode } from '../../pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 import { PubgRegionService } from './region.service';
 import { PubgModeService } from './mode.service';
