@@ -144,6 +144,7 @@ export class Help extends Command {
             embed.setDescription(commandObj.help.description);
             embed.setColor('F2A900');
 
+            embed.addField('Usage', commandObj.help.usage);
             embed.addBlankField();
             embed.addField('Examples', exampleList);
 
