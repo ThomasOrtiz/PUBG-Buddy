@@ -138,7 +138,7 @@ export class Help extends Command {
     private printCommandHelp(bot: DiscordClientWrapper, msg: Discord.Message, commandName : string): Discord.RichEmbed {
         if (bot.commands.has(commandName)) {
             const commandObj: Command = bot.commands.get(commandName);
-            const exampleList: string = commandObj.help.examples.map(e=>`${e}`).join('\n');
+            const exampleList: string = commandObj.help.examples.map(e=>`• ${e}`).join('\n');
 
             const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed(commandObj.help.name);
             embed.setDescription(commandObj.help.description);
