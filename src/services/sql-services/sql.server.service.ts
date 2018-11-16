@@ -34,10 +34,8 @@ export class SqlServerService {
      * @returns {boolean} server unregistered successfully
      */
     static async unRegisterServer(serverId: string): Promise<boolean> {
-        return pool.query('delete from servers where server_id=$1', [serverId])
-            .then(async () => {
-                return true;
-            });
+        await pool.query('delete from servers where server_id=$1', [serverId]);
+        return true;
     }
 
     /**
@@ -47,7 +45,7 @@ export class SqlServerService {
      */
     static async getServer(serverId: string): Promise<Server> {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in setServerDefaults
-        const ttl: number = TimeInSeconds.ONE_HOUR;
+        const ttl: number = TimeInSeconds.THIRTY_MINUTES;
         const storeFunction: Function = async (): Promise<Server> => {
             const res: QueryResult = await pool.query('select * from servers where server_id = $1', [serverId]);
 
@@ -95,14 +93,11 @@ export class SqlServerService {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in getServer
         cache.del(cacheKey);
 
-        return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then((res: QueryResult) => {
-                if (res.rowCount === 0) {
-                    return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
-                } else {
-                    return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
-                }
-            });
+        const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
+        if (res.rowCount === 0) {
+            return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
+        }
+        return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
     }
 
     static deleteServerCache(serverId: string) {

@@ -37,7 +37,7 @@ export class PubgValidationService {
         validMode = this.isValidGameMode(checkMode);
 
         if (validRegion && !validSeason) {
-            let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api, true);
+            let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
             let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
@@ -104,7 +104,7 @@ export class PubgValidationService {
      * @returns {Promise<boolean>} is valid
      */
     static async isValidSeason(api: PubgAPI, checkSeason: string): Promise<boolean> {
-        let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api, true);
+        let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
         for (let i = 0; i < api_seasons.length; i++) {
             let season: Season = api_seasons[i];

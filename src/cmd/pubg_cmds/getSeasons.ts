@@ -34,8 +34,8 @@ export class GetSeasons extends Command {
             discord_username: msg.author.tag
         });
 
-        const pc_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM), true);
-        const xbox_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.XBOX_NA), true);
+        const pc_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM));
+        const xbox_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.XBOX_NA));
         let pc_seasons_str: string = '';
         let xbox_seasons_str: string = '';
 

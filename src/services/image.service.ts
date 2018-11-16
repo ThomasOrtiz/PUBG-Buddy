@@ -9,7 +9,7 @@ export class ImageService {
 
     public static async loadImage(imageLocation: string): Promise<Jimp> {
         const cacheKey: string = `loadImage-${imageLocation}`;
-        const ttl: number = TimeInSeconds.ONE_HOUR;
+        const ttl: number = TimeInSeconds.THIRTY_MINUTES;
         const storeFunction: Function = async (): Promise<Jimp> => {
             return await Jimp.read(imageLocation);
         };
@@ -19,7 +19,7 @@ export class ImageService {
 
     public static async loadFont(font: string): Promise<Jimp.Font> {
         const cacheKey: string = `loadFont-${font}`;
-        const ttl: number = TimeInSeconds.ONE_HOUR;
+        const ttl: number = TimeInSeconds.THIRTY_MINUTES;
         const storeFunction: Function = async (): Promise<Jimp.Font> => {
             return await Jimp.loadFont(font)
         };

@@ -52,7 +52,7 @@ export class PubgPlayerService {
      */
     static async getPlayerIdByName(api: PubgAPI, name: string): Promise<string> {
         const cacheKey: string = `pubgApi.getPlayerIdByName-${name}-${api.platformRegion}`;
-        const ttl: number = TimeInSeconds.TWO_HOUR;
+        const ttl: number = TimeInSeconds.ONE_MINUTE;
         const storeFunction: Function = async (): Promise<string> => {
             const result: Player[] = await Player.filterByName(api, [name]).catch(() => { return []; });
 

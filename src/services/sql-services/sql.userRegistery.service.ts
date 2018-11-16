@@ -15,16 +15,15 @@ export class SqlUserRegisteryService {
 
     static async getRegisteredUser(discordId: string): Promise<string> {
         const cacheKey: string = this.getCacheKey(discordId);
-        const ttl: number = TimeInSeconds.ONE_HOUR;
+        const ttl: number = TimeInSeconds.THIRTY_MINUTES;
         const storeFunction: Function = async (): Promise<string> => {
             const query: string = `select P.username from ${this.tableName} as UR left join players as P on P.id = UR.fk_players_id where discord_id = $1`;
-            return pool.query(query, [discordId]).then((res: QueryResult) => {
-                if (res.rowCount !== 0){
-                    return res.rows[0].username;
-                } else {
-                    return '';
-                }
-            });
+            const res: QueryResult = await pool.query(query, [discordId]);
+
+            if (res.rowCount !== 0){
+                return res.rows[0].username;
+            }
+            return '';
         };
 
         return await cache.get<string>(cacheKey, storeFunction, ttl);
@@ -38,24 +37,23 @@ export class SqlUserRegisteryService {
         const cacheKey: string = this.getCacheKey(discordId);
         cache.del(cacheKey);
 
-        return pool.query(`select * from ${this.tableName} where discord_id = $1`, [discordId]).then(async (res: QueryResult) => {
-            if (res.rowCount === 0) {
-                pool.query(`
-                    insert into ${this.tableName}
-                    (discord_id, fk_players_id)
-                    values ($1, (select id from players where pubg_id=$2))`, [discordId, pubgId]
-                );
-                return true;
-            } else {
-                pool.query(`
-                    update ${this.tableName}
-                    set
-                        fk_players_id=(select id from players where pubg_id=$2)
-                    where discord_id = $1`, [discordId, pubgId]
-                );
-                return true;
-            }
-        });
+        let query: string = `select * from ${this.tableName} where discord_id = $1`;
+        const res: QueryResult = await pool.query(query, [discordId]);
+
+        if (res.rowCount === 0) {
+            pool.query(`insert into ${this.tableName}
+                (discord_id, fk_players_id)
+                values ($1, (select id from players where pubg_id=$2))`, [discordId, pubgId]
+            );
+            return true;
+        } else {
+            pool.query(`update ${this.tableName}
+                set
+                    fk_players_id=(select id from players where pubg_id=$2)
+                where discord_id = $1`, [discordId, pubgId]
+            );
+            return true;
+        }
     }
 
     /**
