@@ -36,14 +36,14 @@ export class PubgPlatformService {
 
     static getPlatformDisplayName(platform: PlatformRegion): string {
         if (this.isPlatformXbox(platform)) {
-            return 'Xbox';
+            return PlatformRegion.XBOX;
         }
 
         const isKakao: boolean = platform === PlatformRegion.PC_KAKAO || platform === PlatformRegion.KAKAO;
         if (this.isPlatformPC(platform) && isKakao) {
-            return 'Kakao'
+            return PlatformRegion.KAKAO;
         } else {
-            return 'PC';
+            return PlatformRegion.STEAM;
         }
     }
 

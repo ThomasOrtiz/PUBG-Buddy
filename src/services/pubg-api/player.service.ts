@@ -18,7 +18,7 @@ export class PubgPlayerService {
      * @returns {Promise<string>} a promise that resolves to a pubg id
      */
     static async getPlayerId(api: PubgAPI, name: string): Promise<string> {
-        const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion).toLowerCase();
+        const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion);
         const player = await sqlPlayersService.getPlayer(name, platform);
 
         if (player && player.pubg_id && player.pubg_id !== '') {
@@ -58,7 +58,7 @@ export class PubgPlayerService {
 
             if (result.length > 0) {
                 const player = result[0];
-                const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion).toLowerCase();
+                const platform = PubgPlatformService.getPlatformDisplayName(api.platformRegion);
                 await sqlPlayersService.addPlayer(player.name, player.id, platform);
                 return player.id;
             } else {
