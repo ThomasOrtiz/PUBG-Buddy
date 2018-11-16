@@ -1,8 +1,7 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { AnalyticsService as analyticsService, PubgPlatformService, DiscordMessageService } from '../../services';
-import { PlatformRegion } from '../../pubg-typescript-api';
-import { Status } from '../../pubg-typescript-api/entities/status';
+import { PlatformRegion, Status } from '../../pubg-typescript-api';
 
 
 export class Ping extends Command {
