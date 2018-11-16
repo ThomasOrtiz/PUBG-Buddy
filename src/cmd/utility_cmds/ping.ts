@@ -31,33 +31,34 @@ export class Ping extends Command {
             discord_username: msg.author.tag
         });
 
-        msg.channel.send('Ping?').then(async (message: Discord.Message) => {
-            const botPing: number = message.createdTimestamp - msg.createdTimestamp;
+        const reply: Discord.Message = await msg.channel.send('Ping?') as Discord.Message;
 
-            const platforms: PlatformRegion[] = [
-                PlatformRegion.XBOX,
-                PlatformRegion.STEAM,
-                PlatformRegion.KAKAO
-            ];
-            const promises: Promise<Status>[] = platforms.map(platform => Status.get(PubgPlatformService.getApi(platform)));
-            const statuses: Status[] = await Promise.all(promises);
+        const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed('PUBG-Buddy Status');
+        embed.setDescription('');
+        embed.setThumbnail(bot.user.displayAvatarURL);
+        embed.setColor(0x00AE86);
+        embed.addField('API Heartbeat', `${Math.round(bot.ping)}ms`, true);
+        embed.addField('API Latency', `${reply.createdTimestamp - msg.createdTimestamp}ms`, true);
 
-            let status_str: string = '';
-            for (let i = 0; i < statuses.length; i++) {
-                const platformDisplay: string = PubgPlatformService.getPlatformDisplayName(platforms[i]);
-                status_str += `${platformDisplay} - ${statuses[i].ping}ms\n`;
-            }
+        reply.edit({embed});
 
-            const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed('PUBG Buddy Status');
-            embed.setDescription('')
-            embed.setThumbnail(bot.user.displayAvatarURL)
-            embed.setColor(0x00AE86)
-            embed.addField('PUBG-Buddy', `${botPing}ms`, true)
-            embed.addField('PUBG API', status_str, true);
+        const platforms: PlatformRegion[] = [
+            PlatformRegion.XBOX,
+            PlatformRegion.STEAM,
+            PlatformRegion.KAKAO
+        ];
+        const promises: Promise<Status>[] = platforms.map(platform => Status.get(PubgPlatformService.getApi(platform)));
+        const statuses: Status[] = await Promise.all(promises);
 
+        let status_str: string = '';
+        for (let i = 0; i < statuses.length; i++) {
+            const platformDisplay: string = PubgPlatformService.getPlatformDisplayName(platforms[i]);
+            status_str += `**${platformDisplay}** - ${statuses[i].ping}ms\n`;
+        }
 
-            message.edit({embed});
-        });
+        embed.addBlankField();
+        embed.addField('PUBG API', status_str);
+        reply.edit({embed});
     };
 
 }
