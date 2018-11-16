@@ -24,7 +24,7 @@ export class PubgSeasonService {
                 return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
             });
 
-            return await Season.list(api);
+            return seasons;
         };
 
         return await cache.get<Season[]>(cacheKey, storeFunction, ttl);
