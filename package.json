@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "start": "node dist/index.js",
+    "start": "node node --optimize_for_size --max_old_space_size=460 dist/index.js",
     "sql": "heroku pg:psql -a pubg-stat-discord-bot",
     "sql-test": "heroku pg:psql -a pubg-stat-discord-bot-dev"
   },
