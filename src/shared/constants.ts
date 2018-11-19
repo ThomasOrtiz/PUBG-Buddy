@@ -91,5 +91,5 @@ export enum FontLocation {
     TEKO_BOLD_WHITE_64 = './assets/font/Teko/bold/white/Teko-White-64.fnt',
     TEKO_BOLD_WHITE_72 = './assets/font/Teko/bold/white/Teko-White-72.fnt',
     // Bold Red Outline
-    TEKO_BOLD_RED_OUTLINE_128 = './assets/font/Teko/bold/red/Teko-Red-Outline-128.fnt',
+    TEKO_BOLD_RED_OUTLINE_64 = './assets/font/Teko/bold/red/Teko-Red-Outline-64.fnt'
 }
