@@ -137,6 +137,7 @@ export class Top extends Command {
         analyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
+            server_id: msg.guild.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
             season: paramMap.season,

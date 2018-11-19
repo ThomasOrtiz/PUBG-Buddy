@@ -64,10 +64,10 @@ export class Bot {
             const isDev: boolean = cs.getEnvironmentVariable('isDev') === 'true';
             if (!isDev) {
                 logger.info('Updating discord bots stats');
-                this.discordBotsClient.postStats(this.bot.guilds.size);
+                this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
                 setInterval(() => {
                     logger.info('Updating discord bots stats');
-                    this.discordBotsClient.postStats(this.bot.guilds.size);
+                    this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
                 }, 1800000);
             }
 
