@@ -69,7 +69,7 @@ export class Rank extends Command {
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.username}**`);
 
         const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.username]);
+        const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.username]);
 
         if (players.length === 0) {
             message.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);

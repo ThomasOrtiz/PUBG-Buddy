@@ -107,7 +107,7 @@ export class PubgValidationService {
         let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
         for (let i = 0; i < api_seasons.length; i++) {
-            let season: Season = api_seasons[i];
+            const season: Season = api_seasons[i];
             const season_ui_id: string = season.id.split('division.bro.official.')[1]
             if (checkSeason === season_ui_id) { return true; }
         }
@@ -120,11 +120,6 @@ export class PubgValidationService {
      * @returns {boolean} is valid
      */
     static isValidRegion(checkRegion: string): boolean {
-        // Temporarily not supporting Xbox
-        // if (checkRegion.toLowerCase().indexOf('xbox') >= 0) {
-        //     return false;
-        // }
-
         const region: PlatformRegion = PlatformRegion[checkRegion.toUpperCase()];
 
         if (region) {

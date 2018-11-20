@@ -161,7 +161,7 @@ export class Top extends Command {
         let requests: Array<Promise<Player[]>> = [];
 
         for (let i = 0; i < batches.length; i++) {
-            requests.push(PubgPlayerService.getPlayerByName(api, batches[i]));
+            requests.push(PubgPlayerService.getPlayersByName(api, batches[i]));
         }
 
         const results: Array<Player[]> = await Promise.all(requests);

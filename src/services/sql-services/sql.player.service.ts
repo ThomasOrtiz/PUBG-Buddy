@@ -25,10 +25,10 @@ export class SqlPlayersService {
      * @param {string} username
      */
     static async getPlayer(username: string, platform: string): Promise<Player> {
-        const cacheKey = `sql.player.getPlayer-${username}-${platform}`;
+        const cacheKey: string = `sql.player.getPlayer-${username}-${platform}`;
         const ttl: number = TimeInSeconds.FIVE_MINUTES;
         const storeFunction: Function = async (): Promise<Player> => {
-            const res: QueryResult = await pool.query('select * from players where username = $1 and platform = $2', [username, platform])
+            const res: QueryResult = await pool.query('select * from players where username = $1 and platform = $2', [username, platform]);
             if (res.rowCount === 1) {
                 return res.rows[0] as Player;
             }

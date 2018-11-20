@@ -20,7 +20,7 @@ export class PubgSeasonService {
 
             // Not supporting pre-release seasons
             seasons = seasons.filter(season => {
-                const seasonId = season.id;
+                const seasonId: string = season.id;
                 return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
             });
 
@@ -36,7 +36,7 @@ export class PubgSeasonService {
      * @param {string} seasonInput
      * @returns {string} api formatted season
      */
-    static getPubgSeasonId(seasonInput: string) {
+    static getPubgSeasonId(seasonInput: string): string {
         return `division.bro.official.${seasonInput}`;
     }
 

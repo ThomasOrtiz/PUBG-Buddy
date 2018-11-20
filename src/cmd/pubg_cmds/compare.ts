@@ -69,7 +69,7 @@ export class Compare extends Command {
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.playerA}** and **${this.paramMap.playerB}**`);
         const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
+        const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
         const playerA: Player = players.find(p => p.name === this.paramMap.playerA);
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
 

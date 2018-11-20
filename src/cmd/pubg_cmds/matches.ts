@@ -67,7 +67,7 @@ export class Matches extends Command {
 
         await reply.edit('Getting matches');
         const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.username]);
+        const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.username]);
 
         if (players.length === 0) {
             reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
