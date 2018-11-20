@@ -11,8 +11,7 @@ export class PubgPlatformService {
             return new PubgAPI(apiKey, PlatformRegion.XBOX);
         }
 
-        const isKakao: boolean = platform === PlatformRegion.PC_KAKAO || platform === PlatformRegion.KAKAO;
-        if (this.isPlatformPC(platform) && isKakao) {
+        if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {
             return new PubgAPI(apiKey, PlatformRegion.KAKAO);
         } else {
             return new PubgAPI(apiKey, PlatformRegion.STEAM);
@@ -26,8 +25,7 @@ export class PubgPlatformService {
             return new PubgAPI(apiKey, platform);
         }
 
-        const isKakao: boolean = platform === PlatformRegion.PC_KAKAO || platform === PlatformRegion.KAKAO;
-        if (isPC && isKakao) {
+        if (isPC && this.isPlatformKakao(platform)) {
             return new PubgAPI(apiKey, PlatformRegion.KAKAO);
         } else {
             return new PubgAPI(apiKey, PlatformRegion.STEAM);
@@ -39,8 +37,7 @@ export class PubgPlatformService {
             return PlatformRegion.XBOX;
         }
 
-        const isKakao: boolean = platform === PlatformRegion.PC_KAKAO || platform === PlatformRegion.KAKAO;
-        if (this.isPlatformPC(platform) && isKakao) {
+        if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {
             return PlatformRegion.KAKAO;
         } else {
             return PlatformRegion.STEAM;
@@ -66,5 +63,10 @@ export class PubgPlatformService {
             PlatformRegion.PC_AS
         ];
         return pcRegions.includes(platform);
+    }
+
+    static isPlatformKakao(platform: PlatformRegion): boolean {
+        const kakaoRegions: PlatformRegion[] = [PlatformRegion.KAKAO, PlatformRegion.PC_KAKAO];
+        return kakaoRegions.includes(platform);
     }
 }
