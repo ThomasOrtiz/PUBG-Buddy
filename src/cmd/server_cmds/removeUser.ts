@@ -9,7 +9,7 @@ import {
     PubgPlatformService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { IServer, PubgParameters } from '../../interfaces';
+import { IServer, PubgParameters, IPlayer } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
@@ -67,12 +67,34 @@ export class RemoveUser extends Command {
 
         let unregistered: boolean = await SqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
         if (unregistered) {
-            message.edit(`Removed **${username}** from server registry`);
+            const registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+            const registeredPlayersStr: string = this.getPlayerString(registeredPlayers);
+
+            const embed: Discord.RichEmbed = new Discord.RichEmbed()
+                .setTitle(registeredPlayers.length + ' Registered Users')
+                .setColor(0x00AE86)
+                .addField('Players', registeredPlayersStr, true)
+                .addBlankField(true);
+            message.edit(`Removed **${username}**`, {embed});
         }
         else {
             message.edit(`**${username}** does not exist on server registery`);
         }
+    }
 
+    private getPlayerString(registeredPlayers: IPlayer[]): string {
+        let players: string = '';
+
+        for (let i = 0; i < registeredPlayers.length; i++) {
+            const player: IPlayer = registeredPlayers[i];
+            players += `${i + 1}.\t **${player.username}** [${player.platform}]\n`;
+        }
+
+        if (players === '') {
+            players = 'No users registered yes. Use `<prefix>addUser <username>`';
+        }
+
+        return players;
     }
 
 }

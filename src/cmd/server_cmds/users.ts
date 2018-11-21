@@ -32,26 +32,32 @@ export class Users extends Command {
             number_parameters: params.length
         });
 
-        let registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        const registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        const registeredPlayersStr: string = this.getPlayerString(registeredPlayers);
+
+        let embed: Discord.RichEmbed = new Discord.RichEmbed()
+            .setTitle(registeredPlayers.length + ' Registered Users')
+            .setColor(0x00AE86)
+            .addField('Players', registeredPlayersStr, true)
+            .addBlankField(true);
+
+        msg.channel.send({ embed });
+    };
+
+    private getPlayerString(registeredPlayers: IPlayer[]): string {
         let players: string = '';
 
         for (let i = 0; i < registeredPlayers.length; i++) {
             const player: IPlayer = registeredPlayers[i];
-            players += (i + 1) + '.\t' + player.username + '\n';
+            players += `${i + 1}.\t **${player.username}** [${player.platform}]\n`;
         }
 
         if (players === '') {
             players = 'No users registered yes. Use `<prefix>addUser <username>`';
         }
 
-        let embed: Discord.RichEmbed = new Discord.RichEmbed()
-            .setTitle(registeredPlayers.length + ' Registered Users')
-            .setColor(0x00AE86)
-            .addField('Players', players, true)
-            .addBlankField(true);
-
-        msg.channel.send({ embed });
-    };
+        return players;
+    }
 
 }
 

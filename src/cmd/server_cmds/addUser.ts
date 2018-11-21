@@ -9,7 +9,7 @@ import {
     PubgPlatformService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { IServer, PubgParameters } from '../../interfaces';
+import { IServer, PubgParameters, IPlayer } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
@@ -68,10 +68,33 @@ export class AddUser extends Command {
 
         const registered: boolean = await SqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
         if (registered) {
-            message.edit(`Added **${username}**`);
+            const registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+            const registeredPlayersStr: string = this.getPlayerString(registeredPlayers);
+
+            const embed: Discord.RichEmbed = new Discord.RichEmbed()
+                .setTitle(registeredPlayers.length + ' Registered Users')
+                .setColor(0x00AE86)
+                .addField('Players', registeredPlayersStr, true)
+                .addBlankField(true);
+            message.edit(`Added **${username}**`, {embed});
         } else {
             message.edit(`Could not add **${username}**`);
         }
+    }
+
+    private getPlayerString(registeredPlayers: IPlayer[]): string {
+        let players: string = '';
+
+        for (let i = 0; i < registeredPlayers.length; i++) {
+            const player: IPlayer = registeredPlayers[i];
+            players += `${i + 1}.\t **${player.username}** [${player.platform}]\n`;
+        }
+
+        if (players === '') {
+            players = 'No users registered yes. Use `<prefix>addUser <username>`';
+        }
+
+        return players;
     }
 
 }
