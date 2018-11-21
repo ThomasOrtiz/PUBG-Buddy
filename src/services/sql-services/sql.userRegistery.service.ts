@@ -2,6 +2,7 @@ import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import { CacheService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
+import { IPlayer } from '../../interfaces';
 
 const cache = new CacheService();
 
@@ -13,20 +14,20 @@ export class SqlUserRegisteryService {
         return `sql.userRegistery.getRegisteredUser-${discordId}`;
     }
 
-    static async getRegisteredUser(discordId: string): Promise<string> {
+    static async getRegisteredUser(discordId: string): Promise<IPlayer> {
         const cacheKey: string = this.getCacheKey(discordId);
         const ttl: number = TimeInSeconds.THIRTY_MINUTES;
-        const storeFunction: Function = async (): Promise<string> => {
-            const query: string = `select P.username from ${this.tableName} as UR left join players as P on P.id = UR.fk_players_id where discord_id = $1`;
+        const storeFunction: Function = async (): Promise<IPlayer> => {
+            const query: string = `select P.username, P.platform from ${this.tableName} as UR left join players as P on P.id = UR.fk_players_id where discord_id = $1`;
             const res: QueryResult = await pool.query(query, [discordId]);
 
             if (res.rowCount !== 0){
-                return res.rows[0].username;
+                return res.rows[0] as IPlayer;
             }
-            return '';
+            return null;
         };
 
-        return await cache.get<string>(cacheKey, storeFunction, ttl);
+        return await cache.get<IPlayer>(cacheKey, storeFunction, ttl);
     }
 
     /**
@@ -37,7 +38,7 @@ export class SqlUserRegisteryService {
         const cacheKey: string = this.getCacheKey(discordId);
         cache.del(cacheKey);
 
-        let query: string = `select * from ${this.tableName} where discord_id = $1`;
+        const query: string = `select * from ${this.tableName} where discord_id = $1`;
         const res: QueryResult = await pool.query(query, [discordId]);
 
         if (res.rowCount === 0) {

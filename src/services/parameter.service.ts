@@ -4,7 +4,7 @@ import {
     SqlUserRegisteryService,
     PubgPlatformService
 } from './'
-import { IServer, PubgParameters } from '../interfaces';
+import { IServer, PubgParameters, IPlayer } from '../interfaces';
 import { PubgAPI, PlatformRegion, Season } from '../pubg-typescript-api';
 
 
@@ -57,7 +57,12 @@ export class ParameterService {
 
         // Try to get username from user registery
         if (getUsername && !parameters.username) {
-            parameters.username = await SqlUserRegisteryService.getRegisteredUser(msgAuthorId);
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msgAuthorId);
+            if (player) {
+                parameters.username = player.username;
+            } else {
+                parameters.username = '';
+            }
         }
 
         return parameters;

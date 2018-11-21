@@ -9,7 +9,7 @@ import {
     PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgParameters } from '../../interfaces';
+import { PubgParameters, IPlayer } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
@@ -105,6 +105,8 @@ export class Register extends Command {
 
         const registered: boolean = await SqlUserRegisteryService.registerUser(msg.author.id, pubgId);
         if (registered) {
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
+
             const user: Discord.User = msg.author;
             const date: Date = user.createdAt;
             const embed: Discord.RichEmbed = new Discord.RichEmbed()
@@ -112,7 +114,8 @@ export class Register extends Command {
                 .setThumbnail(user.displayAvatarURL)
                 .setColor('F2A900')
                 .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
-                .addField('PUBG Username', username)
+                .addField('PUBG Username', player.username, true)
+                .addField('Platform', player.platform, true)
                 .setTimestamp();
 
             message.edit({embed});

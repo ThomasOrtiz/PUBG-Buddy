@@ -1,6 +1,7 @@
 import * as Discord from 'discord.js';
 import { AnalyticsService, SqlUserRegisteryService } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
+import { IPlayer } from '../../interfaces';
 
 
 export class Profile extends Command {
@@ -47,12 +48,12 @@ export class Profile extends Command {
             user = msg.author;
         }
 
-        let pubg_name: string = await SqlUserRegisteryService.getRegisteredUser(discordId);
+        const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(discordId);
 
-        if (!pubg_name && !usedMention) {
+        if (!player && !player.username && !usedMention) {
             msg.channel.send(`You haven't registered yet -- run \`register\`.`);
             return;
-        } else if (!pubg_name && usedMention) {
+        } else if (!player && !player.username && usedMention) {
             msg.channel.send(`That user hasn't registered yet -- ask them run \`register\`.`);
             return;
         }
@@ -61,7 +62,7 @@ export class Profile extends Command {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
-            pubg_name: pubg_name
+            pubg_name: player.username
         });
 
         const date: Date = user.createdAt;
@@ -70,7 +71,8 @@ export class Profile extends Command {
             .setThumbnail(user.displayAvatarURL)
             .setColor('F2A900')
             .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
-            .addField('PUBG Username', pubg_name)
+            .addField('PUBG Username', player.username, true)
+            .addField('Platform', player.platform, true)
             .setTimestamp();
 
         msg.channel.send({embed});

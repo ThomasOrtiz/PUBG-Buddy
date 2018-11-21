@@ -13,6 +13,7 @@ import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '..
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
+import { IPlayer } from '../../interfaces';
 
 
 interface ParameterMap {
@@ -125,8 +126,14 @@ export class Compare extends Command {
             playerB = params[0];
         }
 
+
         if (getFromRegistery) {
-            playerA = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
+            if (player) {
+                playerA = player.username;
+            } else {
+                playerA = null;
+            }
         } else {
             playerA = params[0];
         }
