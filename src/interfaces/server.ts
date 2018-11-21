@@ -1,4 +1,4 @@
-export interface Server {
+export interface IServer {
     id: string;
     serverId: string;
     default_bot_prefix: string;
