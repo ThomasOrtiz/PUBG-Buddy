@@ -53,7 +53,7 @@ export class SqlServerRegisteryService {
      * @returns {Promise<Player[]>} list of players on the server
      */
     static async getRegisteredPlayersForServer(serverId: string): Promise<IPlayer[]> {
-        const res: QueryResult = await pool.query(`select P.pubg_id, P.username
+        const res: QueryResult = await pool.query(`select P.pubg_id, P.username, P.platform
             from server_registery as R
             left join players as P on R.fk_players_id = P.id
             where fk_servers_id = (select id from servers where server_id=$1)`, [serverId]);
