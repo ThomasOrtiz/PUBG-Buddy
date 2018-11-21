@@ -1,6 +1,6 @@
 import { CacheService, SqlPlayersService } from '../';
 import { Player, PlayerSeason, PubgAPI } from '../../pubg-typescript-api';
-import { Player as IPlayer } from '../../interfaces';
+import { IPlayer } from '../../interfaces';
 import { TimeInSeconds } from '../../shared/constants';
 import { PubgSeasonService } from './season.service';
 import { PubgPlatformService } from './platform.service';

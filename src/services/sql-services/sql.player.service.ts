@@ -1,6 +1,6 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Player } from '../../interfaces';
+import { IPlayer } from '../../interfaces';
 import { CacheService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
 
@@ -24,17 +24,17 @@ export class SqlPlayersService {
      * Gets a player from their username
      * @param {string} username
      */
-    static async getPlayer(username: string, platform: string): Promise<Player> {
+    static async getPlayer(username: string, platform: string): Promise<IPlayer> {
         const cacheKey: string = `sql.player.getPlayer-${username}-${platform}`;
         const ttl: number = TimeInSeconds.FIVE_MINUTES;
-        const storeFunction: Function = async (): Promise<Player> => {
+        const storeFunction: Function = async (): Promise<IPlayer> => {
             const res: QueryResult = await pool.query('select * from players where username = $1 and platform = $2', [username, platform]);
             if (res.rowCount === 1) {
-                return res.rows[0] as Player;
+                return res.rows[0] as IPlayer;
             }
         };
 
-        return await cache.get<Player>(cacheKey, storeFunction, ttl);
+        return await cache.get<IPlayer>(cacheKey, storeFunction, ttl);
     }
 }
 

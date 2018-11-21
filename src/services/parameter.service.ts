@@ -4,7 +4,7 @@ import {
     SqlUserRegisteryService as sqlUserRegisteryService,
     PubgPlatformService
 } from './'
-import { Server, PubgParameters } from '../interfaces';
+import { IServer, PubgParameters } from '../interfaces';
 import { PubgAPI, PlatformRegion, Season } from '../pubg-typescript-api';
 
 
@@ -17,7 +17,7 @@ export class ParameterService {
      * @param {boolean} getUsername
      * @param {Server} serverDefaults
      */
-    static async getPubgParameters(params: string, msgAuthorId: string, getUsername: boolean, serverDefaults?: Server): Promise<PubgParameters> {
+    static async getPubgParameters(params: string, msgAuthorId: string, getUsername: boolean, serverDefaults?: IServer): Promise<PubgParameters> {
         const re: RegExp = /^(.*?)\s?(region=\S+|season=\S+|mode=\S+)?\s?(region=\S+|season=\S+|mode=\S+)?\s?(region=\S+|season=\S+|mode=\S+)?$/
         const result: Array<any> = params.match(re);
 

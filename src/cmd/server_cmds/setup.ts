@@ -6,7 +6,7 @@ import {
     SqlServerService as sqlServerService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { IServer } from '../../interfaces';
 import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 interface ParameterMap {
@@ -79,7 +79,7 @@ export class Setup extends Command {
      * @returns {Promise<ParameterMap>}
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
-        const server: Server = await sqlServerService.getServer(msg.guild.id);
+        const server: IServer = await sqlServerService.getServer(msg.guild.id);
         const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
         const paramMap: ParameterMap = {
@@ -105,7 +105,7 @@ export class Setup extends Command {
     }
 
     private async getCurrentServerDefaultsEmbed(msg: Discord.Message): Promise<Discord.RichEmbed> {
-        let server: Server = await sqlServerService.getServer(msg.guild.id);
+        let server: IServer = await sqlServerService.getServer(msg.guild.id);
         const regionDisplayName: string = server.default_region.replace('_', '-');
         const modeDescription: string = server.default_mode.replace('_', '-');
 

@@ -1,5 +1,5 @@
 import * as pool from '../../config/sql.config';
-import { Player } from '../../interfaces';
+import { IPlayer } from '../../interfaces';
 import { QueryResult } from 'pg';
 
 
@@ -52,14 +52,14 @@ export class SqlServerRegisteryService {
      * @param {string} serverId
      * @returns {Promise<Player[]>} list of players on the server
      */
-    static async getRegisteredPlayersForServer(serverId: string): Promise<Player[]> {
+    static async getRegisteredPlayersForServer(serverId: string): Promise<IPlayer[]> {
         const res: QueryResult = await pool.query(`select P.pubg_id, P.username
             from server_registery as R
             left join players as P on R.fk_players_id = P.id
             where fk_servers_id = (select id from servers where server_id=$1)`, [serverId]);
 
         if (res.rowCount != 0) {
-            return res.rows as Player[];
+            return res.rows as IPlayer[];
         }
         return [];
     }

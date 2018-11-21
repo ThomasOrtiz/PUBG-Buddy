@@ -4,7 +4,7 @@ import {
     SqlServerRegisteryService as sqlServerRegisteryService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Player } from '../../interfaces';
+import { IPlayer } from '../../interfaces';
 
 
 export class Users extends Command {
@@ -35,11 +35,11 @@ export class Users extends Command {
             number_parameters: params.length
         });
 
-        let registeredPlayers: Player[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        let registeredPlayers: IPlayer[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         let players: string = '';
 
         for (let i = 0; i < registeredPlayers.length; i++) {
-            const player: Player = registeredPlayers[i];
+            const player: IPlayer = registeredPlayers[i];
             players += (i + 1) + '.\t' + player.username + '\n';
         }
 

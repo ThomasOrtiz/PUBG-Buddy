@@ -1,6 +1,6 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Server } from '../../interfaces';
+import { IServer } from '../../interfaces';
 import { CacheService, PubgSeasonService, PubgPlatformService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
 import { PubgAPI, PlatformRegion, Season } from '../../pubg-typescript-api';
@@ -43,10 +43,10 @@ export class SqlServerService {
      * @param {string} serverId
      * @returns {Server} server
      */
-    static async getServer(serverId: string): Promise<Server> {
+    static async getServer(serverId: string): Promise<IServer> {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in setServerDefaults
         const ttl: number = TimeInSeconds.THIRTY_MINUTES;
-        const storeFunction: Function = async (): Promise<Server> => {
+        const storeFunction: Function = async (): Promise<IServer> => {
             const res: QueryResult = await pool.query('select * from servers where server_id = $1', [serverId]);
 
             // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
@@ -77,7 +77,7 @@ export class SqlServerService {
             }
         };
 
-        return await cache.get<Server>(cacheKey, storeFunction, ttl);
+        return await cache.get<IServer>(cacheKey, storeFunction, ttl);
     }
 
 

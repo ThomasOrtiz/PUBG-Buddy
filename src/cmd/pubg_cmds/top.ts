@@ -11,7 +11,7 @@ import {
     CommonService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Player as User, Server, PubgParameters } from '../../interfaces';
+import { IPlayer, IServer, PubgParameters } from '../../interfaces';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
@@ -75,7 +75,7 @@ export class Top extends Command {
     };
 
     private paramMap: ParameterMap;
-    private registeredUsers: User[];
+    private registeredUsers: IPlayer[];
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         const originalPoster: Discord.User = msg.author;
@@ -124,7 +124,7 @@ export class Top extends Command {
             amount = +params[0];
         }
 
-        const serverDefaults: Server = await sqlServerService.getServer(msg.guild.id);
+        const serverDefaults: IServer = await sqlServerService.getServer(msg.guild.id);
         const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
 
         const paramMap: ParameterMap = {

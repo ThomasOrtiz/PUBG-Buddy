@@ -8,7 +8,7 @@ import {
     SqlServerService as sqlService
  } from './services';
 import { Command, DiscordClientWrapper } from './entities';
-import { Server } from './interfaces'
+import { IServer } from './interfaces'
 import * as Commands from './cmd';
 import * as logger from './config/logger.config';
 
@@ -144,7 +144,7 @@ export class Bot {
         let customPrefix: string;
         if (msg.guild) {
             isGuildMessage = true;
-            let server_defaults: Server = await sqlService.getServer(msg.guild.id);
+            let server_defaults: IServer = await sqlService.getServer(msg.guild.id);
 
             if (!server_defaults.isStoredInDb) {
                 sqlService.deleteServerCache(msg.guild.id);

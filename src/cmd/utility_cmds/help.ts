@@ -6,7 +6,7 @@ import {
     DiscordMessageService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { IServer } from '../../interfaces';
 
 
 export class Help extends Command {
@@ -73,7 +73,7 @@ export class Help extends Command {
         let prefix: string = default_bot_prefix;
 
         if (guild) {
-            let server_defaults: Server = await sqlService.getServer(guild.id);
+            let server_defaults: IServer = await sqlService.getServer(guild.id);
             prefix = server_defaults.default_bot_prefix;
         }
 
