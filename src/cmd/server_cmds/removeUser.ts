@@ -72,7 +72,7 @@ export class RemoveUser extends Command {
 
             const embed: Discord.RichEmbed = new Discord.RichEmbed()
                 .setTitle(registeredPlayers.length + ' Registered Users')
-                .setColor(0x00AE86)
+                .setColor('F2A900')
                 .addField('Players', registeredPlayersStr, true)
                 .addBlankField(true);
             message.edit(`Removed **${username}**`, {embed});

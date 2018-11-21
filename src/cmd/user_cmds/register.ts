@@ -110,7 +110,7 @@ export class Register extends Command {
             const embed: Discord.RichEmbed = new Discord.RichEmbed()
                 .setTitle(`**${user.tag}**'s profile`)
                 .setThumbnail(user.displayAvatarURL)
-                .setColor(0x00AE86)
+                .setColor('F2A900')
                 .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
                 .addField('PUBG Username', username)
                 .setTimestamp();

@@ -54,7 +54,7 @@ export class GetSeasons extends Command {
         const embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Seasons')
             .setDescription('The seasons for each platform')
-            .setColor(0x00AE86)
+            .setColor('F2A900')
             .addField('PC Seasons', pc_seasons_str, true)
             .addField('Xbox Seasons', xbox_seasons_str, true);
 

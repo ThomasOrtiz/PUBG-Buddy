@@ -142,7 +142,7 @@ export class LastMatch extends Command {
                 **Length**: ${this.secondsToHms(match.duration)}
                 **Placement**: ${roster.rank}
                 **Replay Link**: [Link](${this.getPubgReplayUrl(this.paramMap.region, this.paramMap.username, match.id)})`)
-            .setColor(0x00AE86);
+            .setColor('F2A900');
 
         for (let i = 0; i < teamParticipanets.length; i++) {
             const participant: Participant = teamParticipanets[i];

@@ -146,7 +146,7 @@ export class Matches extends Command {
         let embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle(`Matches for ${this.paramMap.username}`)
             .setDescription(`Season:\t${this.paramMap.season}\nRegion:\t${regionDisplayName}`)
-            .setColor(0x00AE86)
+            .setColor('F2A900')
             .setFooter(`Powered by https://pubg-replay.com`)
             .setTimestamp()
 

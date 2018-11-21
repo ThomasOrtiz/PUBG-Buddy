@@ -35,7 +35,7 @@ export class Ping extends Command {
         const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed('PUBG-Buddy Status');
         embed.setDescription('');
         embed.setThumbnail(bot.user.displayAvatarURL);
-        embed.setColor(0x00AE86);
+        embed.setColor('F2A900');
         embed.addField('API Heartbeat', `${Math.round(bot.ping)}ms`, true);
         embed.addField('API Latency', `${reply.createdTimestamp - msg.createdTimestamp}ms`, true);
 

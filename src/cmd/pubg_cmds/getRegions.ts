@@ -46,7 +46,7 @@ export class GetRegions extends Command {
         const embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Regions')
             .setDescription('The regions for each platform')
-            .setColor(0x00AE86)
+            .setColor('F2A900')
             .addField('PC Regions', pc_regions_str, true)
             .addField('Xbox Regions', xbox_regions_str, true);
 

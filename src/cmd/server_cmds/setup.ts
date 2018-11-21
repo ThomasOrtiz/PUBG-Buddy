@@ -114,7 +114,7 @@ export class Setup extends Command {
             .setTitle('Server Defaults')
             .setDescription('The defaults that a server has when running PUBG Bot commands.')
             .setThumbnail(msg.guild.iconURL)
-            .setColor(0x00AE86)
+            .setColor('F2A900')
             .addField('Default Bot Prefix', CommonService.getEnvironmentVariable('prefix'), true)
             .addField('Custom Bot Prefix', server.default_bot_prefix, true)
             .addBlankField(false)
