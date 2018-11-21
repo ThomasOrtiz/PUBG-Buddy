@@ -1,7 +1,5 @@
 import * as Discord from 'discord.js';
-import {
-    CommonService as cs,
-    DiscordMessageService as discordMessageService } from '../';
+import { CommonService, DiscordMessageService } from '../';
 import { PubgAPI, Season, PlatformRegion, GameMode } from '../../pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 import { PubgRegionService } from './region.service';
@@ -31,7 +29,7 @@ export class PubgValidationService {
         let api: PubgAPI;
         const region: PlatformRegion = PlatformRegion[checkRegion];
         if (validRegion) {
-            api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), region);
+            api = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), region);
             validSeason = await this.isValidSeason(api, checkSeason);
         }
         validMode = this.isValidGameMode(checkMode);
@@ -91,7 +89,7 @@ export class PubgValidationService {
         }
 
         if (!validSeason || !validRegion || !validMode) {
-            discordMessageService.handleError(msg, errMessage, help);
+            DiscordMessageService.handleError(msg, errMessage, help);
             return false;
         }
         return true;

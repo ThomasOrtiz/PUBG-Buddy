@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import {
-    AnalyticsService as analyticsService,
+    AnalyticsService,
     PubgModeService,
 } from '../../services';
 
@@ -26,7 +26,7 @@ export class GetModes extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,

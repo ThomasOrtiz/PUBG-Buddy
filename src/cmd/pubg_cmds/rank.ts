@@ -1,12 +1,12 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    DiscordMessageService as discordMessageService,
-    ImageService as imageService,
-    ParameterService as parameterService,
+    AnalyticsService,
+    CommonService,
+    DiscordMessageService,
+    ImageService,
+    ParameterService,
     PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
-    SqlServerService as sqlServerService
+    SqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
@@ -107,15 +107,15 @@ export class Rank extends Command {
         let pubg_params: PubgParameters;
 
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
-            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
-            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
 
         // Throw error if no username supplied
         if (!pubg_params.username) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
             throw 'Error:: Must specify a username';
         }
 
@@ -126,7 +126,7 @@ export class Rank extends Command {
             mode: pubg_params.mode.toUpperCase().replace('-', '_')
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -143,11 +143,11 @@ export class Rank extends Command {
     private async addDefaultImageStats(seasonData: PlayerSeason): Promise<Discord.Attachment> {
         let mode = this.paramMap.mode;
 
-        if (cs.stringContains(mode, 'solo', true)) {
+        if (CommonService.stringContains(mode, 'solo', true)) {
             return await this.createImage(seasonData.soloFPPStats, seasonData.soloStats, 'Solo');
-        } else if (cs.stringContains(mode, 'duo', true)) {
+        } else if (CommonService.stringContains(mode, 'duo', true)) {
             return await this.createImage(seasonData.duoFPPStats, seasonData.duoStats, 'Duo');
-        } else if (cs.stringContains(mode, 'squad', true)) {
+        } else if (CommonService.stringContains(mode, 'squad', true)) {
             return await this.createImage(seasonData.squadFPPStats, seasonData.squadStats, 'Squad');
         }
     }
@@ -160,7 +160,7 @@ export class Rank extends Command {
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason): Promise<void> {
         const onOneCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 1`, {
+            AnalyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -177,7 +177,7 @@ export class Rank extends Command {
             this.setupReactions(newMsg, originalPoster, seasonData);
         };
         const onTwoCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 2`, {
+            AnalyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -194,7 +194,7 @@ export class Rank extends Command {
             this.setupReactions(newMsg, originalPoster, seasonData);
         };
         const onFourCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 4`, {
+            AnalyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -210,7 +210,7 @@ export class Rank extends Command {
             const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, seasonData);
         };
-        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
+        DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     //////////////////////////////////////
@@ -218,8 +218,8 @@ export class Rank extends Command {
     //////////////////////////////////////
 
     private async createImage(fppStats: GameModeStats, tppStats: GameModeStats, mode: string): Promise<Discord.Attachment> {
-        let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.BLACK_1050_130);
-        let baseImg: Jimp = await imageService.loadImage(ImageLocation.RANK_BODY);
+        let baseHeaderImg: Jimp = await ImageService.loadImage(ImageLocation.BLACK_1050_130);
+        let baseImg: Jimp = await ImageService.loadImage(ImageLocation.RANK_BODY);
 
         const baseImageWidth = baseImg.getWidth();
         const baseImageHeight = baseImg.getHeight();
@@ -258,7 +258,7 @@ export class Rank extends Command {
         // Create/Merge error message
         if (!fppStatsImage && !tppStatsImage) {
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(baseHeaderImg.clone(), mode);
-            image = imageService.combineImagesVertically(image ,errMessageImage);
+            image = ImageService.combineImagesVertically(image ,errMessageImage);
         }
 
         const imageBuffer: Buffer = await image.getBufferAsync(Jimp.MIME_PNG);
@@ -271,7 +271,7 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
+        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
 
         textObj.text = `Player hasn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32, textObj.text);
@@ -287,8 +287,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
-        const font_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_64: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
+        const font_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
@@ -314,8 +314,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_48_white: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
-        const font_48_orange: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_40);
+        const font_48_white: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
+        const font_48_orange: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_40);
         let textWidth: number;
 
         const body_subheading_x: number = 50;
@@ -330,17 +330,17 @@ export class Rank extends Command {
         let badge: Jimp;
         let rankTitle: string;
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(PubgRatingService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
+            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
         } else {
-            overallRating = cs.round(fppStats.rankPoints, 0) || 'NA';
-            badge = (await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
+            overallRating = CommonService.round(fppStats.rankPoints, 0) || 'NA';
+            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(fppStats.rankPoints);
         }
-        const kd = cs.round(fppStats.kills / fppStats.losses) || 0;
-        const kda = cs.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
-        const winPercent = cs.getPercentFromFraction(fppStats.wins, fppStats.roundsPlayed);
-        const topTenPercent = cs.getPercentFromFraction(fppStats.top10s, fppStats.roundsPlayed);
-        const averageDamageDealt = cs.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
+        const kd = CommonService.round(fppStats.kills / fppStats.losses) || 0;
+        const kda = CommonService.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
+        const winPercent = CommonService.getPercentFromFraction(fppStats.wins, fppStats.roundsPlayed);
+        const topTenPercent = CommonService.getPercentFromFraction(fppStats.top10s, fppStats.roundsPlayed);
+        const averageDamageDealt = CommonService.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
 
         let x_centers : any = {
             kd: 174,

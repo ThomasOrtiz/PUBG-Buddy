@@ -1,7 +1,7 @@
 import {
-    CommonService as cs,
+    CommonService,
     PubgSeasonService,
-    SqlUserRegisteryService as sqlUserRegisteryService,
+    SqlUserRegisteryService,
     PubgPlatformService
 } from './'
 import { IServer, PubgParameters } from '../interfaces';
@@ -57,7 +57,7 @@ export class ParameterService {
 
         // Try to get username from user registery
         if (getUsername && !parameters.username) {
-            parameters.username = await sqlUserRegisteryService.getRegisteredUser(msgAuthorId);
+            parameters.username = await SqlUserRegisteryService.getRegisteredUser(msgAuthorId);
         }
 
         return parameters;
@@ -72,7 +72,7 @@ export class ParameterService {
     static getParamValue(search: string, params: Array<any>, defaultParam: any): string {
         if (!params) { return defaultParam; }
 
-        let index = cs.isSubstringOfElement(search, params);
+        let index = CommonService.isSubstringOfElement(search, params);
         if (index >= 0) {
             return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
         } else {

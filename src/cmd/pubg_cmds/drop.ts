@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import {
-    AnalyticsService as analyticsService,
+    AnalyticsService,
     ImageService
 } from '../../services';
 import Jimp = require('jimp');
@@ -52,7 +52,7 @@ export class Drop extends Command {
 
         this.setupReactions(response, msg.author);
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag

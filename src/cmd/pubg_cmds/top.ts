@@ -1,14 +1,13 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    DiscordMessageService as discordMessageService,
-    ImageService as imageService,
-    ParameterService as parameterService,
-    PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
-    SqlServerService as sqlServerService,
-    SqlServerRegisteryService as sqlServerRegisteryService,
+    AnalyticsService,
     CommonService,
+    DiscordMessageService,
+    ImageService,
+    ParameterService,
+    PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
+    SqlServerService,
+    SqlServerRegisteryService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { IPlayer, IServer, PubgParameters } from '../../interfaces';
@@ -88,9 +87,9 @@ export class Top extends Command {
             return;
         }
 
-        this.registeredUsers = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        this.registeredUsers = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         if (this.registeredUsers.length === 0) {
-            discordMessageService.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: No users registered yet. Use the `addUser` command', this.help);
             return;
         }
 
@@ -124,8 +123,8 @@ export class Top extends Command {
             amount = +params[0];
         }
 
-        const serverDefaults: IServer = await sqlServerService.getServer(msg.guild.id);
-        const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
+        const serverDefaults: IServer = await SqlServerService.getServer(msg.guild.id);
+        const pubg_params: PubgParameters = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
 
         const paramMap: ParameterMap = {
             amount : amount,
@@ -134,7 +133,7 @@ export class Top extends Command {
             mode: pubg_params.mode.toUpperCase().replace('-', '_')
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             server_id: msg.guild.id,
@@ -205,7 +204,7 @@ export class Top extends Command {
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, players: PlayerWithSeasonData[]): Promise<void> {
         const onOneCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 1`, {
+            AnalyticsService.track(`${this.help.name} - Click 1`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode
@@ -229,7 +228,7 @@ export class Top extends Command {
             this.setupReactions(newMsg, originalPoster, players);
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 2`, {
+            AnalyticsService.track(`${this.help.name} - Click 2`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode
@@ -253,7 +252,7 @@ export class Top extends Command {
             this.setupReactions(newMsg, originalPoster, players);
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 4`, {
+            AnalyticsService.track(`${this.help.name} - Click 4`, {
                 season: this.paramMap.season,
                 region: this.paramMap.region,
                 mode: this.paramMap.mode
@@ -277,7 +276,7 @@ export class Top extends Command {
             const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
-        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
+        DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     /**
@@ -309,13 +308,13 @@ export class Top extends Command {
     private async createImages(players: PlayerWithSeasonData[], mode: string): Promise<Discord.Attachment> {
         let createImagePromises: Promise<Jimp>[] = [];
 
-        if (cs.stringContains(mode, 'solo', true)) {
+        if (CommonService.stringContains(mode, 'solo', true)) {
             createImagePromises.push(this.createImage(players, 'SOLO_FPP'));
             createImagePromises.push(this.createImage(players, 'SOLO'));
-        } else if (cs.stringContains(mode, 'duo', true)) {
+        } else if (CommonService.stringContains(mode, 'duo', true)) {
             createImagePromises.push(this.createImage(players, 'DUO_FPP'));
             createImagePromises.push(this.createImage(players, 'DUO'));
-        } else if (cs.stringContains(mode, 'squad', true)) {
+        } else if (CommonService.stringContains(mode, 'squad', true)) {
             createImagePromises.push(this.createImage(players, 'SQUAD_FPP'));
             createImagePromises.push(this.createImage(players, 'SQUAD'));
         }
@@ -326,17 +325,17 @@ export class Top extends Command {
 
         let image: Jimp = new Jimp(0, 0);
         if (fppImg) {
-            image = imageService.combineImagesVertically(image, fppImg);
+            image = ImageService.combineImagesVertically(image, fppImg);
         }
         if (tppImg) {
-            image = imageService.combineImagesVertically(image, tppImg);
+            image = ImageService.combineImagesVertically(image, tppImg);
         }
 
         // Create/Merge error message
         if (!fppImg && !tppImg) {
-            const black_header: Jimp = await imageService.loadImage(ImageLocation.BLACK_1200_130);
+            const black_header: Jimp = await ImageService.loadImage(ImageLocation.BLACK_1200_130);
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(black_header.clone(), mode);
-            image = imageService.combineImagesVertically(image, errMessageImage);
+            image = ImageService.combineImagesVertically(image, errMessageImage);
         }
 
         const imageBuffer: Buffer = await image.getBufferAsync(Jimp.MIME_PNG);
@@ -344,15 +343,15 @@ export class Top extends Command {
     }
 
     private async createImage(playerSeasons: PlayerWithSeasonData[], mode: string): Promise<Jimp> {
-        let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.TOP_BANNER);
-        let baseImg: Jimp = await imageService.loadImage(ImageLocation.TOP_BODY_SINGLE);
+        let baseHeaderImg: Jimp = await ImageService.loadImage(ImageLocation.TOP_BANNER);
+        let baseImg: Jimp = await ImageService.loadImage(ImageLocation.TOP_BODY_SINGLE);
 
         const headerImg: Jimp = await this.addHeaderImageText(baseHeaderImg.clone(), mode);
         const bodyImg: Jimp = await this.stitchBody(baseImg.clone(), playerSeasons, mode);
 
         if (!bodyImg) { return null; }
 
-        return imageService.combineImagesVertically(headerImg, bodyImg);
+        return ImageService.combineImagesVertically(headerImg, bodyImg);
     }
 
     private async addHeaderImageText(img: Jimp, mode: string): Promise<Jimp> {
@@ -362,8 +361,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
-        const font_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_64: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
+        const font_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
@@ -401,7 +400,7 @@ export class Top extends Command {
         const images: Jimp[] = await Promise.all(imagePromises);
 
         for (let i = 0; i < images.length; i++) {
-            image = imageService.combineImagesVertically(image, images[i]);
+            image = ImageService.combineImagesVertically(image, images[i]);
         }
 
         return image;
@@ -447,8 +446,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const body_font: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
-        const username_font: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
+        const body_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
+        const username_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
 
         const x_centers : any = {
             username: 90,
@@ -468,18 +467,18 @@ export class Top extends Command {
         let overallRating;
         let badge: Jimp;
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(PubgRatingService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
+            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
         } else {
-            overallRating = cs.round(seasonStats.rankPoints, 0);
-            badge = (await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(overallRating))).clone();
+            overallRating = CommonService.round(seasonStats.rankPoints, 0);
+            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(overallRating))).clone();
         }
 
         const username : string = playerSeason.name;
         const rating: string = overallRating;
         let winsOverGames: string = `${seasonStats.wins}/${seasonStats.roundsPlayed}`;
-        const kd = cs.round(seasonStats.kills / seasonStats.losses) || 0;
-        const kda = cs.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
-        let averageDamageDealt = cs.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
+        const kd = CommonService.round(seasonStats.kills / seasonStats.losses) || 0;
+        const kda = CommonService.round((seasonStats.kills + seasonStats.assists) / seasonStats.losses) || 0;
+        let averageDamageDealt = CommonService.round(seasonStats.damageDealt / seasonStats.roundsPlayed) || 0;
         averageDamageDealt = +averageDamageDealt
         averageDamageDealt = averageDamageDealt.toFixed(0);
 
@@ -529,8 +528,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_64);
-        const font_32: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
+        const font_64: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_64);
+        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
 
 
         // Add top header
@@ -559,6 +558,6 @@ export class Top extends Command {
         textWidth = Jimp.measureText(font_32, textObj.text);
         warningImg.print(font_32, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
 
-        return imageService.combineImagesVertically(headerImg, warningImg);
+        return ImageService.combineImagesVertically(headerImg, warningImg);
     }
 }

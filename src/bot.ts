@@ -3,9 +3,9 @@ import DBClient = require("dblapi.js");
 import * as fs from 'fs';
 import { join } from 'path';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    SqlServerService as sqlService
+    AnalyticsService,
+    CommonService,
+    SqlServerService
  } from './services';
 import { Command, DiscordClientWrapper } from './entities';
 import { IServer } from './interfaces'
@@ -15,14 +15,14 @@ import * as logger from './config/logger.config';
 
 export class Bot {
 
-    private botUserId: string = cs.getEnvironmentVariable('bot_user_id');
-    private prefix: string = cs.getEnvironmentVariable('prefix');
+    private botUserId: string = CommonService.getEnvironmentVariable('bot_user_id');
+    private prefix: string = CommonService.getEnvironmentVariable('prefix');
     private bot: DiscordClientWrapper;
     private discordBotsClient: DBClient;
 
     constructor() {
         this.bot = new DiscordClientWrapper();
-        const discordBotsApiToken: string = cs.getEnvironmentVariable('discord_bots_api_key');
+        const discordBotsApiToken: string = CommonService.getEnvironmentVariable('discord_bots_api_key');
         this.discordBotsClient = new DBClient(discordBotsApiToken, this.bot);
 
         this.setupListeners();
@@ -30,7 +30,7 @@ export class Bot {
     }
 
     public start = async () => {
-        const botToken: string = cs.getEnvironmentVariable('bot_token');
+        const botToken: string = CommonService.getEnvironmentVariable('bot_token');
         await this.bot.login(botToken);
     }
 
@@ -39,9 +39,9 @@ export class Bot {
         this.bot.on('error', logger.error);
         this.bot.on('warn', logger.warn);
         this.bot.on('guildCreate', (guild: Discord.Guild) => {
-            sqlService.registerServer(guild.id).then(() => {
+            SqlServerService.registerServer(guild.id).then(() => {
                 logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
-                analyticsService.track('New Discord server', {
+                AnalyticsService.track('New Discord server', {
                     guildName: guild.name,
                     guildId: guild.id,
                     memberCount: guild.memberCount
@@ -49,8 +49,8 @@ export class Bot {
             });
         });
         this.bot.on('guildDelete', (guild: Discord.Guild) => {
-            sqlService.unRegisterServer(guild.id).then(() => {
-                analyticsService.track('Removed Discord server', {
+            SqlServerService.unRegisterServer(guild.id).then(() => {
+                AnalyticsService.track('Removed Discord server', {
                     guildName: guild.name,
                     guildId: guild.id,
                     memberCount: guild.memberCount
@@ -61,7 +61,7 @@ export class Bot {
         this.bot.on('ready', () => {
             logger.info(`Bot has started, with ${this.bot.users.size} users, in ${this.bot.channels.size} channels of ${this.bot.guilds.size} guilds.`);
 
-            const isDev: boolean = cs.getEnvironmentVariable('isDev') === 'true';
+            const isDev: boolean = CommonService.getEnvironmentVariable('isDev') === 'true';
             if (!isDev) {
                 logger.info('Updating discord bots stats');
                 this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
@@ -71,7 +71,7 @@ export class Bot {
                 }, 1800000);
             }
 
-            const alertChannelId: string = cs.getEnvironmentVariable('alert_channel_id');
+            const alertChannelId: string = CommonService.getEnvironmentVariable('alert_channel_id');
             (this.bot.channels.find(i => i.id === alertChannelId) as Discord.TextChannel).send(`**${this.bot.user.username}** is back online.`);
 
             this.bot.user.setActivity("Use `!pubg-help`");
@@ -144,10 +144,10 @@ export class Bot {
         let customPrefix: string;
         if (msg.guild) {
             isGuildMessage = true;
-            let server_defaults: IServer = await sqlService.getServer(msg.guild.id);
+            let server_defaults: IServer = await SqlServerService.getServer(msg.guild.id);
 
             if (!server_defaults.isStoredInDb) {
-                sqlService.deleteServerCache(msg.guild.id);
+                SqlServerService.deleteServerCache(msg.guild.id);
             }
 
             customPrefix = server_defaults.default_bot_prefix.toLowerCase();
@@ -177,7 +177,7 @@ export class Bot {
 
         // Run command
         if (cmd && this.checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
-            analyticsService.setPerson(msg.author.id, {});
+            AnalyticsService.setPerson(msg.author.id, {});
             cmd.run(this.bot, msg, params, perms);
         }
     }

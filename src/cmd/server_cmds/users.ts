@@ -1,8 +1,5 @@
 import * as Discord from 'discord.js';
-import {
-    AnalyticsService as analyticsService,
-    SqlServerRegisteryService as sqlServerRegisteryService
-} from '../../services';
+import { AnalyticsService, SqlServerRegisteryService } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { IPlayer } from '../../interfaces';
 
@@ -27,7 +24,7 @@ export class Users extends Command {
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,
@@ -35,7 +32,7 @@ export class Users extends Command {
             number_parameters: params.length
         });
 
-        let registeredPlayers: IPlayer[] = await sqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
+        let registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
         let players: string = '';
 
         for (let i = 0; i < registeredPlayers.length; i++) {

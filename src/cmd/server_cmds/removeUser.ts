@@ -1,11 +1,11 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    DiscordMessageService as discordMessageService,
-    ParameterService as parameterService,
+    AnalyticsService,
+    DiscordMessageService,
+    ParameterService,
     PubgPlayerService,
-    SqlServerService as sqlServerService,
-    SqlServerRegisteryService as sqlServerRegisteryService,
+    SqlServerService,
+    SqlServerRegisteryService,
     PubgPlatformService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
@@ -36,15 +36,15 @@ export class RemoveUser extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            discordMessageService.handleError(msg, 'Error:: Must specify at least one username', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify at least one username', this.help);
             return;
         }
 
-        const serverDefaults: IServer = await sqlServerService.getServer(msg.guild.id);
-        const pubg_params: PubgParameters = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+        const serverDefaults: IServer = await SqlServerService.getServer(msg.guild.id);
+        const pubg_params: PubgParameters = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[pubg_params.region]);
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             server_id: msg.guild.id,
             discord_id: msg.author.id,
@@ -65,7 +65,7 @@ export class RemoveUser extends Command {
             return;
         }
 
-        let unregistered: boolean = await sqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
+        let unregistered: boolean = await SqlServerRegisteryService.unRegisterUserToServer(pubgId, message.guild.id);
         if (unregistered) {
             message.edit(`Removed **${username}** from server registry`);
         }

@@ -1,10 +1,10 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    DiscordMessageService as discordMessageService,
+    AnalyticsService,
+    DiscordMessageService,
     PubgPlayerService,
-    SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService,
+    SqlServerService,
+    SqlUserRegisteryService,
     ParameterService,
     PubgPlatformService,
 } from '../../services';
@@ -48,7 +48,7 @@ export class Register extends Command {
             return;
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -64,7 +64,7 @@ export class Register extends Command {
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
@@ -72,7 +72,7 @@ export class Register extends Command {
 
         // Throw error if no username supplied
         if (!pubg_params.username) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a username.', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify a username.', this.help);
             throw 'Error:: Must specify a username';
         }
 
@@ -81,7 +81,7 @@ export class Register extends Command {
             region: pubg_params.region.toUpperCase().replace('-', '_'),
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -103,7 +103,7 @@ export class Register extends Command {
             return;
         }
 
-        const registered: boolean = await sqlUserRegisteryService.registerUser(msg.author.id, pubgId);
+        const registered: boolean = await SqlUserRegisteryService.registerUser(msg.author.id, pubgId);
         if (registered) {
             const user: Discord.User = msg.author;
             const date: Date = user.createdAt;

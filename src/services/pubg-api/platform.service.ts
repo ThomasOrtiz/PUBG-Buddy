@@ -1,8 +1,8 @@
-import { CommonService as cs } from '..';
+import { CommonService } from '..';
 import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 
-const apiKey: string = cs.getEnvironmentVariable('pubg_api_key');
+const apiKey: string = CommonService.getEnvironmentVariable('pubg_api_key');
 
 export class PubgPlatformService {
 

@@ -1,12 +1,12 @@
 import * as Discord from 'discord.js';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    DiscordMessageService as discordMessageService,
-    ParameterService as parameterService,
+    AnalyticsService,
+    CommonService,
+    DiscordMessageService,
+    ParameterService,
     PubgPlatformService, PubgPlayerService, PubgValidationService,
-    SqlServerService as sqlServerService,
+    SqlServerService,
     PubgMatchesService,
     PubgMapService
 } from '../../services';
@@ -103,15 +103,15 @@ export class Matches extends Command {
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
-            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
-            pubg_params = await parameterService.getPubgParameters(params.join(' '), msg.author.id, true);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
 
         // Throw error if no username supplied
         if (!pubg_params.username) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify a username or register with `register` command', this.help);
             throw 'Error:: Must specify a username';
         }
 
@@ -122,7 +122,7 @@ export class Matches extends Command {
             mode: pubg_params.mode.toUpperCase().replace('-', '_'),
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -161,7 +161,7 @@ export class Matches extends Command {
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonData: PlayerSeason): Promise<void> {
         const onOneCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 1`, {
+            AnalyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -181,7 +181,7 @@ export class Matches extends Command {
             await msg.edit(warningMessage, { embed });
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 2`, {
+            AnalyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -201,7 +201,7 @@ export class Matches extends Command {
             await msg.edit(warningMessage, { embed });
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
-            analyticsService.track(`${this.help.name} - Click 4`, {
+            AnalyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name: this.paramMap.username,
                 season: this.paramMap.season,
                 region: this.paramMap.region,
@@ -220,7 +220,7 @@ export class Matches extends Command {
 
             await msg.edit(warningMessage, { embed });
         };
-        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
+        DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     /**
@@ -231,13 +231,13 @@ export class Matches extends Command {
     private async addDefaultStats(embed: Discord.RichEmbed, seasonData: PlayerSeason) {
         let mode = this.paramMap.mode;
 
-        if (cs.stringContains(mode, 'solo', true)) {
+        if (CommonService.stringContains(mode, 'solo', true)) {
             await this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
-        } else if (cs.stringContains(mode, 'duo', true)) {
+        } else if (CommonService.stringContains(mode, 'duo', true)) {
             await this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
-        } else if (cs.stringContains(mode, 'squad', true)) {
+        } else if (CommonService.stringContains(mode, 'squad', true)) {
             await this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
         }

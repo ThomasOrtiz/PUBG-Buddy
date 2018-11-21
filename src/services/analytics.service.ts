@@ -1,11 +1,11 @@
 import * as Mixpanel from 'mixpanel';
-import { CommonService as cs } from './common.service';
+import { CommonService } from './common.service';
 
-const apiKey = cs.getEnvironmentVariable('mixpanel_api_key');
+const apiKey = CommonService.getEnvironmentVariable('mixpanel_api_key');
 const mixpanel: Mixpanel.Mixpanel = Mixpanel.init(apiKey, {
     protocol: 'https'
 });
-const isDev = cs.getEnvironmentVariable('isDev') === 'true';
+const isDev = CommonService.getEnvironmentVariable('isDev') === 'true';
 
 export class AnalyticsService {
 
