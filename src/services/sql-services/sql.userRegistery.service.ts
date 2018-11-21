@@ -42,13 +42,13 @@ export class SqlUserRegisteryService {
         const res: QueryResult = await pool.query(query, [discordId]);
 
         if (res.rowCount === 0) {
-            pool.query(`insert into ${this.tableName}
+            await pool.query(`insert into ${this.tableName}
                 (discord_id, fk_players_id)
                 values ($1, (select id from players where pubg_id=$2))`, [discordId, pubgId]
             );
             return true;
         } else {
-            pool.query(`update ${this.tableName}
+            await pool.query(`update ${this.tableName}
                 set
                     fk_players_id=(select id from players where pubg_id=$2)
                 where discord_id = $1`, [discordId, pubgId]
