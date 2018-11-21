@@ -50,6 +50,7 @@ export class AddUser extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
             number_parameters: params.length,
+            pubg_name: pubg_params.username,
             region: pubg_params.region
         });
 
