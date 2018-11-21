@@ -77,7 +77,7 @@ export class PubgPlayerService {
         const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
         const storeFunction: Function = async (): Promise<PlayerSeason> => {
             const seasonId: string = PubgSeasonService.getPubgSeasonId(season);
-            return PlayerSeason.get(api, id, seasonId);
+            return PlayerSeason.get(api, id, seasonId).catch(() => null);
         };
 
         return await cache.get<PlayerSeason>(cacheKey, storeFunction, ttl);

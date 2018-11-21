@@ -188,6 +188,7 @@ export class Top extends Command {
 
         const results: PlayerSeason[] = await Promise.all(requests);
         for (let i = 0; i < results.length; i++) {
+            if (!results[i]) { continue; }
             const player = players[i];
             const info = new PlayerWithSeasonData(player.name, results[i]);
             playerSeasons.push(info);

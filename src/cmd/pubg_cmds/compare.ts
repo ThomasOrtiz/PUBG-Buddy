@@ -75,32 +75,28 @@ export class Compare extends Command {
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
 
         if (!playerA || !playerA.id) {
-            message.edit(`Could not find **${this.paramMap.playerA}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+            message.edit(`Could not find **${this.paramMap.playerA}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
         if (!playerB || !playerB.id) {
-            message.edit(`Could not find **${this.paramMap.playerB}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+            message.edit(`Could not find **${this.paramMap.playerB}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
 
         // Get Player Data
-        let seasonDataA: PlayerSeason;
-        let seasonDataB: PlayerSeason;
         const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-        try {
-            seasonDataA = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
-        } catch(e) {
+        const seasonDataA: PlayerSeason = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
+        if (!seasonDataA) {
             message.edit(`Could not find **${this.paramMap.playerA}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
-        try {
-            seasonDataB = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
-        } catch(e) {
+
+        const seasonDataB: PlayerSeason = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
+        if (!seasonDataB) {
             message.edit(`Could not find **${this.paramMap.playerB}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
-
 
         const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonDataA, seasonDataB);
         const imgMsg = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;

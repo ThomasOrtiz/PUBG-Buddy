@@ -70,17 +70,16 @@ export class Matches extends Command {
         const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.username]);
 
         if (players.length === 0) {
-            reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+            reply.edit(`Could not find **${this.paramMap.username}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
         const player: Player = players[0];
-        let seasonData: PlayerSeason;
-        try {
-            const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-            seasonData = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
-        } catch(e) {
-            reply.edit(`Could not find **${this.paramMap.username}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+
+        const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
+        const seasonData: PlayerSeason = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, player.id, this.paramMap.season);
+        if (!seasonData) {
+            reply.edit(`Could not find **${this.paramMap.username}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
