@@ -1,10 +1,10 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
+    AnalyticsService,
     PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PlatformRegion } from 'pubg-typescript-api';
+import { PlatformRegion } from '../../pubg-typescript-api';
 
 
 export class GetRegions extends Command {
@@ -26,7 +26,7 @@ export class GetRegions extends Command {
     };
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -46,7 +46,7 @@ export class GetRegions extends Command {
         const embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Regions')
             .setDescription('The regions for each platform')
-            .setColor(0x00AE86)
+            .setColor('F2A900')
             .addField('PC Regions', pc_regions_str, true)
             .addField('Xbox Regions', xbox_regions_str, true);
 

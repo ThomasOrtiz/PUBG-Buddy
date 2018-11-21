@@ -1,16 +1,16 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    DiscordMessageService as discordMessageService,
+    AnalyticsService,
+    DiscordMessageService,
     PubgPlayerService,
-    SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService,
+    SqlServerService,
+    SqlUserRegisteryService,
     ParameterService,
+    PubgPlatformService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgParameters } from '../../interfaces';
-import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import { PubgParameters, IPlayer } from '../../interfaces';
+import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 
 interface ParameterMap {
@@ -48,7 +48,7 @@ export class Register extends Command {
             return;
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -64,7 +64,7 @@ export class Register extends Command {
 
         let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
@@ -72,7 +72,7 @@ export class Register extends Command {
 
         // Throw error if no username supplied
         if (!pubg_params.username) {
-            discordMessageService.handleError(msg, 'Error:: Must specify a username.', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify a username.', this.help);
             throw 'Error:: Must specify a username';
         }
 
@@ -81,7 +81,7 @@ export class Register extends Command {
             region: pubg_params.region.toUpperCase().replace('-', '_'),
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -94,30 +94,35 @@ export class Register extends Command {
     }
 
     private async registerUser(msg: Discord.Message, region: string, username: string) {
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
         const message: Discord.Message = await msg.channel.send(`Checking for **${username}**'s PUBG Id ... give me a second`) as Discord.Message;
         const pubgId: string = await PubgPlayerService.getPlayerId(api, username);
 
-        if (pubgId && pubgId !== '') {
-            const registered: boolean = await sqlUserRegisteryService.registerUser(msg.author.id, pubgId);
-            if (registered) {
-                const user: Discord.User = msg.author;
-                const date: Date = user.createdAt;
-                let embed: Discord.RichEmbed = new Discord.RichEmbed()
-                    .setTitle(`**${user.tag}**'s profile`)
-                    .setThumbnail(user.displayAvatarURL)
-                    .setColor(0x00AE86)
-                    .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
-                    .addField('PUBG Username', username)
-                    .setTimestamp();
-
-                message.edit({embed});
-            } else {
-                message.edit(`Failed to register your Discord user with PUBG name **${username}**`);
-            }
-        } else {
+        if (!pubgId) {
             message.edit(`Could not find **${username}** on the **${region}** region. Double check the username and region.`);
+            return;
         }
+
+        const registered: boolean = await SqlUserRegisteryService.registerUser(msg.author.id, pubgId);
+        if (registered) {
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
+
+            const user: Discord.User = msg.author;
+            const date: Date = user.createdAt;
+            const embed: Discord.RichEmbed = new Discord.RichEmbed()
+                .setTitle(`**${user.tag}**'s profile`)
+                .setThumbnail(user.displayAvatarURL)
+                .setColor('F2A900')
+                .addField('Joined Discord', `${date.getMonth()}/${date.getDate()}/${date.getFullYear()}`)
+                .addField('PUBG Username', player.username, true)
+                .addField('Platform', player.platform, true)
+                .setTimestamp();
+
+            message.edit({embed});
+        } else {
+            message.edit(`Failed to register your Discord user with PUBG name **${username}**`);
+        }
+
     }
 
 }

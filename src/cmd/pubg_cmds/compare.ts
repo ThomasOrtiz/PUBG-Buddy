@@ -1,18 +1,19 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    DiscordMessageService as discordMessageService,
-    ImageService as imageService,
+    AnalyticsService,
+    CommonService,
+    DiscordMessageService,
+    ImageService,
     PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
-    SqlServerService as sqlServerService,
-    SqlUserRegisteryService as sqlUserRegisteryService,
+    SqlServerService,
+    SqlUserRegisteryService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from 'pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
+import { IPlayer } from '../../interfaces';
 
 
 interface ParameterMap {
@@ -68,38 +69,34 @@ export class Compare extends Command {
         }
 
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.playerA}** and **${this.paramMap.playerB}**`);
-        const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[this.paramMap.region]);
-        const players: Player[] = await PubgPlayerService.getPlayerByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
+        const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
+        const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
         const playerA: Player = players.find(p => p.name === this.paramMap.playerA);
         const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
 
         if (!playerA || !playerA.id) {
-            message.edit(`Could not find **${this.paramMap.playerA}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+            message.edit(`Could not find **${this.paramMap.playerA}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
         if (!playerB || !playerB.id) {
-            message.edit(`Could not find **${this.paramMap.playerB}** on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
+            message.edit(`Could not find **${this.paramMap.playerB}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
 
 
         // Get Player Data
-        let seasonDataA: PlayerSeason;
-        let seasonDataB: PlayerSeason;
         const seasonStatsApi: PubgAPI = PubgPlatformService.getSeasonStatsApi(PlatformRegion[this.paramMap.region], this.paramMap.season);
-        try {
-            seasonDataA = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
-        } catch(e) {
+        const seasonDataA: PlayerSeason = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerA.id, this.paramMap.season);
+        if (!seasonDataA) {
             message.edit(`Could not find **${this.paramMap.playerA}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
-        try {
-            seasonDataB = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
-        } catch(e) {
+
+        const seasonDataB: PlayerSeason = await PubgPlayerService.getPlayerSeasonStatsById(seasonStatsApi, playerB.id, this.paramMap.season);
+        if (!seasonDataB) {
             message.edit(`Could not find **${this.paramMap.playerB}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);
             return;
         }
-
 
         const attatchment: Discord.Attachment = await this.addDefaultImageStats(seasonDataA, seasonDataB);
         const imgMsg = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
@@ -118,46 +115,52 @@ export class Compare extends Command {
         let playerB: string;
 
         let getFromRegistery: boolean = false;
-        if (params[1] && !cs.stringContains(params[1], '=')) {
+        if (params[1] && !CommonService.stringContains(params[1], '=')) {
             playerB = params[1];
         } else {
             getFromRegistery = true;
             playerB = params[0];
         }
 
+
         if (getFromRegistery) {
-            playerA = await sqlUserRegisteryService.getRegisteredUser(msg.author.id);
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
+            if (player) {
+                playerA = player.username;
+            } else {
+                playerA = null;
+            }
         } else {
             playerA = params[0];
         }
 
         // Throw error if no username supplied
         if (!playerA || !playerB) {
-            discordMessageService.handleError(msg, 'Error:: Must specify two usernames or register with `register` command and supply one', this.help);
+            DiscordMessageService.handleError(msg, 'Error:: Must specify two usernames or register with `register` command and supply one', this.help);
             throw 'Error:: Must specify a username';
         }
 
         if (msg.guild) {
-            const serverDefaults = await sqlServerService.getServer(msg.guild.id);
+            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             paramMap = {
                 playerA: playerA,
                 playerB: playerB,
-                season: cs.getParamValue('season=', params, serverDefaults.default_season),
-                region: cs.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
+                season: CommonService.getParamValue('season=', params, serverDefaults.default_season),
+                region: CommonService.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
+                mode: CommonService.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
             }
         } else {
-            const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
+            const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
             paramMap = {
                 playerA: playerA,
                 playerB: playerB,
-                season: cs.getParamValue('season=', params, currentSeason),
-                region: cs.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
-                mode: cs.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_')
+                season: CommonService.getParamValue('season=', params, currentSeason),
+                region: CommonService.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
+                mode: CommonService.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_')
             }
         }
 
-        analyticsService.track(this.help.name, {
+        AnalyticsService.track(this.help.name, {
             distinct_id: msg.author.id,
             discord_id: msg.author.id,
             discord_username: msg.author.tag,
@@ -175,11 +178,11 @@ export class Compare extends Command {
     private async addDefaultImageStats(seasonDataA: PlayerSeason, seasonDataB: PlayerSeason): Promise<Discord.Attachment> {
         let mode = this.paramMap.mode;
 
-        if (cs.stringContains(mode, 'solo', true)) {
+        if (CommonService.stringContains(mode, 'solo', true)) {
             return await this.createImage(seasonDataA.soloFPPStats, seasonDataA.soloStats, seasonDataB.soloFPPStats, seasonDataB.soloStats, 'Solo');
-        } else if (cs.stringContains(mode, 'duo', true)) {
+        } else if (CommonService.stringContains(mode, 'duo', true)) {
             return await this.createImage(seasonDataA.duoFPPStats, seasonDataA.duoStats, seasonDataB.duoFPPStats, seasonDataB.duoStats, 'Duo');
-        } else if (cs.stringContains(mode, 'squad', true)) {
+        } else if (CommonService.stringContains(mode, 'squad', true)) {
             return await this.createImage(seasonDataA.squadFPPStats, seasonDataA.squadStats, seasonDataB.squadFPPStats, seasonDataB.squadStats, 'Squad');
         }
     }
@@ -192,7 +195,7 @@ export class Compare extends Command {
      */
     private async setupReactions(msg: Discord.Message, originalPoster: Discord.User, seasonDataA: PlayerSeason, seasonDataB: PlayerSeason): Promise<void> {
         const onOneCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 1`, {
+            AnalyticsService.track(`${this.help.name} - Click 1`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -210,7 +213,7 @@ export class Compare extends Command {
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
         };
         const onTwoCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 2`, {
+            AnalyticsService.track(`${this.help.name} - Click 2`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -228,7 +231,7 @@ export class Compare extends Command {
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
         };
         const onFourCollect: Function = async () => {
-            analyticsService.track(`${this.help.name} - Click 4`, {
+            AnalyticsService.track(`${this.help.name} - Click 4`, {
                 pubg_name_a: this.paramMap.playerA,
                 pubg_name_b: this.paramMap.playerB,
                 season: this.paramMap.season,
@@ -245,12 +248,12 @@ export class Compare extends Command {
             const newMsg = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, seasonDataA, seasonDataB);
         };
-        discordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
+        DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }
 
     private async createImage(fppStats_A: GameModeStats, tppStats_A: GameModeStats, fppStats_B: GameModeStats, tppStats_B: GameModeStats, mode: string): Promise<Discord.Attachment> {
-        let baseHeaderImg: Jimp = await imageService.loadImage(ImageLocation.BLACK_1050_130);
-        let baseImg: Jimp = await imageService.loadImage(ImageLocation.RANK_BODY_CENTER_CLEARED);
+        let baseHeaderImg: Jimp = await ImageService.loadImage(ImageLocation.BLACK_1050_130);
+        let baseImg: Jimp = await ImageService.loadImage(ImageLocation.RANK_BODY_CENTER_CLEARED);
 
         const baseImageWidth = baseImg.getWidth();
         const baseImageHeight = baseImg.getHeight();
@@ -289,7 +292,7 @@ export class Compare extends Command {
         // Create/Merge error message
         if (!fppStatsImage && !tppStatsImage) {
             const errMessageImage: Jimp = await this.addNoMatchesPlayedText(baseHeaderImg.clone(), mode);
-            image = imageService.combineImagesVertically(image ,errMessageImage);
+            image = ImageService.combineImagesVertically(image ,errMessageImage);
         }
 
         const imageBuffer: Buffer = await image.getBufferAsync(Jimp.MIME_PNG);
@@ -302,7 +305,7 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
+        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
 
         textObj.text = `Players havn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32, textObj.text);
@@ -319,9 +322,9 @@ export class Compare extends Command {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
 
-        const font_bold_52: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_52);
-        const font_bold_48: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
-        const font_bold_42: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
+        const font_bold_52: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_52);
+        const font_bold_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_bold_42: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
         let textWidth: number;
@@ -356,9 +359,9 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_48_white: Jimp.Font =  await imageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
-        const font_48_orange: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
-        const font_name_badge: Jimp.Font = await imageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
+        const font_48_white: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
+        const font_48_orange: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
+        const font_name_badge: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
         let textWidth: number;
 
         const body_subheading_x: number = 50;
@@ -374,10 +377,10 @@ export class Compare extends Command {
         let badge_B: Jimp;
         let rankTitle: string;
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(PubgRatingService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA';
+            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA';
         } else {
-            overallRating = cs.round(stats_A.rankPoints, 0) || 'NA';
-            badge_A = await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints));
+            overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
+            badge_A = await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints));
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_A.rankPoints);
         }
 
@@ -388,11 +391,11 @@ export class Compare extends Command {
             wins: stats_A.wins,
             top10s: stats_A.top10s,
             roundsPlayed: stats_A.roundsPlayed,
-            kd: cs.round(stats_A.kills / stats_A.losses) || 0,
-            kda: cs.round((stats_A.kills + stats_A.assists) / stats_A.losses) || 0,
-            winPercent: cs.getPercentFromFraction(stats_A.wins, stats_A.roundsPlayed, 0),
-            topTenPercent: cs.getPercentFromFraction(stats_A.top10s, stats_A.roundsPlayed, 0),
-            averageDamageDealt: cs.round(stats_A.damageDealt / stats_A.roundsPlayed, 0) || 0,
+            kd: CommonService.round(stats_A.kills / stats_A.losses) || 0,
+            kda: CommonService.round((stats_A.kills + stats_A.assists) / stats_A.losses) || 0,
+            winPercent: CommonService.getPercentFromFraction(stats_A.wins, stats_A.roundsPlayed, 0),
+            topTenPercent: CommonService.getPercentFromFraction(stats_A.top10s, stats_A.roundsPlayed, 0),
+            averageDamageDealt: CommonService.round(stats_A.damageDealt / stats_A.roundsPlayed, 0) || 0,
             kills: `${stats_A.kills}`,
             assists: `${stats_A.assists}`,
             dBNOs: `${stats_A.dBNOs}`,
@@ -401,10 +404,10 @@ export class Compare extends Command {
         }
 
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = cs.round(PubgRatingService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA';
+            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA';
         } else {
-            overallRating = cs.round(stats_B.rankPoints, 0) || 'NA';
-            badge_B = await imageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints));
+            overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
+            badge_B = await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints));
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_B.rankPoints);
         }
 
@@ -415,11 +418,11 @@ export class Compare extends Command {
             wins: stats_B.wins,
             top10s: stats_B.top10s,
             roundsPlayed: stats_B.roundsPlayed,
-            kd: cs.round(stats_B.kills / stats_B.losses) || 0,
-            kda: cs.round((stats_B.kills + stats_B.assists) / stats_B.losses) || 0,
-            winPercent: cs.getPercentFromFraction(stats_B.wins, stats_B.roundsPlayed, 0),
-            topTenPercent: cs.getPercentFromFraction(stats_B.top10s, stats_B.roundsPlayed, 0),
-            averageDamageDealt: cs.round(stats_B.damageDealt / stats_B.roundsPlayed, 0) || 0,
+            kd: CommonService.round(stats_B.kills / stats_B.losses) || 0,
+            kda: CommonService.round((stats_B.kills + stats_B.assists) / stats_B.losses) || 0,
+            winPercent: CommonService.getPercentFromFraction(stats_B.wins, stats_B.roundsPlayed, 0),
+            topTenPercent: CommonService.getPercentFromFraction(stats_B.top10s, stats_B.roundsPlayed, 0),
+            averageDamageDealt: CommonService.round(stats_B.damageDealt / stats_B.roundsPlayed, 0) || 0,
             kills: `${stats_B.kills}`,
             assists: `${stats_B.assists}`,
             dBNOs: `${stats_B.dBNOs}`,

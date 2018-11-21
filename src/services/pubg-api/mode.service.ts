@@ -1,4 +1,4 @@
-import { GameMode } from 'pubg-typescript-api';
+import { GameMode } from '../../pubg-typescript-api';
 
 
 export class PubgModeService {

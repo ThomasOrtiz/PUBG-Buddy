@@ -1,43 +1,54 @@
-import { CommonService as cs } from '..';
-import { PubgAPI, PlatformRegion } from 'pubg-typescript-api';
+import { CommonService } from '..';
+import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 
-const apiKey: string = cs.getEnvironmentVariable('pubg_api_key');
+const apiKey: string = CommonService.getEnvironmentVariable('pubg_api_key');
 
 export class PubgPlatformService {
 
-    // static getMatchesApi(platform: PlatformRegion): PubgAPI {
-    //     if (this.isPlatformXbox(platform)) {
-    //         return new PubgAPI(apiKey, PlatformRegion.XBOX);
-    //     } else if (this.isPlatformPC(platform) && platform !== PlatformRegion.PC_KAKAO) {
-    //         return new PubgAPI(apiKey, PlatformRegion.STEAM);
-    //     } else {
-    //         return new PubgAPI(apiKey, PlatformRegion.KAKAO);
-    //     }
-    // }
+    static getApi(platform: PlatformRegion): PubgAPI {
+        if (this.isPlatformXbox(platform)) {
+            return new PubgAPI(apiKey, PlatformRegion.XBOX);
+        }
+
+        if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {
+            return new PubgAPI(apiKey, PlatformRegion.KAKAO);
+        } else {
+            return new PubgAPI(apiKey, PlatformRegion.STEAM);
+        }
+    }
 
     static getSeasonStatsApi(platform: PlatformRegion, season: string): PubgAPI {
-        if (this.isPlatformXbox(platform) || (this.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(season))) {
+        const isPC: boolean = this.isPlatformPC(platform);
+
+        if (this.isPlatformXbox(platform) || (isPC && PubgSeasonService.isPreSeasonTen(season))) {
             return new PubgAPI(apiKey, platform);
         }
 
-        return new PubgAPI(apiKey, PlatformRegion.STEAM);
+        if (isPC && this.isPlatformKakao(platform)) {
+            return new PubgAPI(apiKey, PlatformRegion.KAKAO);
+        } else {
+            return new PubgAPI(apiKey, PlatformRegion.STEAM);
+        }
     }
 
     static getPlatformDisplayName(platform: PlatformRegion): string {
         if (this.isPlatformXbox(platform)) {
-            return 'Xbox';
-        } else if (this.isPlatformPC(platform)) {
-            return 'PC';
+            return PlatformRegion.XBOX;
+        }
+
+        if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {
+            return PlatformRegion.KAKAO;
         } else {
-            return '';
+            return PlatformRegion.STEAM;
         }
     }
 
     static isPlatformXbox(platform: PlatformRegion): boolean {
         const xboxRegions: PlatformRegion[] = [
             PlatformRegion.XBOX_AS, PlatformRegion.XBOX_EU,
-            PlatformRegion.XBOX_NA, PlatformRegion.XBOX_OC
+            PlatformRegion.XBOX_NA, PlatformRegion.XBOX_OC,
+            PlatformRegion.XBOX_SA, PlatformRegion.XBOX
         ];
         return xboxRegions.includes(platform);
     }
@@ -52,5 +63,10 @@ export class PubgPlatformService {
             PlatformRegion.PC_AS
         ];
         return pcRegions.includes(platform);
+    }
+
+    static isPlatformKakao(platform: PlatformRegion): boolean {
+        const kakaoRegions: PlatformRegion[] = [PlatformRegion.KAKAO, PlatformRegion.PC_KAKAO];
+        return kakaoRegions.includes(platform);
     }
 }

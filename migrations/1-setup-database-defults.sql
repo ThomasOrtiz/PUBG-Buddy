@@ -6,7 +6,8 @@ BEGIN;
     CREATE TABLE IF NOT EXISTS players
         (id SERIAL PRIMARY KEY,
         pubg_id TEXT UNIQUE,
-        username TEXT);
+        username TEXT,
+        platform TEXT);
 
     CREATE TABLE IF NOT EXISTS servers
         (id SERIAL PRIMARY KEY,

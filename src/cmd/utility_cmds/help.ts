@@ -1,12 +1,12 @@
 import * as Discord from 'discord.js';
 import {
-    AnalyticsService as analyticsService,
-    CommonService as cs,
-    SqlServerService as sqlService,
+    AnalyticsService,
+    CommonService,
+    SqlServerService,
     DiscordMessageService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { Server } from '../../interfaces';
+import { IServer } from '../../interfaces';
 
 
 export class Help extends Command {
@@ -34,7 +34,7 @@ export class Help extends Command {
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
         if (!params[0]) {
-            analyticsService.track(this.help.name, {
+            AnalyticsService.track(this.help.name, {
                 distinct_id: msg.author.id,
                 type: 'Help',
                 discord_id: msg.author.id,
@@ -54,7 +54,7 @@ export class Help extends Command {
             await msg.channel.send(parameterExplanation, { code: 'asciidoc'});
             await msg.channel.send({embed});
         } else {
-            analyticsService.track(this.help.name, {
+            AnalyticsService.track(this.help.name, {
                 distinct_id: msg.author.id,
                 type: 'Command Help',
                 discord_id: msg.author.id,
@@ -69,11 +69,11 @@ export class Help extends Command {
     private async getBotHelpEmbed(commands: any, guild: Discord.Guild): Promise<Discord.RichEmbed> {
         const embed: Discord.RichEmbed = DiscordMessageService.createBaseEmbed('PUBG Buddy');
 
-        let default_bot_prefix: string = cs.getEnvironmentVariable('prefix');
+        let default_bot_prefix: string = CommonService.getEnvironmentVariable('prefix');
         let prefix: string = default_bot_prefix;
 
         if (guild) {
-            let server_defaults: Server = await sqlService.getServer(guild.id);
+            let server_defaults: IServer = await SqlServerService.getServer(guild.id);
             prefix = server_defaults.default_bot_prefix;
         }
 

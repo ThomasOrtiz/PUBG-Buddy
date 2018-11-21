@@ -1,10 +1,9 @@
-import {
-    CacheService,
-    SqlPlayersService as sqlPlayersService
- } from '../';
-import { Player, PlayerSeason, PubgAPI } from 'pubg-typescript-api';
+import { CacheService, SqlPlayersService } from '../';
+import { Player, PlayerSeason, PubgAPI } from '../../pubg-typescript-api';
+import { IPlayer } from '../../interfaces';
 import { TimeInSeconds } from '../../shared/constants';
 import { PubgSeasonService } from './season.service';
+import { PubgPlatformService } from './platform.service';
 
 const cache = new CacheService();
 
@@ -17,7 +16,8 @@ export class PubgPlayerService {
      * @returns {Promise<string>} a promise that resolves to a pubg id
      */
     static async getPlayerId(api: PubgAPI, name: string): Promise<string> {
-        const player = await sqlPlayersService.getPlayer(name);
+        const platform: string = PubgPlatformService.getPlatformDisplayName(api.platformRegion);
+        const player: IPlayer = await SqlPlayersService.getPlayer(name, platform);
 
         if (player && player.pubg_id && player.pubg_id !== '') {
             return player.pubg_id;
@@ -32,8 +32,8 @@ export class PubgPlayerService {
      * @param {string[]} names
      * @returns {Promise<Player[]>} list of player(s)
      */
-    static async getPlayerByName(api: PubgAPI, names: string[]): Promise<Player[]> {
-        const cacheKey: string = `pubgApi.getPlayerByName-${api.platformRegion}-${names}`;
+    static async getPlayersByName(api: PubgAPI, names: string[]): Promise<Player[]> {
+        const cacheKey: string = `pubgApi.getPlayersByName-${api.platformRegion}-${names}`;
         const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
         const storeFunction: Function = async (): Promise<Player[]> => {
             return Player.filterByName(api, names).catch(() => []);
@@ -48,19 +48,18 @@ export class PubgPlayerService {
      * @param {string[]} names
      * @returns {Promise<string>} a player's id
      */
-    static async getPlayerIdByName(api: PubgAPI, name: string): Promise<string> {
+    private static async getPlayerIdByName(api: PubgAPI, name: string): Promise<string>  {
         const cacheKey: string = `pubgApi.getPlayerIdByName-${name}-${api.platformRegion}`;
-        const ttl: number = TimeInSeconds.TWO_HOUR;
+        const ttl: number = TimeInSeconds.ONE_MINUTE;
         const storeFunction: Function = async (): Promise<string> => {
-            const result: Player[] = await Player.filterByName(api, [name]).catch(() => { return []; });
+            const result: Player[] = await this.getPlayersByName(api, [name]);
 
-            if (result.length > 0) {
-                const player = result[0];
-                await sqlPlayersService.addPlayer(player.name, player.id)
-                return player.id;
-            } else {
-                return '';
-            }
+            if (result.length === 0) { return ''; }
+
+            const player: Player = result[0];
+            const platform: string = PubgPlatformService.getPlatformDisplayName(api.platformRegion);
+            await SqlPlayersService.addPlayer(player.name, player.id, platform);
+            return player.id;
         };
 
         return await cache.get<string>(cacheKey, storeFunction, ttl);
@@ -78,7 +77,7 @@ export class PubgPlayerService {
         const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
         const storeFunction: Function = async (): Promise<PlayerSeason> => {
             const seasonId: string = PubgSeasonService.getPubgSeasonId(season);
-            return PlayerSeason.get(api, id, seasonId);
+            return PlayerSeason.get(api, id, seasonId).catch(() => null);
         };
 
         return await cache.get<PlayerSeason>(cacheKey, storeFunction, ttl);

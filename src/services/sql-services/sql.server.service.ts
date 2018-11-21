@@ -1,10 +1,9 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
-import { Server } from '../../interfaces';
-import { CacheService, PubgSeasonService } from '../';
+import { IServer } from '../../interfaces';
+import { CacheService, PubgSeasonService, PubgPlatformService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
-import { PubgAPI, PlatformRegion, Season } from 'pubg-typescript-api';
-import { CommonService } from '../common.service';
+import { PubgAPI, PlatformRegion, Season } from '../../pubg-typescript-api';
 
 const cache = new CacheService();
 
@@ -18,7 +17,7 @@ export class SqlServerService {
     static async registerServer(serverId: string): Promise<QueryResult> {
         const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
         if (res.rowCount === 0) {
-            const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
             const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
             const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
@@ -35,10 +34,8 @@ export class SqlServerService {
      * @returns {boolean} server unregistered successfully
      */
     static async unRegisterServer(serverId: string): Promise<boolean> {
-        return pool.query('delete from servers where server_id=$1', [serverId])
-            .then(async () => {
-                return true;
-            });
+        await pool.query('delete from servers where server_id=$1', [serverId]);
+        return true;
     }
 
     /**
@@ -46,15 +43,15 @@ export class SqlServerService {
      * @param {string} serverId
      * @returns {Server} server
      */
-    static async getServer(serverId: string): Promise<Server> {
+    static async getServer(serverId: string): Promise<IServer> {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in setServerDefaults
-        const ttl: number = TimeInSeconds.ONE_HOUR;
-        const storeFunction: Function = async (): Promise<Server> => {
+        const ttl: number = TimeInSeconds.THIRTY_MINUTES;
+        const storeFunction: Function = async (): Promise<IServer> => {
             const res: QueryResult = await pool.query('select * from servers where server_id = $1', [serverId]);
 
             // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
             if (res.rowCount === 0) {
-                const api: PubgAPI = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.STEAM);
+                const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
                 const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
                 const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
@@ -80,7 +77,7 @@ export class SqlServerService {
             }
         };
 
-        return await cache.get<Server>(cacheKey, storeFunction, ttl);
+        return await cache.get<IServer>(cacheKey, storeFunction, ttl);
     }
 
 
@@ -96,14 +93,11 @@ export class SqlServerService {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in getServer
         cache.del(cacheKey);
 
-        return pool.query('select server_id from servers where server_id = $1', [serverId])
-            .then((res: QueryResult) => {
-                if (res.rowCount === 0) {
-                    return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
-                } else {
-                    return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
-                }
-            });
+        const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
+        if (res.rowCount === 0) {
+            return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
+        }
+        return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
     }
 
     static deleteServerCache(serverId: string) {

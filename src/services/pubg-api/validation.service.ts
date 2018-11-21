@@ -1,8 +1,6 @@
 import * as Discord from 'discord.js';
-import {
-    CommonService as cs,
-    DiscordMessageService as discordMessageService } from '../';
-import { PubgAPI, Season, PlatformRegion, GameMode } from 'pubg-typescript-api';
+import { CommonService, DiscordMessageService } from '../';
+import { PubgAPI, Season, PlatformRegion, GameMode } from '../../pubg-typescript-api';
 import { PubgSeasonService } from './season.service';
 import { PubgRegionService } from './region.service';
 import { PubgModeService } from './mode.service';
@@ -31,13 +29,13 @@ export class PubgValidationService {
         let api: PubgAPI;
         const region: PlatformRegion = PlatformRegion[checkRegion];
         if (validRegion) {
-            api = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), region);
+            api = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), region);
             validSeason = await this.isValidSeason(api, checkSeason);
         }
         validMode = this.isValidGameMode(checkMode);
 
         if (validRegion && !validSeason) {
-            let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api, true);
+            let seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
             let availableSeasons: string = '== Available Seasons ==\n';
             for (let i = 0; i < seasons.length; i++) {
@@ -91,7 +89,7 @@ export class PubgValidationService {
         }
 
         if (!validSeason || !validRegion || !validMode) {
-            discordMessageService.handleError(msg, errMessage, help);
+            DiscordMessageService.handleError(msg, errMessage, help);
             return false;
         }
         return true;
@@ -104,10 +102,10 @@ export class PubgValidationService {
      * @returns {Promise<boolean>} is valid
      */
     static async isValidSeason(api: PubgAPI, checkSeason: string): Promise<boolean> {
-        let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api, true);
+        let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
         for (let i = 0; i < api_seasons.length; i++) {
-            let season: Season = api_seasons[i];
+            const season: Season = api_seasons[i];
             const season_ui_id: string = season.id.split('division.bro.official.')[1]
             if (checkSeason === season_ui_id) { return true; }
         }
@@ -120,11 +118,6 @@ export class PubgValidationService {
      * @returns {boolean} is valid
      */
     static isValidRegion(checkRegion: string): boolean {
-        // Temporarily not supporting Xbox
-        // if (checkRegion.toLowerCase().indexOf('xbox') >= 0) {
-        //     return false;
-        // }
-
         const region: PlatformRegion = PlatformRegion[checkRegion.toUpperCase()];
 
         if (region) {

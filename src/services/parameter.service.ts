@@ -1,10 +1,11 @@
 import {
-    CommonService as cs,
+    CommonService,
     PubgSeasonService,
-    SqlUserRegisteryService as sqlUserRegisteryService
+    SqlUserRegisteryService,
+    PubgPlatformService
 } from './'
-import { Server, PubgParameters } from '../interfaces';
-import { PubgAPI, PlatformRegion, Season } from 'pubg-typescript-api';
+import { IServer, PubgParameters, IPlayer } from '../interfaces';
+import { PubgAPI, PlatformRegion, Season } from '../pubg-typescript-api';
 
 
 export class ParameterService {
@@ -16,7 +17,7 @@ export class ParameterService {
      * @param {boolean} getUsername
      * @param {Server} serverDefaults
      */
-    static async getPubgParameters(params: string, msgAuthorId: string, getUsername: boolean, serverDefaults?: Server): Promise<PubgParameters> {
+    static async getPubgParameters(params: string, msgAuthorId: string, getUsername: boolean, serverDefaults?: IServer): Promise<PubgParameters> {
         const re: RegExp = /^(.*?)\s?(region=\S+|season=\S+|mode=\S+)?\s?(region=\S+|season=\S+|mode=\S+)?\s?(region=\S+|season=\S+|mode=\S+)?$/
         const result: Array<any> = params.match(re);
 
@@ -42,7 +43,7 @@ export class ParameterService {
             } as PubgParameters;
         } else {
             const region: string = this.getParamValue('region=', potential_region_season_mode, 'pc_na').toUpperCase().replace('-', '_');
-            const api: PubgAPI = new PubgAPI(cs.getEnvironmentVariable('pubg_api_key'), PlatformRegion[region]);
+            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[region]);
             const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
             const currentSeasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
 
@@ -56,7 +57,12 @@ export class ParameterService {
 
         // Try to get username from user registery
         if (getUsername && !parameters.username) {
-            parameters.username = await sqlUserRegisteryService.getRegisteredUser(msgAuthorId);
+            const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msgAuthorId);
+            if (player) {
+                parameters.username = player.username;
+            } else {
+                parameters.username = '';
+            }
         }
 
         return parameters;
@@ -71,7 +77,7 @@ export class ParameterService {
     static getParamValue(search: string, params: Array<any>, defaultParam: any): string {
         if (!params) { return defaultParam; }
 
-        let index = cs.isSubstringOfElement(search, params);
+        let index = CommonService.isSubstringOfElement(search, params);
         if (index >= 0) {
             return params[index].slice(params[index].indexOf('=') + 1).toLowerCase();
         } else {
