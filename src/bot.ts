@@ -81,9 +81,10 @@ export class Bot {
             return new Promise((resolve, reject) => {
                 try {
                     delete require.cache[require.resolve(`./cmd/${command}`)];
-                    let cmd: any = require(`./cmd/${command}`);
+                    const cmd: Command = require(`./cmd/${command}`);
                     this.bot.commands.delete(command);
-                    this.bot.aliases.forEach((cmd, alias) => {
+
+                    this.bot.aliases.forEach((cmd: any, alias) => {
                         if (cmd === command) { this.bot.aliases.delete(alias); }
                     });
 
@@ -107,8 +108,8 @@ export class Bot {
         this.bot.commands = new Discord.Collection();
         this.bot.aliases = new Discord.Collection();
 
-        const isDirectory = source => fs.lstatSync(source).isDirectory();
-        const getDirectories = source => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory);
+        const isDirectory = (source: string) => fs.lstatSync(source).isDirectory();
+        const getDirectories = (source: string) => fs.readdirSync(source).map(name => join(source, name)).filter(isDirectory);
         const dirs: string[] = getDirectories('./src/cmd/');
 
         // Loop through cmd/<cmd-type> folders to grab commands
@@ -119,7 +120,7 @@ export class Bot {
                 files.forEach((f: string) => {
                     const fileName: string = f.split('.')[0];
                     const uppercaseName: string = fileName.charAt(0).toUpperCase() + fileName.slice(1);
-                    const command: Command = new Commands[uppercaseName];
+                    const command: Command = new Commands[uppercaseName] as Command;
                     logger.info(`Loading Command: ${command.help.name}.`);
                     this.bot.commands.set(command.help.name, command);
                     command.conf.aliases.forEach(alias => {
@@ -138,10 +139,10 @@ export class Bot {
         //if (msg.author.bot) return;
 
         let isGuildMessage: boolean = false;
-        let perms: number;
+        let perms: number = 0;
 
         // Grab relevant guild info if not DM
-        let customPrefix: string;
+        let customPrefix: string = '';
         if (msg.guild) {
             isGuildMessage = true;
             let server_defaults: IServer = await SqlServerService.getServer(msg.guild.id);
@@ -173,7 +174,7 @@ export class Bot {
         }
 
         // Get command
-        let cmd: Command = this.getCommand(command);
+        let cmd: Command | null = this.getCommand(command);
 
         // Run command
         if (cmd && this.checkIfCommandIsRunnable(msg, cmd, isGuildMessage, perms)) {
@@ -233,12 +234,13 @@ export class Bot {
      * @param {string} command
      * @returns {} command object
      */
-    private getCommand = (command: string): Command => {
+    private getCommand = (command: string): Command | null => {
         if (this.bot.commands.has(command)) {
             return this.bot.commands.get(command);
         } else if (this.bot.aliases.has(command)) {
             return this.bot.commands.get(this.bot.aliases.get(command));
         }
+        return null;
     }
 
     /**

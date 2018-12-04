@@ -71,8 +71,8 @@ export class Compare extends Command {
         const message: Discord.Message = await checkingParametersMsg.edit(`Getting data for **${this.paramMap.playerA}** and **${this.paramMap.playerB}**`);
         const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[this.paramMap.region]);
         const players: Player[] = await PubgPlayerService.getPlayersByName(api, [this.paramMap.playerA, this.paramMap.playerB]);
-        const playerA: Player = players.find(p => p.name === this.paramMap.playerA);
-        const playerB: Player = players.find(p => p.name === this.paramMap.playerB);
+        const playerA: Player | undefined = players.find(p => p.name === this.paramMap.playerA);
+        const playerB: Player | undefined = players.find(p => p.name === this.paramMap.playerB);
 
         if (!playerA || !playerA.id) {
             message.edit(`Could not find **${this.paramMap.playerA}**'s stats on the \`${this.paramMap.region}\` region for the \`${this.paramMap.season}\` season. Double check the username, region, and ensure you've played this season.`);

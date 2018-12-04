@@ -12,6 +12,7 @@ export class PubgPlayerService {
 
     /**
      * Returns a pubg character id
+     * @param {PubgAPI} api
      * @param {string} name
      * @returns {Promise<string>} a promise that resolves to a pubg id
      */
@@ -24,6 +25,22 @@ export class PubgPlayerService {
         } else {
             return await this.getPlayerIdByName(api, name);
         }
+    }
+
+    /**
+     * Get player(s) by id
+     * @param {PubgAPI} api
+     * @param {string[]} ids
+     * @returns {Promise<string>} a promise that resolves to a pubg id
+     */
+    static async getPlayersById(api: PubgAPI, ids: string[]): Promise<Player[]> {
+        const cacheKey: string = `pubgApi.getPlayersById-${api.platformRegion}-${ids}`;
+        const ttl: number = TimeInSeconds.FIFTHTEEN_MINUTES;
+        const storeFunction: Function = async (): Promise<Player[]> => {
+            return Player.filterById(api, ids).catch(() => []);
+        };
+
+        return await cache.get<Player[]>(cacheKey, storeFunction, ttl);
     }
 
     /**

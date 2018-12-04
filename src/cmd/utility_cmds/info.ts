@@ -54,7 +54,7 @@ export class Info extends Command {
         msg.channel.send({embed});
     }
 
-    private getUptime(botUptime): string {
+    private getUptime(botUptime: number): string {
         let totalSeconds = (botUptime / 1000);
         const hours = Math.floor(totalSeconds / 3600);
         totalSeconds %= 3600;

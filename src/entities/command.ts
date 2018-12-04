@@ -17,7 +17,9 @@ export interface CommandConfiguration {
 }
 
 export abstract class Command {
-    abstract run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number);
-    conf: CommandConfiguration;
-    help: CommandHelp;
+
+    public conf: CommandConfiguration;
+    public help: CommandHelp;
+
+    abstract run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number): void;
 }

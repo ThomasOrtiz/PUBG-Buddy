@@ -8,7 +8,7 @@ import { TimeInSeconds } from '../shared/constants';
  */
 export class CacheService {
 
-    cache: NodeCache;
+    private cache: NodeCache;
 
     /**
      * Creates a node-cache object

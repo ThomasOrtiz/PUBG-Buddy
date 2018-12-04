@@ -87,7 +87,7 @@ export class Help extends Command {
         const groups: string[] = this.getGroups(commands);
         const commandGroupsArray: Command[][] = [];
         for (let i = 0; i < groups.length; i++) {
-            commandGroupsArray.push(commands.filter(c => c.conf.group === groups[i]));
+            commandGroupsArray.push(commands.filter((c: Command) => c.conf.group === groups[i]));
         }
 
         for (let i = 0; i < commandGroupsArray.length; i++) {

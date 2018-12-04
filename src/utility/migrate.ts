@@ -1,5 +1,5 @@
-import * as pool from './config/sql.config';
-import * as logger from './config/logger.config';
+import * as pool from '../config/sql.config';
+import * as logger from '../config/logger.config';
 import { readdir, readFileSync } from 'fs';
 
 

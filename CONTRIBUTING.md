@@ -49,4 +49,4 @@ In order to develop we need a test environment. I'm not sure if this is the pref
 ## Run Database Migrations
 1. Open a console and navigate to where the project code is located.
 2. Run `tsc`.
-3. Run `node dist/migrate.js`.
+3. Run `node dist/src/utility/migrate.js`.
