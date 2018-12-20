@@ -58,7 +58,8 @@ export enum PubgRankImageLocation {
 export enum PubgMapImageLocation {
     ERANGEL = './assets/pubg/assets/maps/Erangel_Main_Low_Res.jpg',
     MIRAMAR = './assets/pubg/assets/maps/Miramar_Main_Low_Res.jpg',
-    SANHOK = './assets/pubg/assets/maps/Savage_Main_Low_Res.jpg'
+    SANHOK = './assets/pubg/assets/maps/Savage_Main_Low_Res.jpg',
+    VIKENDI = './assets/pubg/assets/maps/Vikendi_Main_Low_Res.png'
 }
 
 export enum FontLocation {
