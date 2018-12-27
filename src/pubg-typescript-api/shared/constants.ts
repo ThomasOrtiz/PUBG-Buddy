@@ -16,7 +16,8 @@ export enum GameMode {
 export enum MapName {
   DESERT_MAIN = 'Desert_Main',
   ERANGEL_MAIN = 'Erangel_Main',
-  SANHOK_MAIN = 'Savage_Main'
+  SANHOK_MAIN = 'Savage_Main',
+  VIKENDI_MAIN = 'DihorOtok_Main'
 }
 
 export enum PlatformRegion {

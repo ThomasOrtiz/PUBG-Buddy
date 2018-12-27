@@ -11,6 +11,8 @@ export class PubgMapService {
                 return 'Miramar';
             case MapName.SANHOK_MAIN:
                 return 'Sanhok';
+            case MapName.VIKENDI_MAIN:
+                return 'Vikendi';
             default:
                 return '';
         }
