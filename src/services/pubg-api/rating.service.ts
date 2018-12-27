@@ -81,4 +81,45 @@ export class PubgRatingService {
             return 'GrandMaster';
         }
     }
+
+    static getSurivivalTitle(rankPointsTitle: string): string {
+        const titleComponents: string[] = rankPointsTitle.split('-');
+        const title: number = +titleComponents[0];
+        const level: number = +titleComponents[1];
+
+        let titleStr: string = '';
+        if (title === 0) {
+            titleStr = "Unknown";
+        } else if (title === 1) {
+            titleStr = "Beginner";
+        } else if (title === 2) {
+            titleStr = "Novice";
+        } else if (title === 3) {
+            titleStr = "Experienced";
+        } else if (title === 4) {
+            titleStr = "Skilled";
+        } else if (title === 5) {
+            titleStr = "Specialist";
+        } else if (title === 6) {
+            titleStr = "Expert";
+        } else if (title === 7) {
+            titleStr = "Survivor";
+        }
+
+        titleStr += ` ${this.romanizeNumber(level)}`;
+
+        return titleStr;
+    }
+
+    private static romanizeNumber(num: number): string {
+        let roman: string = '';
+
+        if (num === 5) { return 'V' }
+
+        for(let i = 1; i <= num; i++) {
+            roman += 'I';
+        }
+
+        return roman;
+    }
 }
