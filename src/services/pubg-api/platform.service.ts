@@ -53,6 +53,15 @@ export class PubgPlatformService {
         return xboxRegions.includes(platform);
     }
 
+    static isPlatformPlaystation(platform: PlatformRegion): boolean {
+        const xboxRegions: PlatformRegion[] = [
+            PlatformRegion.PSN_AS, PlatformRegion.PSN_EU,
+            PlatformRegion.PSN_NA, PlatformRegion.PSN_OC,
+            PlatformRegion.PSN
+        ];
+        return xboxRegions.includes(platform);
+    }
+
     static isPlatformPC(platform: PlatformRegion): boolean {
         const pcRegions: PlatformRegion[] = [
             PlatformRegion.STEAM, PlatformRegion.KAKAO,
