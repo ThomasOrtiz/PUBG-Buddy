@@ -1,9 +1,8 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import { IServer } from '../../interfaces';
-import { CacheService, PubgSeasonService, PubgPlatformService } from '../';
+import { CacheService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
-import { PubgAPI, PlatformRegion, Season } from '../../pubg-typescript-api';
 
 const cache = new CacheService();
 
@@ -17,14 +16,10 @@ export class SqlServerService {
     static async registerServer(serverId: string): Promise<QueryResult> {
         const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
         if (res.rowCount === 0) {
-            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
-            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
-            const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
-
             return pool.query(`insert into servers
-                (server_id, default_bot_prefix, default_season, default_region, default_mode)
-                values ($1, $2, $3, $4, $5)`,
-                [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
+                (server_id, default_bot_prefix, default_region, default_mode)
+                values ($1, $2, $3, $4)`,
+                [serverId, '!pubg-', 'PC_NA', 'SQUAD_FPP']);
         }
     }
 

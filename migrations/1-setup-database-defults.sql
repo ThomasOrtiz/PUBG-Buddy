@@ -13,7 +13,6 @@ BEGIN;
         (id SERIAL PRIMARY KEY,
         server_id TEXT UNIQUE,
         default_bot_prefix TEXT DEFAULT '!pubg-',
-        default_season TEXT DEFAULT 'pc-2018-01',
         default_region TEXT DEFAULT 'PC_NA',
         default_mode TEXT DEFAULT 'SQUAD_FPP');
 
