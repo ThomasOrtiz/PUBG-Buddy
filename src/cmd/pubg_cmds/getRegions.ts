@@ -34,6 +34,7 @@ export class GetRegions extends Command {
         });
 
         let regions: string[] = Object.values(PlatformRegion);
+
         let pc_regions_str: string = regions.filter(region => {
             region = region.toUpperCase().replace('-', '_');
             return PubgPlatformService.isPlatformPC(PlatformRegion[region]);
@@ -42,13 +43,18 @@ export class GetRegions extends Command {
             region = region.toUpperCase().replace('-', '_');
             return PubgPlatformService.isPlatformXbox(PlatformRegion[region]);
         }).join('\n');
+        let psn_regions_str: string = regions.filter(region => {
+            region = region.toUpperCase().replace('-', '_');
+            return PubgPlatformService.isPlatformPlaystation(PlatformRegion[region]);
+        }).join('\n');
 
         const embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Regions')
             .setDescription('The regions for each platform')
             .setColor('F2A900')
             .addField('PC Regions', pc_regions_str, true)
-            .addField('Xbox Regions', xbox_regions_str, true);
+            .addField('Xbox Regions', xbox_regions_str, true)
+            .addField('PSN Regions', psn_regions_str, true);
 
         msg.channel.send({embed});
     };

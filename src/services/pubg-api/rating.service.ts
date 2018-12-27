@@ -81,4 +81,95 @@ export class PubgRatingService {
             return 'GrandMaster';
         }
     }
+
+    ///////////////////////
+    // Surviavl Titles
+    ///////////////////////
+    static getSurivivalTitle(rankPointsTitle: string): string {
+        const titleComponents: string[] = rankPointsTitle.split('-');
+        const title: number = +titleComponents[0];
+        const level: number = +titleComponents[1];
+
+        let titleStr: string = '';
+        if (title === 0) {
+            titleStr = "Unknown";
+        } else if (title === 1) {
+            titleStr = "Beginner";
+        } else if (title === 2) {
+            titleStr = "Novice";
+        } else if (title === 3) {
+            titleStr = "Experienced";
+        } else if (title === 4) {
+            titleStr = "Skilled";
+        } else if (title === 5) {
+            titleStr = "Specialist";
+        } else if (title === 6) {
+            titleStr = "Expert";
+        } else if (title === 7) {
+            titleStr = "Survivor";
+        }
+
+        titleStr += ` ${this.romanizeNumber(level)}`;
+
+        return titleStr;
+    }
+
+    static romanizeNumber(num: number): string {
+        let roman: string = '';
+
+        if (num === 5) { return 'V'; }
+        if (num === 4) { return 'IV'; }
+
+        for(let i = 1; i <= num; i++) {
+            roman += 'I';
+        }
+
+        return roman;
+    }
+
+    static getSurvivalTitleBadgeImage(rankPointsTitle: string): PubgRankImageLocation {
+        const titleComponents: string[] = rankPointsTitle.split('-');
+        const title: number = +titleComponents[0];
+
+        if (title === 0) {
+            return PubgRankImageLocation.UNRANKED_BADGE;
+        } else if (title === 1) {
+            return PubgRankImageLocation.BRONZE_BADGE;
+        } else if (title === 2) {
+            return PubgRankImageLocation.SILVER_BADGE;
+        } else if (title === 3) {
+            return PubgRankImageLocation.GOLD_BADGE;
+        } else if (title === 4) {
+            return PubgRankImageLocation.PLATINUM_BADGE;
+        } else if (title === 5) {
+            return PubgRankImageLocation.DIAMOND_BADGE;
+        } else if (title === 6) {
+            return PubgRankImageLocation.ELITE_BADGE;
+        } else if (title === 7) {
+            return PubgRankImageLocation.GRANDMASTER_BADGE
+        }
+    }
+
+    static getSurvivalTitleRibbionImage(rankPointsTitle: string): PubgRankImageLocation {
+        const titleComponents: string[] = rankPointsTitle.split('-');
+        const title: number = +titleComponents[0];
+
+        if (title === 0) {
+            return PubgRankImageLocation.UNRANKED_RIBBON;
+        } else if (title === 1) {
+            return PubgRankImageLocation.BRONZE_RIBBON;
+        } else if (title === 2) {
+            return PubgRankImageLocation.SILVER_RIBBON;
+        } else if (title === 3) {
+            return PubgRankImageLocation.GOLD_RIBBON;
+        } else if (title === 4) {
+            return PubgRankImageLocation.PLATINUM_RIBBON;
+        } else if (title === 5) {
+            return PubgRankImageLocation.DIAMOND_RIBBON;
+        } else if (title === 6) {
+            return PubgRankImageLocation.ELITE_RIBBON;
+        } else if (title === 7) {
+            return PubgRankImageLocation.GRANDMASTER_RIBBON
+        }
+    }
 }

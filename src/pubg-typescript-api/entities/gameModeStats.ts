@@ -23,6 +23,7 @@ export class GameModeStats {
   private _maxKillStreaks: number;
   private _mostSurvivalTime: number;
   private _rankPoints: number;
+  private _rankPointsTitle: string;
   private _revives: number;
   private _rideDistance: number;
   private _roadKills: number;
@@ -61,6 +62,7 @@ export class GameModeStats {
     this._maxKillStreaks = playerSeason.maxKillStreaks;
     this._mostSurvivalTime = playerSeason.mostSurvivalTime;
     this._rankPoints = playerSeason.rankPoints;
+    this._rankPointsTitle = playerSeason.rankPointsTitle;
     this._revives = playerSeason.revives;
     this._rideDistance = playerSeason.rideDistance;
     this._roadKills = playerSeason.roadKills;
@@ -150,6 +152,10 @@ export class GameModeStats {
 
   get rankPoints(): number {
     return this._rankPoints;
+  }
+
+  get rankPointsTitle(): string {
+    return this._rankPointsTitle;
   }
 
   get revives(): number {

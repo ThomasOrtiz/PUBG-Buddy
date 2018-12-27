@@ -38,11 +38,11 @@ export class ParameterService {
             parameters = {
                 username: username,
                 region: this.getParamValue('region=', potential_region_season_mode, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-                season: this.getParamValue('season=', potential_region_season_mode, serverDefaults.default_season),
+                season: this.getParamValue('season=', potential_region_season_mode, null),
                 mode: this.getParamValue('mode=', potential_region_season_mode, serverDefaults.default_mode).toUpperCase().replace('-', '_'),
             } as PubgParameters;
         } else {
-            const region: string = this.getParamValue('region=', potential_region_season_mode, 'pc_na').toUpperCase().replace('-', '_');
+            const region: string = this.getParamValue('region=', potential_region_season_mode, 'steam').toUpperCase().replace('-', '_');
             const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion[region]);
             const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
             const currentSeasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);

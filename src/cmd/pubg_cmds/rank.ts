@@ -9,7 +9,7 @@ import {
     SqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats, Season } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
@@ -29,7 +29,7 @@ export class Rank extends Command {
         group: 'PUBG',
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['stats'],
         permLevel: 0
     };
 
@@ -107,6 +107,11 @@ export class Rank extends Command {
         if (msg.guild) {
             const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+
+            if (!pubg_params.season) {
+                const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+                pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
+            }
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
@@ -305,7 +310,7 @@ export class Rank extends Command {
         return img;
     }
 
-    private async addBodyTextToImage(img: Jimp, fppStats: GameModeStats, mode: string): Promise<Jimp> {
+    private async addBodyTextToImage(img: Jimp, stats: GameModeStats, mode: string): Promise<Jimp> {
         const imageWidth: number = img.getWidth();
         const textObj: any = {
             text: '',
@@ -324,21 +329,26 @@ export class Rank extends Command {
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
 
-        let overallRating;
+        let overallRating: string;
         let badge: Jimp;
         let rankTitle: string;
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
-            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(fppStats.winPoints, fppStats.killPoints), 0) || 'NA';
+            overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats.winPoints, stats.killPoints), 0) || 'NA';
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
+            overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';
+            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats.rankPoints))).clone();
+            rankTitle = PubgRatingService.getRankTitleFromRanking(stats.rankPoints);
         } else {
-            overallRating = CommonService.round(fppStats.rankPoints, 0) || 'NA';
-            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(fppStats.rankPoints))).clone();
-            rankTitle = PubgRatingService.getRankTitleFromRanking(fppStats.rankPoints);
+            overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';
+            badge = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats.rankPointsTitle))).clone();
+            rankTitle = PubgRatingService.getSurivivalTitle(stats.rankPointsTitle);
         }
-        const kd = CommonService.round(fppStats.kills / fppStats.losses) || 0;
-        const kda = CommonService.round((fppStats.kills + fppStats.assists) / fppStats.losses) || 0;
-        const winPercent = CommonService.getPercentFromFraction(fppStats.wins, fppStats.roundsPlayed);
-        const topTenPercent = CommonService.getPercentFromFraction(fppStats.top10s, fppStats.roundsPlayed);
-        const averageDamageDealt = CommonService.round(fppStats.damageDealt / fppStats.roundsPlayed) || 0;
+
+        const kd = CommonService.round(stats.kills / stats.losses) || 0;
+        const kda = CommonService.round((stats.kills + stats.assists) / stats.losses) || 0;
+        const winPercent = CommonService.getPercentFromFraction(stats.wins, stats.roundsPlayed);
+        const topTenPercent = CommonService.getPercentFromFraction(stats.top10s, stats.roundsPlayed);
+        const averageDamageDealt = CommonService.round(stats.damageDealt / stats.roundsPlayed) || 0;
 
         let x_centers : any = {
             kd: 174,
@@ -365,15 +375,15 @@ export class Rank extends Command {
             img.print(font_48_orange, 525-(textWidth/2), 360, textObj);
         }
 
-        textObj.text = `${fppStats.wins}`;
+        textObj.text = `${stats.wins}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, 510-textWidth, body_subheading_y, textObj);
 
-        textObj.text = `${fppStats.top10s}`;
+        textObj.text = `${stats.top10s}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, 685-textWidth, body_subheading_y, textObj);
 
-        textObj.text = `${fppStats.roundsPlayed}`;
+        textObj.text = `${stats.roundsPlayed}`;
         textWidth = Jimp.measureText(font_48_white, textObj.text);
         img.print(font_48_white, imageWidth-textWidth-180, body_subheading_y, textObj);
 
@@ -399,24 +409,24 @@ export class Rank extends Command {
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.kda-(textWidth/2), body_mid_y, textObj);
 
-        textObj.text = `${fppStats.kills}`;
+        textObj.text = `${stats.kills}`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.kills-(textWidth/2), body_mid_y, textObj);
 
-        textObj.text = `${fppStats.assists}`;
+        textObj.text = `${stats.assists}`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.assists-(textWidth/2), body_mid_y, textObj);
 
-        textObj.text = `${fppStats.dBNOs}`;
+        textObj.text = `${stats.dBNOs}`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.dBNOs-(textWidth/2), body_mid_y, textObj);
 
         // Body - Bottom
-        textObj.text = `${fppStats.longestKill.toFixed(2)}m`;
+        textObj.text = `${stats.longestKill.toFixed(2)}m`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.longestKill-(textWidth/2), body_bottom_y, textObj);
 
-        textObj.text = `${fppStats.headshotKills}`;
+        textObj.text = `${stats.headshotKills}`;
         textWidth = Jimp.measureText(font_48_orange, textObj.text);
         img.print(font_48_orange, x_centers.headshotKills-(textWidth/2), body_bottom_y, textObj);
 

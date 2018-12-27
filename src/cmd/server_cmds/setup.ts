@@ -2,17 +2,14 @@ import * as Discord from 'discord.js';
 import {
     AnalyticsService,
     CommonService,
-    PubgSeasonService,
     PubgValidationService,
     SqlServerService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { IServer } from '../../interfaces';
-import { PubgAPI, PlatformRegion } from '../../pubg-typescript-api';
 
 interface ParameterMap {
     prefix: string;
-    season: string;
     region: string;
     mode: string;
 }
@@ -30,13 +27,13 @@ export class Setup extends Command {
     help: CommandHelp = {
         name: 'setup',
         description: 'Gets or sets up the server defaults for pubg commands.',
-        usage: '<prefix>setup [prefix=] [season=] [region=] [mode=]',
+        usage: '<prefix>setup [prefix=] [region=] [mode=]',
         examples: [
             '!pubg-setup',
             '!pubg-setup prefix=!pubg-',
-            '!pubg-setup prefix=!pubg- season=2018-08 ',
-            '!pubg-setup prefix=!pubg- season=2018-08 region=pc-na ',
-            '!pubg-setup prefix=!pubg- season=2018-08 region=pc-na mode=squad-fpp',
+            '!pubg-setup prefix=!pubg-',
+            '!pubg-setup prefix=!pubg- region=pc-na ',
+            '!pubg-setup prefix=!pubg- region=pc-na mode=squad-fpp',
         ]
     };
 
@@ -59,14 +56,14 @@ export class Setup extends Command {
         } catch(e) { return; }
 
         let checkingParametersMsg: Discord.Message = (await msg.channel.send('Checking for valid parameters ...')) as Discord.Message;
-        const isValidParameters: boolean = await PubgValidationService.validateParameters(msg, this.help, this.paramMap.season, this.paramMap.region, this.paramMap.mode);
+        const isValidParameters: boolean = await PubgValidationService.validateParameters(msg, this.help, undefined, this.paramMap.region, this.paramMap.mode, false);
         if (!isValidParameters) {
             checkingParametersMsg.delete();
             return;
         }
 
         checkingParametersMsg.edit('Updating this server\'s defaults ...').then(async (msg: Discord.Message) => {
-            SqlServerService.setServerDefaults(msg.guild.id, this.paramMap.prefix, this.paramMap.season, this.paramMap.region, this.paramMap.mode).then(async () => {
+            SqlServerService.setServerDefaults(msg.guild.id, this.paramMap.prefix, this.paramMap.region, this.paramMap.mode).then(async () => {
                 const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(msg);
                 msg.edit({ embed });
             });
@@ -81,11 +78,9 @@ export class Setup extends Command {
      */
     private async getParameters(msg: Discord.Message, params: string[]): Promise<ParameterMap> {
         const server: IServer = await SqlServerService.getServer(msg.guild.id);
-        const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
 
         const paramMap: ParameterMap = {
             prefix: CommonService.getParamValue('prefix=', params, server.default_bot_prefix || '!pubg-').trim() || '!pubg-',
-            season: CommonService.getParamValue('season=', params, server.default_season || currentSeason),
             region: CommonService.getParamValue('region=', params, server.default_region || 'pc_na').toUpperCase().replace('-', '_'),
             mode: CommonService.getParamValue('mode=', params, server.default_mode || 'solo_fpp').toUpperCase().replace('-', '_'),
         }
@@ -97,7 +92,6 @@ export class Setup extends Command {
             discord_username: msg.author.tag,
             number_parameters: params.length,
             prefix: paramMap.prefix,
-            season: paramMap.season,
             region: paramMap.region,
             mode: paramMap.mode
         });
@@ -118,7 +112,6 @@ export class Setup extends Command {
             .addField('Default Bot Prefix', CommonService.getEnvironmentVariable('prefix'), true)
             .addField('Custom Bot Prefix', server.default_bot_prefix, true)
             .addBlankField(false)
-            .addField('Default Season', server.default_season, true)
             .addField('Default Region', regionDisplayName, true)
             .addField('Default Mode', modeDescription, true)
     }

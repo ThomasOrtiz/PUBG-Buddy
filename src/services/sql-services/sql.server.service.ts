@@ -1,9 +1,8 @@
 import * as pool from '../../config/sql.config';
 import { QueryResult } from 'pg';
 import { IServer } from '../../interfaces';
-import { CacheService, PubgSeasonService, PubgPlatformService } from '../';
+import { CacheService } from '../';
 import { TimeInSeconds } from '../../shared/constants';
-import { PubgAPI, PlatformRegion, Season } from '../../pubg-typescript-api';
 
 const cache = new CacheService();
 
@@ -17,14 +16,10 @@ export class SqlServerService {
     static async registerServer(serverId: string): Promise<QueryResult> {
         const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
         if (res.rowCount === 0) {
-            const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
-            const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
-            const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
-
             return pool.query(`insert into servers
-                (server_id, default_bot_prefix, default_season, default_region, default_mode)
-                values ($1, $2, $3, $4, $5)`,
-                [serverId, '!pubg-', seasonName, 'PC_NA', 'SQUAD_FPP']);
+                (server_id, default_bot_prefix, default_region, default_mode)
+                values ($1, $2, $3, $4)`,
+                [serverId, '!pubg-', 'PC_NA', 'SQUAD_FPP']);
         }
     }
 
@@ -51,15 +46,10 @@ export class SqlServerService {
 
             // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
             if (res.rowCount === 0) {
-                const api: PubgAPI = PubgPlatformService.getApi(PlatformRegion.STEAM);
-                const currentSeason: Season = await PubgSeasonService.getCurrentSeason(api);
-                const seasonName: string = PubgSeasonService.getSeasonDisplayName(currentSeason);
-
                 return {
                     id: '',
                     serverId: '',
                     default_bot_prefix: '!pubg-',
-                    default_season: seasonName,
                     default_region: 'PC_NA',
                     default_mode: 'SQUAD_FPP',
                     isStoredInDb: false
@@ -69,7 +59,6 @@ export class SqlServerService {
                     id: '',
                     serverId: res.rows[0].id,
                     default_bot_prefix: res.rows[0].default_bot_prefix,
-                    default_season: res.rows[0].default_season,
                     default_region: res.rows[0].default_region,
                     default_mode: res.rows[0].default_mode,
                     isStoredInDb: true
@@ -89,15 +78,15 @@ export class SqlServerService {
      * @param {string} region of PUBG
      * @param {string} mode fpp or tpp
      */
-    static async setServerDefaults(serverId: string, botPrefix: string, season: string, region: string, mode: string): Promise<QueryResult> {
+    static async setServerDefaults(serverId: string, botPrefix: string, region: string, mode: string): Promise<QueryResult> {
         const cacheKey: string = `sql.server.getServer-${serverId}`; // This must match the key in getServer
         cache.del(cacheKey);
 
         const res: QueryResult = await pool.query('select server_id from servers where server_id = $1', [serverId]);
         if (res.rowCount === 0) {
-            return pool.query('insert into servers (server_id, default_bot_prefix, default_season, default_region, default_mode) values ($1, $2, $3, $4, $5)', [serverId, botPrefix, season, region, mode]);
+            return pool.query('insert into servers (server_id, default_bot_prefix, default_region, default_mode) values ($1, $2, $3, $4)', [serverId, botPrefix, region, mode]);
         }
-        return pool.query('update servers set default_bot_prefix=$2, default_season=$3, default_region=$4, default_mode=$5 where server_id = $1', [serverId, botPrefix, season, region, mode]);
+        return pool.query('update servers set default_bot_prefix=$2, default_region=$3, default_mode=$4 where server_id = $1', [serverId, botPrefix, region, mode]);
     }
 
     static deleteServerCache(serverId: string) {
