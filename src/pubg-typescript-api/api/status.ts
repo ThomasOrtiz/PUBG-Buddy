@@ -1,8 +1,6 @@
-import { AxiosPromise } from "axios";
+import axios, { AxiosInstance, AxiosPromise } from 'axios';
 
-import { IStatus } from "..";
-
-import axios, { AxiosInstance } from 'axios';
+import { IStatus } from '..';
 
 export class StatusPubgAPI {
     private _axios: AxiosInstance;

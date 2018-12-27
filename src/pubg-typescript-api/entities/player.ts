@@ -112,10 +112,6 @@ export class Player {
     return this._matchIds;
   }
 
-  /**
-   * List of match IDs this player took part in.
-   * This list is ordered from most recent to oldest.
-   */
   get shardId() {
     return this._shardId;
   }
