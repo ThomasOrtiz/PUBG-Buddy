@@ -7,13 +7,14 @@ import {
     PubgPlatformService, PubgPlayerService, PubgRatingService, PubgValidationService,
     SqlServerService,
     SqlUserRegisteryService,
+    ParameterService,
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats, Season } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
-import { IPlayer } from '../../interfaces';
+import { IPlayer, IServer, PubgParameters } from '../../interfaces';
 
 
 interface ParameterMap {
@@ -140,24 +141,25 @@ export class Compare extends Command {
             throw 'Error:: Must specify a username';
         }
 
+        let pubg_params: PubgParameters;
         if (msg.guild) {
-            const serverDefaults = await SqlServerService.getServer(msg.guild.id);
-            paramMap = {
-                playerA: playerA,
-                playerB: playerB,
-                season: CommonService.getParamValue('season=', params, serverDefaults.default_season),
-                region: CommonService.getParamValue('region=', params, serverDefaults.default_region).toUpperCase().replace('-', '_'),
-                mode: CommonService.getParamValue('mode=', params, serverDefaults.default_mode).toUpperCase().replace('-', '_')
+            const serverDefaults: IServer = await SqlServerService.getServer(msg.guild.id);
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+
+            if (!pubg_params.season) {
+                const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+                pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
             }
         } else {
-            const currentSeason: string = (await PubgSeasonService.getCurrentSeason(new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), PlatformRegion.PC_NA))).id.split('division.bro.official.')[1];
-            paramMap = {
-                playerA: playerA,
-                playerB: playerB,
-                season: CommonService.getParamValue('season=', params, currentSeason),
-                region: CommonService.getParamValue('region=', params, 'pc_na').toUpperCase().replace('-', '_'),
-                mode: CommonService.getParamValue('mode=', params, 'solo_fpp').toUpperCase().replace('-', '_')
-            }
+            pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
+        }
+
+        paramMap = {
+            playerA: playerA,
+            playerB: playerB,
+            season: pubg_params.season,
+            region: pubg_params.region.toUpperCase().replace('-', '_'),
+            mode: pubg_params.mode.toUpperCase().replace('-', '_')
         }
 
         AnalyticsService.track(this.help.name, {

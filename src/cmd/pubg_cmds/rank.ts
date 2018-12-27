@@ -9,7 +9,7 @@ import {
     SqlServerService
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats, Season } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
@@ -29,7 +29,7 @@ export class Rank extends Command {
         group: 'PUBG',
         enabled: true,
         guildOnly: false,
-        aliases: [],
+        aliases: ['stats'],
         permLevel: 0
     };
 
@@ -107,6 +107,11 @@ export class Rank extends Command {
         if (msg.guild) {
             const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+
+            if (!pubg_params.season) {
+                const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+                pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
+            }
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }
@@ -324,7 +329,7 @@ export class Rank extends Command {
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
 
-        let overallRating;
+        let overallRating: string;
         let badge: Jimp;
         let rankTitle: string;
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {

@@ -19,7 +19,7 @@ export class PubgValidationService {
      * @param checkMode
      * @returns {Promise<boolean>} t/f value if valid
      */
-    static async validateParameters(msg: Discord.Message, help: any, checkSeason: string, checkRegion: string, checkMode: string): Promise<boolean> {
+    static async validateParameters(msg: Discord.Message, help: any, checkSeason: string, checkRegion: string, checkMode: string, validateSeason: boolean = true): Promise<boolean> {
         let errMessage: string   = '';
 
         let validRegion: boolean = this.isValidRegion(checkRegion);
@@ -30,7 +30,11 @@ export class PubgValidationService {
         const region: PlatformRegion = PlatformRegion[checkRegion];
         if (validRegion) {
             api = new PubgAPI(CommonService.getEnvironmentVariable('pubg_api_key'), region);
-            validSeason = await this.isValidSeason(api, checkSeason);
+            if (validateSeason) {
+                validSeason = await this.isValidSeason(api, checkSeason);
+            } else {
+                validSeason = true;
+            }
         }
         validMode = this.isValidGameMode(checkMode);
 

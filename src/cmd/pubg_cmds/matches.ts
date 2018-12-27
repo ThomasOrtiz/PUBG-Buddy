@@ -8,9 +8,10 @@ import {
     PubgPlatformService, PubgPlayerService, PubgValidationService,
     SqlServerService,
     PubgMatchesService,
-    PubgMapService
+    PubgMapService,
+    PubgSeasonService
 } from '../../services';
-import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Player, PlayerSeason, Match, Season } from '../../pubg-typescript-api';
 import { PubgParameters } from '../../interfaces';
 import { CommonMessages } from '../../shared/constants';
 
@@ -104,6 +105,11 @@ export class Matches extends Command {
         if (msg.guild) {
             const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+
+            if (!pubg_params.season) {
+                const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+                pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
+            }
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }

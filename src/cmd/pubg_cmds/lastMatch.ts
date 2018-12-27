@@ -3,9 +3,9 @@ import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from
 import { PubgParameters } from '../../interfaces';
 import {
     CommonService, SqlServerService, ParameterService, DiscordMessageService, AnalyticsService,
-    PubgPlayerService, PubgValidationService, PubgMatchesService, PubgMapService, PubgPlatformService
+    PubgPlayerService, PubgValidationService, PubgMatchesService, PubgMapService, PubgPlatformService, PubgSeasonService
 } from '../../services';
-import { PubgAPI, PlatformRegion, Player, Match, Roster, Participant } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, Player, Match, Roster, Participant, Season } from '../../pubg-typescript-api';
 
 interface ParameterMap {
     username: string;
@@ -87,6 +87,11 @@ export class LastMatch extends Command {
         if (msg.guild) {
             const serverDefaults = await SqlServerService.getServer(msg.guild.id);
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true, serverDefaults);
+
+            if (!pubg_params.season) {
+                const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+                pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
+            }
         } else {
             pubg_params = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, true);
         }

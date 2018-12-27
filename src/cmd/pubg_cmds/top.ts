@@ -11,7 +11,7 @@ import {
 } from '../../services';
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { IPlayer, IServer, PubgParameters } from '../../interfaces';
-import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats } from '../../pubg-typescript-api';
+import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats, Season } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
 import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
@@ -125,6 +125,11 @@ export class Top extends Command {
 
         const serverDefaults: IServer = await SqlServerService.getServer(msg.guild.id);
         const pubg_params: PubgParameters = await ParameterService.getPubgParameters(params.join(' '), msg.author.id, false, serverDefaults);
+
+        if (!pubg_params.season) {
+            const seasonObj: Season = await PubgSeasonService.getCurrentSeason(PubgPlatformService.getApi(PlatformRegion[pubg_params.region]));
+            pubg_params.season = PubgSeasonService.getSeasonDisplayName(seasonObj);
+        }
 
         const paramMap: ParameterMap = {
             amount : amount,
