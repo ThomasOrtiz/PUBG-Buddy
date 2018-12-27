@@ -374,16 +374,21 @@ export class Compare extends Command {
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
 
-        let overallRating;
+        let overallRating: string;
         let badge_A: Jimp;
         let badge_B: Jimp;
         let rankTitle: string;
+
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA';
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
+            overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
+            badge_A = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints))).clone();
+            rankTitle = PubgRatingService.getRankTitleFromRanking(stats_A.rankPoints);
         } else {
             overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
-            badge_A = await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints));
-            rankTitle = PubgRatingService.getRankTitleFromRanking(stats_A.rankPoints);
+            badge_A = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats_A.rankPointsTitle))).clone();
+            rankTitle = PubgRatingService.getSurivivalTitle(stats_A.rankPointsTitle);
         }
 
         let formatted_stats_A = {
@@ -407,10 +412,14 @@ export class Compare extends Command {
 
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA';
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
+            overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
+            badge_B = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints))).clone();
+            rankTitle = PubgRatingService.getRankTitleFromRanking(stats_B.rankPoints);
         } else {
             overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
-            badge_B = await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints));
-            rankTitle = PubgRatingService.getRankTitleFromRanking(stats_B.rankPoints);
+            badge_B = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats_B.rankPointsTitle))).clone();
+            rankTitle = PubgRatingService.getSurivivalTitle(stats_B.rankPointsTitle);
         }
 
         let formatted_stats_B = {

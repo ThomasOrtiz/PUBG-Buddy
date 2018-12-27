@@ -454,6 +454,7 @@ export class Top extends Command {
         }
         const body_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
         const username_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
+        const titleLevelFont: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
 
         const x_centers : any = {
             username: 90,
@@ -470,13 +471,22 @@ export class Top extends Command {
         const seasonStats: GameModeStats = playerSeason.gameModeStats;
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
 
-        let overallRating;
+        let overallRating: string;
         let badge: Jimp;
+        let titleLevel: string = '';
         if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
+            overallRating = CommonService.round(seasonStats.rankPoints, 0) || 'NA';
+            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(seasonStats.rankPoints))).clone();
         } else {
-            overallRating = CommonService.round(seasonStats.rankPoints, 0);
-            badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(overallRating))).clone();
+            const rankPointsTitle: string = seasonStats.rankPointsTitle;
+            overallRating = CommonService.round(seasonStats.rankPoints, 0) || 'NA';
+            badge = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(rankPointsTitle))).clone();
+
+            const titleComponents: string[] = rankPointsTitle.split('-');
+            const level: number = +titleComponents[1];
+            titleLevel = PubgRatingService.romanizeNumber(level);
         }
 
         const username : string = playerSeason.name;
@@ -502,11 +512,17 @@ export class Top extends Command {
 
         if (badge) {
             let scale = 0.50;
-            if (PubgRatingService.getRankTitleFromRanking(overallRating) === 'GrandMaster') {
+            if (PubgRatingService.getRankTitleFromRanking(+overallRating) === 'GrandMaster') {
                 scale = 0.40;
             }
             badge.scale(scale);
             img.composite(badge, x_centers.ratingBadge-(badge.getWidth()/2), 0);
+        }
+
+        if (titleLevel) {
+            textObj.text = `${titleLevel}`
+            textWidth = Jimp.measureText(titleLevelFont, textObj.text);
+            img.print(titleLevelFont, x_centers.ratingBadge-(textWidth/2)+25, body_y+35, textObj);
         }
 
         textObj.text = `${winsOverGames}`
