@@ -385,6 +385,8 @@ export class Compare extends Command {
             overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
             badge_A = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_A.rankPoints);
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+            overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
             badge_A = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats_A.rankPointsTitle))).clone();
@@ -416,6 +418,8 @@ export class Compare extends Command {
             overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
             badge_B = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_B.rankPoints);
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+            overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
             badge_B = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats_B.rankPointsTitle))).clone();

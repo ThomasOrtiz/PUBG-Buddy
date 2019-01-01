@@ -108,11 +108,11 @@ export class PubgValidationService {
     static async isValidSeason(api: PubgAPI, checkSeason: string): Promise<boolean> {
         let api_seasons: Season[] = await PubgSeasonService.getAvailableSeasons(api);
 
-        for (let i = 0; i < api_seasons.length; i++) {
-            const season: Season = api_seasons[i];
-            const season_ui_id: string = season.id.split('division.bro.official.')[1]
+        for (let season of api_seasons) {
+            const season_ui_id: string = PubgSeasonService.getSeasonDisplayName(season);
             if (checkSeason === season_ui_id) { return true; }
         }
+
         return false;
     }
 

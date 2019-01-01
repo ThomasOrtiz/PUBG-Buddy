@@ -1,6 +1,7 @@
 import { CacheService } from '../';
 import { PubgAPI, Season } from '../../pubg-typescript-api';
 import { TimeInSeconds } from '../../shared/constants';
+import { PubgPlatformService } from './platform.service';
 
 const cache = new CacheService();
 
@@ -24,6 +25,14 @@ export class PubgSeasonService {
                 return seasonId.indexOf('beta') === -1 && seasonId.indexOf('pre') === -1
             });
 
+            // hardcoding
+            if (PubgPlatformService.isPlatformPC(api.platformRegion)) {
+                seasons.push({
+                    id: 'lifetime',
+                    _id: 'lifetime'
+                } as unknown as Season);
+            }
+
             return seasons;
         };
 
@@ -37,10 +46,17 @@ export class PubgSeasonService {
      * @returns {string} api formatted season
      */
     static getPubgSeasonId(seasonInput: string): string {
+        if (seasonInput === 'lifetime') {
+            return seasonInput;
+        }
+
         return `division.bro.official.${seasonInput}`;
     }
 
     static getSeasonDisplayName(season: Season): string {
+        if (season.id  === 'lifetime') {
+            return 'lifetime';
+        }
         return season.id.split('division.bro.official.')[1];
     }
 

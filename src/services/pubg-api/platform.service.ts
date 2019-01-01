@@ -11,6 +11,10 @@ export class PubgPlatformService {
             return new PubgAPI(apiKey, PlatformRegion.XBOX);
         }
 
+        if (this.isPlatformPlaystation(platform)) {
+            return new PubgAPI(apiKey, PlatformRegion.PSN);
+        }
+
         if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {
             return new PubgAPI(apiKey, PlatformRegion.KAKAO);
         } else {
@@ -21,7 +25,7 @@ export class PubgPlatformService {
     static getSeasonStatsApi(platform: PlatformRegion, season: string): PubgAPI {
         const isPC: boolean = this.isPlatformPC(platform);
 
-        if (this.isPlatformXbox(platform) || (isPC && PubgSeasonService.isPreSeasonTen(season))) {
+        if (this.isPlatformXbox(platform) || this.isPlatformPlaystation(platform) || (isPC && PubgSeasonService.isPreSeasonTen(season))) {
             return new PubgAPI(apiKey, platform);
         }
 
@@ -35,6 +39,10 @@ export class PubgPlatformService {
     static getPlatformDisplayName(platform: PlatformRegion): string {
         if (this.isPlatformXbox(platform)) {
             return PlatformRegion.XBOX;
+        }
+
+        if (this.isPlatformPlaystation(platform)) {
+            return PlatformRegion.PSN;
         }
 
         if (this.isPlatformPC(platform) && this.isPlatformKakao(platform)) {

@@ -479,6 +479,8 @@ export class Top extends Command {
         } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
             overallRating = CommonService.round(seasonStats.rankPoints, 0) || 'NA';
             badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(seasonStats.rankPoints))).clone();
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+            overallRating = 'NA';
         } else {
             const rankPointsTitle: string = seasonStats.rankPointsTitle;
             overallRating = CommonService.round(seasonStats.rankPoints, 0) || 'NA';
