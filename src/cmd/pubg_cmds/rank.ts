@@ -338,6 +338,8 @@ export class Rank extends Command {
             overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';
             badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats.rankPoints);
+        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+            overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';
             badge = (await ImageService.loadImage(PubgRatingService.getSurvivalTitleBadgeImage(stats.rankPointsTitle))).clone();
