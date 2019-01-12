@@ -12,7 +12,6 @@ import { IServer } from './interfaces'
 import * as Commands from './cmd';
 import * as logger from './config/logger.config';
 
-
 export class Bot {
 
     private botUserId: string = CommonService.getEnvironmentVariable('bot_user_id');
@@ -32,6 +31,12 @@ export class Bot {
     public start = async () => {
         const botToken: string = CommonService.getEnvironmentVariable('bot_token');
         await this.bot.login(botToken);
+    }
+
+    public restart = async () => {
+        await this.bot.destroy();
+        this.bot = new DiscordClientWrapper();
+        await this.start();
     }
 
     private setupListeners = () => {
