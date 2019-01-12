@@ -7,7 +7,8 @@
     "scripts": {
         "build:dev": "webpack --config webpack.config.dev.js",
         "build:prod": "webpack --config webpack.config.prod.js",
-        "start": "node --optimize_for_size --max_old_space_size=460 dist/index.js",
+        "migrate": "node ./dist/migrate.bundle.js",
+        "start": "node --optimize_for_size --max_old_space_size=460 dist/index.bundle.js",
         "sql": "heroku pg:psql -a pubg-stat-discord-bot",
         "sql-test": "heroku pg:psql -a pubg-stat-discord-bot-dev"
     },

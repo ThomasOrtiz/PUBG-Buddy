@@ -14,6 +14,50 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 -
 
+## 12/31/2018
+### Added
+- **Season**
+    - Added **lifetime** season (pc only) which will get all stats after the "pc-2018-01" season.
+
+## 12/26/2018
+### Added
+- Added **PSN** support.
+
+### Changed
+- **Configuration**
+    - Removed the option of setting a "default season" for your server.
+    - Commands will always default to the platform's latest season.
+    - Users can still specify a season when running command by using the "season=" syntax.
+- **Title Support**
+    - Added new title support to **rank**, **top**, and **compare**.
+- **rank**
+    - Can also use **!pubg-stats** to run this command
+
+## 12/19/2018
+### Changed
+- **drop**
+    - Added **Vikendi** support
+
+## 11/11/2018
+### Added
+- Xbox support
+
+### Changed
+- **Parameters**
+    - You can use quotes around parameters: **Usernames with spaces** will need to be quotes.
+- **Top**
+    - Optimizations so the command should be run faster.
+- **get/setServerDefaults**
+    - Consolidated **getServerDefaults** and **setServerDefaults** into one command, **setup**.
+- **regions**
+    - Updated **regions** to return regions in a list based off of platforms.
+- **seasons**
+    - Updated **seasons** to return seasons in a list based off of platforms.
+    - Added **"(current)"** next to the current season
+
+### Removed
+-
+
 ## 11/10/2018
 ### Changed
 * `drop`: This coommand now uses an image format -- "x" marks the spot to drop!

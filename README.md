@@ -1,6 +1,8 @@
 [![Discord Bots](https://discordbots.org/api/widget/417828293019041804.svg)](https://discordbots.org/bot/417828293019041804)
 
 # About this bot
+This bot was officially featured in this [PUBG Spotlight Article](https://www.pubg.com/2018/11/12/featured-apps-spotlight-pubg-buddy/) back on November 12, 2018.
+
 
 This bot uses the [Official PUBG Api](https://documentation.pubg.com/en/introduction.html) to provide ranking information and statistics.
 
