@@ -2,7 +2,7 @@ In order to develop we need a test environment. I'm not sure if this is the pref
 
 ## Pre-Req
 1. Install [Node.JS](https://nodejs.org/en/download/).
-2. Install `Typescript` globally opening a command prompt and running `npm install -g Typescript`.
+2. Install `Typescript` globally by opening a command prompt and running `npm install -g Typescript`.
 3. Get a [PUBG API Key](https://developer.playbattlegrounds.com/).
 
 ## Create your own Discord Testing Bot
@@ -40,13 +40,17 @@ In order to develop we need a test environment. I'm not sure if this is the pref
 3. On Heroku, open your app and go to the `Settings` tab.
 4. Click `Reveal Config Vars`.
 5.
-    * bot_token=`<discord bot user's token>`  - refer to above documentation.
-    * prefix=`!pubg-`
-    * DATABASE_URL=`<Heroku supplied Database Url>` - In Heroku under the `Settings` tab of your app.
-    * pubg_api_key=`<PUBG Api Key>`
+    * ownerid=`<Your Discord id>`
+    * bot_token=`<discord bot user's token>`  -- refer to above documentation.
+    * bot_user_id=`<Bot's user id>`
     * isDev=`true`
+    * prefix=`!pubg-`
+    * alert_channel_id=`<Channel ID>`  -- this channel will be used to alert when the bot is connected
+    * pubg_api_key=`<PUBG Api Key>`
+    * mixpanel_api_key=`<Analytics platform key>`  -- this should be uneeded
+    * discord_bots_api_key=`<DiscordBots integration key>`  -- this should be uneeded
+    * DATABASE_URL=`<Heroku supplied Database Url>` - In Heroku under the `Settings` tab of your app.
 
 ## Run Database Migrations
 1. Open a console and navigate to where the project code is located.
-2. Run `tsc`.
-3. Run `node dist/src/utility/migrate.js`.
+2. Run `npm run build:prod && npm run migrate`.
