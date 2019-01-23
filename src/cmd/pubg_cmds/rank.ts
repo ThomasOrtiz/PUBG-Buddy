@@ -332,13 +332,15 @@ export class Rank extends Command {
         let overallRating: string;
         let badge: Jimp;
         let rankTitle: string;
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+
+        const isOldSeason: boolean = PubgSeasonService.isOldSeason(platform, this.paramMap.season);
+        if (isOldSeason) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats.winPoints, stats.killPoints), 0) || 'NA';
         } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
             overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';
             badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats.rankPoints);
-        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+        } else if (this.paramMap.season === 'lifetime') {
             overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats.rankPoints, 0) || 'NA';

@@ -8,8 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Debug Bot",
-            "program": "${workspaceFolder}/dist/src/index.js",
-            "preLaunchTask": "compile typescript"
+            "program": "${workspaceFolder}/dist/index.bundle.js"
         }
     ]
 }

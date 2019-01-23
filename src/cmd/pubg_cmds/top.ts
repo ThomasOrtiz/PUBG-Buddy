@@ -428,7 +428,7 @@ export class Top extends Command {
         if (userInfo.length === 0) { return null; }
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+        if (PubgSeasonService.isOldSeason(platform, this.paramMap.season)) {
             userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
                 const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
                 const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
@@ -474,12 +474,14 @@ export class Top extends Command {
         let overallRating: string;
         let badge: Jimp;
         let titleLevel: string = '';
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+
+        const isOldSeason: boolean = PubgSeasonService.isOldSeason(platform, this.paramMap.season);
+        if (isOldSeason) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(seasonStats.winPoints, seasonStats.killPoints), 0) || 'NA';
         } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
             overallRating = CommonService.round(seasonStats.rankPoints, 0) || 'NA';
             badge = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(seasonStats.rankPoints))).clone();
-        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+        } else if (this.paramMap.season === 'lifetime') {
             overallRating = 'NA';
         } else {
             const rankPointsTitle: string = seasonStats.rankPointsTitle;
