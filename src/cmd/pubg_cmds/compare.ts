@@ -379,13 +379,14 @@ export class Compare extends Command {
         let badge_B: Jimp;
         let rankTitle: string;
 
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+        const isOldSeason: boolean = PubgSeasonService.isOldSeason(platform, this.paramMap.season);
+        if (isOldSeason) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_A.winPoints, stats_A.killPoints), 0) || 'NA';
         } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
             overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
             badge_A = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_A.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_A.rankPoints);
-        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+        } else if (this.paramMap.season === 'lifetime') {
             overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats_A.rankPoints, 0) || 'NA';
@@ -412,13 +413,13 @@ export class Compare extends Command {
             headshotKills: `${stats_A.headshotKills}`
         }
 
-        if (PubgPlatformService.isPlatformXbox(platform) || (PubgPlatformService.isPlatformPC(platform) && PubgSeasonService.isPreSeasonTen(this.paramMap.season))) {
+        if (isOldSeason) {
             overallRating = CommonService.round(PubgRatingService.calculateOverallRating(stats_B.winPoints, stats_B.killPoints), 0) || 'NA';
         } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'pc-2018-01') {
             overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';
             badge_B = (await ImageService.loadImage(PubgRatingService.getRankBadgeImageFromRanking(stats_B.rankPoints))).clone();
             rankTitle = PubgRatingService.getRankTitleFromRanking(stats_B.rankPoints);
-        } else if (PubgPlatformService.isPlatformPC(platform) && this.paramMap.season === 'lifetime') {
+        } else if (this.paramMap.season === 'lifetime') {
             overallRating = 'NA';
         } else {
             overallRating = CommonService.round(stats_B.rankPoints, 0) || 'NA';

@@ -1,5 +1,5 @@
 import { CacheService } from '../';
-import { PubgAPI, Season } from '../../pubg-typescript-api';
+import { PubgAPI, Season, PlatformRegion } from '../../pubg-typescript-api';
 import { TimeInSeconds } from '../../shared/constants';
 import { PubgPlatformService } from './platform.service';
 
@@ -26,12 +26,10 @@ export class PubgSeasonService {
             });
 
             // hardcoding
-            if (PubgPlatformService.isPlatformPC(api.platformRegion)) {
-                seasons.push({
-                    id: 'lifetime',
-                    _id: 'lifetime'
-                } as unknown as Season);
-            }
+            seasons.push({
+                id: 'lifetime',
+                _id: 'lifetime'
+            } as unknown as Season);
 
             return seasons;
         };
@@ -70,17 +68,16 @@ export class PubgSeasonService {
         return seasons.filter(season => season.isCurrentSeason)[0];
     }
 
-    static isPreSeasonTen(season: string): boolean {
-        const seasonTenYear: number = 2018;
-        const seasonTenMonth: number = 10;
+    static isOldSeason(platform: PlatformRegion, season: string): boolean {
+        if (PubgPlatformService.isPlatformPC(platform)) {
+            return !season.includes('pc');
+        } else if (PubgPlatformService.isPlatformXbox(platform)) {
+            return !season.includes('xbox');
+        } else if (PubgPlatformService.isPlatformPlaystation(platform)) {
+            return !season.includes('playstation');
+        }
 
-        let parts: string[] = season.split('-');
-        const seasonYear: number = +parts[0];
-        const seasonMonth: number = +parts[1];
-
-        if (seasonYear === seasonTenYear && seasonMonth < seasonTenMonth) { return true; }
-
-        return false;
+        return false
     }
 
 }

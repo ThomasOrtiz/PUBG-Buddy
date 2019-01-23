@@ -59,7 +59,7 @@ export class GetSeasons extends Command {
 
         const embed: Discord.RichEmbed = new Discord.RichEmbed()
             .setTitle('Seasons')
-            .setDescription('The seasons for each platform.\n\n**"lifetime"** is only available for PC and only applies to seasons after **"pc-2018-01"**.')
+            .setDescription('The seasons for each platform.\n\n"**lifetime**" only applies for PC seasons since **pc-2018-01**, XBOX seasons since **xbox-01**, and PSN seasons since **playstation-01** ')
             .setColor('F2A900')
             .addField('PC Seasons', pc_seasons_str, true)
             .addField('Xbox Seasons', xbox_seasons_str, true)
