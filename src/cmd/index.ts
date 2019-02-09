@@ -12,6 +12,7 @@ export * from './pubg_cmds/top';
 // Server Commands
 export * from './server_cmds/addUser';
 export * from './server_cmds/removeUser';
+export * from './server_cmds/role';
 export * from './server_cmds/setup';
 export * from './server_cmds/users';
 
