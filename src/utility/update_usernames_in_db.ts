@@ -5,8 +5,9 @@ import { PubgPlayerService, PubgPlatformService } from '../services';
 import { PlatformRegion, Player, PubgAPI } from '../pubg-typescript-api';
 
 let maxRequests = 95;
+const username = '';
 
-const res: Promise<QueryResult> = pool.query(`select * from players where platform = 'steam' and username = 'TrapWaifuPerShe';`);
+const res: Promise<QueryResult> = pool.query(`select * from players where platform = 'steam' and username = '${username}';`);
 res.then((res: QueryResult) => {
     console.log(res.rowCount);
 
