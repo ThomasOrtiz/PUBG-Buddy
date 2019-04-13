@@ -43,66 +43,11 @@ export class Bot {
         this.bot.on('unhandledRejection', (error: any) => { logger.error(`Uncaught Promise Rejection:\n${error}`); });
         this.bot.on('error', logger.error);
         this.bot.on('warn', logger.warn);
-        this.bot.on('guildCreate', (guild: Discord.Guild) => {
-            SqlServerService.registerServer(guild.id).then(() => {
-                logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
-                AnalyticsService.track('New Discord server', {
-                    guildName: guild.name,
-                    guildId: guild.id,
-                    memberCount: guild.memberCount
-                });
-            });
-        });
-        this.bot.on('guildDelete', (guild: Discord.Guild) => {
-            SqlServerService.unRegisterServer(guild.id).then(() => {
-                AnalyticsService.track('Removed Discord server', {
-                    guildName: guild.name,
-                    guildId: guild.id,
-                    memberCount: guild.memberCount
-                });
-                logger.info(`Removed ${guild.name} from database.`);
-            });
-        });
-        this.bot.on('ready', () => {
-            logger.info(`Bot has started, with ${this.bot.users.size} users, in ${this.bot.channels.size} channels of ${this.bot.guilds.size} guilds.`);
-
-            const isDev: boolean = CommonService.getEnvironmentVariable('isDev') === 'true';
-            if (!isDev) {
-                logger.info('Updating discord bots stats');
-                this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
-                setInterval(() => {
-                    logger.info('Updating discord bots stats');
-                    this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
-                }, 1800000);
-            }
-
-            const alertChannelId: string = CommonService.getEnvironmentVariable('alert_channel_id');
-            (this.bot.channels.find(i => i.id === alertChannelId) as Discord.TextChannel).send(`**${this.bot.user.username}** is back online.`);
-
-            this.bot.user.setActivity("Use `!pubg-help`");
-        });
+        this.bot.on('guildCreate', this.onGuildCreate);
+        this.bot.on('guildDelete', this.onGuildDelete);
+        this.bot.on('ready', this.onReady);
         this.bot.on('message', this.onMessage);
-        this.bot.reload = (command: any): Promise<any> => {
-            return new Promise((resolve, reject) => {
-                try {
-                    delete require.cache[require.resolve(`./cmd/${command}`)];
-                    const cmd: Command = require(`./cmd/${command}`);
-                    this.bot.commands.delete(command);
-
-                    this.bot.aliases.forEach((cmd: any, alias) => {
-                        if (cmd === command) { this.bot.aliases.delete(alias); }
-                    });
-
-                    this.bot.commands.set(command, cmd);
-                    cmd.conf.aliases.forEach(alias => {
-                        this.bot.aliases.set(alias, cmd.help.name);
-                    });
-                    resolve();
-                } catch (e){
-                    reject(e);
-                }
-            });
-        };
+        this.bot.reload = this.onReload;
         this.bot.elevation = this.elevation;
     }
 
@@ -134,6 +79,25 @@ export class Bot {
                 });
             });
         });
+    }
+
+    private onReady = () => {
+        logger.info(`Bot has started, with ${this.bot.users.size} users, in ${this.bot.channels.size} channels of ${this.bot.guilds.size} guilds.`);
+
+        const isDev: boolean = CommonService.getEnvironmentVariable('isDev') === 'true';
+        if (!isDev) {
+            logger.info('Updating discord bots stats');
+            this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
+            setInterval(() => {
+                logger.info('Updating discord bots stats');
+                this.discordBotsClient.postStats(this.bot.guilds.size).catch(() => { logger.error('Failed to update discord bots'); });
+            }, 1800000);
+        }
+
+        const alertChannelId: string = CommonService.getEnvironmentVariable('alert_channel_id');
+        (this.bot.channels.find(i => i.id === alertChannelId) as Discord.TextChannel).send(`**${this.bot.user.username}** is back online.`);
+
+        this.bot.user.setActivity("Use `!pubg-help`");
     }
 
     private onMessage = async (msg: Discord.Message) => {
@@ -186,6 +150,50 @@ export class Bot {
             AnalyticsService.setPerson(msg.author.id, {});
             cmd.run(this.bot, msg, params, perms);
         }
+    }
+
+    private onGuildCreate = (guild: Discord.Guild) => {
+        SqlServerService.registerServer(guild.id).then(() => {
+            logger.info(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
+            AnalyticsService.track('New Discord server', {
+                guildName: guild.name,
+                guildId: guild.id,
+                memberCount: guild.memberCount
+            });
+        });
+    }
+
+    private onGuildDelete = (guild: Discord.Guild) => {
+        SqlServerService.unRegisterServer(guild.id).then(() => {
+            AnalyticsService.track('Removed Discord server', {
+                guildName: guild.name,
+                guildId: guild.id,
+                memberCount: guild.memberCount
+            });
+            logger.info(`Removed ${guild.name} from database.`);
+        });
+    }
+
+    private onReload = (command: any): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            try {
+                delete require.cache[require.resolve(`./cmd/${command}`)];
+                const cmd: Command = require(`./cmd/${command}`);
+                this.bot.commands.delete(command);
+
+                this.bot.aliases.forEach((cmd: any, alias) => {
+                    if (cmd === command) { this.bot.aliases.delete(alias); }
+                });
+
+                this.bot.commands.set(command, cmd);
+                cmd.conf.aliases.forEach(alias => {
+                    this.bot.aliases.set(alias, cmd.help.name);
+                });
+                resolve();
+            } catch (e){
+                reject(e);
+            }
+        });
     }
 
     private getParams = (content: string): string[] => {

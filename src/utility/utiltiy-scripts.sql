@@ -15,7 +15,17 @@ delete from players as PD where PD.id in (
 );
 
 -- Get row count for each table
-select table_schema, table_name,
-       (xpath('/row/count/text()', query_to_xml('select count(*) from '||format('%I.%I', table_schema, table_name), true, true, '')))[1]::text::int as row_count
+select
+    table_schema,
+    table_name,
+    (xpath('/row/count/text()', query_to_xml('select count(*) from '||format('%I.%I', table_schema, table_name), true, true, '')))[1]::text::int as row_count
 from information_schema.tables
 where table_schema = 'public';
+
+-- Get aggregate count of tables
+select
+    sum((xpath('/row/count/text()', query_to_xml('select count(*) from '||format('%I.%I', table_schema, table_name), true, true, '')))[1]::text::int)
+from
+    information_schema.tables
+where
+    table_schema = 'public';

@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## TEMPLATE
+---
+
+# TEMPLATE
+## DATE
 ### Added
 -
 
@@ -14,10 +17,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 -
 
+---
+
+## 03/28/19
+### Changed
+- PUBG Buddy's branding since PUBG updated their TOS.
+---
+
+## 02/09/19
+### Added
+- Added a new `role` command which will update the role for a given user based off of PUBG's Survival Title System seen below.
+---
+
+## 01/22/19
+### Added
+- Added the "lifetime" season to all platforms
+    - "lifetime" only applies for PC seasons since pc-2018-01, XBOX seasons since xbox-01, and PSN seasons since
+### Changed
+- Fixed a few places I missed PSN support (whoops)
+---
+
 ## 12/31/2018
 ### Added
 - **Season**
     - Added **lifetime** season (pc only) which will get all stats after the "pc-2018-01" season.
+---
 
 ## 12/26/2018
 ### Added
@@ -33,11 +57,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - **rank**
     - Can also use **!pubg-stats** to run this command
 
+---
 ## 12/19/2018
 ### Changed
 - **drop**
     - Added **Vikendi** support
 
+---
 ## 11/11/2018
 ### Added
 - Xbox support
@@ -54,29 +80,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - **seasons**
     - Updated **seasons** to return seasons in a list based off of platforms.
     - Added **"(current)"** next to the current season
-
-### Removed
--
+---
 
 ## 11/10/2018
 ### Changed
 * `drop`: This coommand now uses an image format -- "x" marks the spot to drop!
+---
 
 ## 11/9/2018
 ### Changed
 * `drop`: Added a way to "re-roll" the random drop by using emotes.
+---
 
 ## 11/7/2018
 ### Changed
 * The bot is officially rebranded to **PUBG Buddy**
 * The bot is **officially** featured through [PUBG](https://developer.playbattlegrounds.com/featured_apps?locale=en).
-
+---
 
 ## 10/10/18
 ### Changed
 * Servers can use the default prefix - `!pubg-` - as well as their server customized prefix. Both work now.
 * Fixed bug in `lastMatch` which caused the command not work.
 * Fixed the `help` command
+---
 
 ## 10/9/2018
 ### Added
@@ -84,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 * Updated formatting on messages to make more important pieces of text stand out.
+---
 
 ## 10/8/2018
 ### Added
@@ -93,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Updated matches to return some more meta-data on the match - map and time (pictured below)
 * Temporarily removing the xbox region until PUBG API can figure out how to properly handle the new endpoints.
 * Miscellaneous bug fixes
+---
 
 ## 10/03/2018
 ### Added
@@ -102,9 +131,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 `rank` - https://media.discordapp.net/attachments/423248493084409877/497243284729757700/file.jpg
 
+---
+
 ## 10/1/2018
 ### Added
 * Added a new command - `profile` - so that users can see what pubg player they are registered as. You can also view another discord user's profile by doing `!pubg-profile <Discord Mention>`.
+---
 
 ## 09/30/2018
 * Added new command - compare so that you can easily compare two players. Use it by running `!pubg-compare <playerA> <playerB>` or `!pubg-compare <playerB>` if you're already registered. (Pictured below)
@@ -112,6 +144,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Consolidated the fonts I use in images to be Teko so that everything looks uniform :smiley:
 
 Compare - https://media.discordapp.net/attachments/423248493084409877/496085388314542080/file.jpg?width=945&height=612
+
+---
 
 ## 09/29/2018
 ### Added
@@ -126,32 +160,38 @@ Compare - https://media.discordapp.net/attachments/423248493084409877/4960853883
     Only one mode played: https://media.discordapp.net/attachments/475770414413643786/495703418447593472/file.jpg?width=1080&height=594
 
     ALSO, an important thing about this image output is that you can easily share them by url or by copying the image so get to sharing!
+---
 
 ## 09/27/2018
 ### Changed
 * Changed the output for `rank` to be an image for easier viewing and sharing across platforms.
 * You can view text based `rank` by running `!pubg-`rank` Thomas-O =text`.
+---
 
 ## 09/07/2018
 ### Changed
 * Fixed commands that dealt with season statistics (`matches`, `top`, `rank`) not behaving correctly when a user has not played that season.
+---
 
 ## 08/24/2018
 ### Changed
 * Simplified the `setServerDefaults` command so that you dont have to type out every parameter (prefix, season region, mode) -- now you just have to specify what you want to change!
 * Fixed typo in reaction error message
+---
 
 ## 08/11/2018
 ### Changed
 * Fixed a typo in `rank` - "Matches player" --> "Matches played"
 * In the `top` command I now remove players that have not played any matches to clear up some of the "empty" data.
 * Updated the contributing guide as it was a little out-dated - thanks @KeenKrozzy  !
+---
 
 ## 08/08/2018
 ### Changed
 * Fixed `top` command only running the command on a max of 5 players.
 * Fixed default server values that were assigned to new servers being old values that were incompatible with the new api (whoops :rolling_eyes: )
 * Added username validation checks which mysteriously disappeared when I upgraded to new api
+---
 
 ## 08/05/2018
 ### Added
@@ -176,42 +216,52 @@ Compare - https://media.discordapp.net/attachments/423248493084409877/4960853883
 * Bot now requires `Text Permissions > Manage Messages` permission to handle the pagination implementation.
 * Parameters were renamed to follow PUBG's api.
 * PUBG Usernames are now case-sensitive because of how the API works.
+---
 
 ## 08/01/2018
 ### Added
 * Added Season 8 as a valid season using 2018-08 as a parameter. Be sure to update your server defaults!
+---
 
 ## 07/07/2018
 ### Changed
 * Updated bot to handle pubg.op.gg region specification of `<system>-<region>`
+---
 
 ## 07/05/2018
 ### Added
 * Added Season 7 as a valid season using 2018-07 as a parameter. Be sure to update your server defaults!
+---
 
 ## 06/04/2018
 ### Changed
 * Refactored the ENTIRE bot from javascript to typescript.
+---
 
 ## 06/03/2018
 ### Added
 * Added Avg Dmg to the `top` command
+---
 
 ## 05/31/2018
 ### Added
 * Added Season 6 as a valid season using 2018-06 as a parameter. Be sure to update your server defaults!
+---
 
 ## 05/29/2018
 ### Changed
 * Added bugfix for addUser and removeUser commands incorrectly attempting to add a "region=" player when specifying a region.
+---
 
 ## 05/05/2018
 ### Changed
 * Changed the `addUser` and `removeUser` commands to take a list of 1 to infinite usernames that you want to add or remove to a server.
+---
 
 ## 05/03/2018
 ### Added
 * Added season 5
+---
 
 ## 03/27/2018
 ### Added
@@ -220,6 +270,7 @@ Compare - https://media.discordapp.net/attachments/423248493084409877/4960853883
 ### Changed
 - all servers to use season 4 as their default so users don't have to manually.
 - Split `kr/jp` into their own distinct regions `kr` and `jp` since PUBG also updated this.
+---
 
 ## 03/24/2018
 ### Added
@@ -227,13 +278,12 @@ Compare - https://media.discordapp.net/attachments/423248493084409877/4960853883
 
 ### Changed
 - Error handling for commands so you can know **EXACTLY** why the commands are messing up.
-
-### Removed
--
+---
 
 ## 03/21/2018
 ### Changed
 - `top` command's progress update by batching edit requests - speeds up overall command by at least 60%.
+---
 
 ## 03-18-2018
 ### Added
@@ -242,6 +292,7 @@ Compare - https://media.discordapp.net/attachments/423248493084409877/4960853883
 ### Changed
 -  `!pubg-info` command to see meta data on bot.
 - Exposed more player data in `rank` and `top` commands.
+---
 
 ## 03-17-2018
 ### Added
