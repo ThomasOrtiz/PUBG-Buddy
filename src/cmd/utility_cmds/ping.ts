@@ -42,9 +42,10 @@ export class Ping extends Command {
         reply.edit({embed});
 
         const platforms: PlatformRegion[] = [
-            PlatformRegion.XBOX,
             PlatformRegion.STEAM,
-            PlatformRegion.KAKAO
+            PlatformRegion.KAKAO,
+            PlatformRegion.XBOX,
+            PlatformRegion.PSN
         ];
         const promises: Promise<Status>[] = platforms.map(platform => Status.get(PubgPlatformService.getApi(platform)));
         const statuses: Status[] = await Promise.all(promises);
