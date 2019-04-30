@@ -16,7 +16,9 @@ readdir('./migrations', function(err, files) {
         logger.info(`\t[${index}] Migrating: ${file.toString()}`);
         let sql = readFileSync('./migrations/' + file).toString();
         //logger.log('sql', sql);
-        pool.query(sql);
+        pool.query(sql).catch((reason) => {
+            console.log(reason);
+        });
     });
     logger.info('Finished migrating!');
 });
