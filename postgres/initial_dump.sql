@@ -1,8 +1,6 @@
 /**
-    Setup players, servers, server_registery, user_registery tables
+ * Setup players, servers, server_registery, user_registery tables
 */
-
-
 BEGIN;
     CREATE TABLE IF NOT EXISTS players
         (id SERIAL PRIMARY KEY,

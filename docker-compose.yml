@@ -11,7 +11,7 @@ services:
     ports:
      - "5432:5432"
     volumes:
-     - ./postgres/pgdata:/var/lib/postgresql/data
+     - pgdata-volume:/var/lib/postgresql/data
     # this environment variable - as noted on Docker Hub - will create a database with this name if it doesnt already exist when we start out container
     environment:
       - POSTGRES_USER=pubg-buddy
@@ -33,15 +33,19 @@ services:
       - "4000:4000"
       - "9229:9229"
     environment:
-      # inside of a container postgres - since its a container name- is a special usage where Docker will magically forward traffic to it
+      # inside of a container postgres - since its a container name - is a special case where Docker will magically forward traffic to it
       - DB_HOST=postgres
       - DB_USER=pubg-buddy
       - DB_NAME=pubg-buddy
     depends_on:
-      # basic service depends on postgres service
+      # node_service depends on postgres service
       postgres:
-        # we provide a condition (service_started | service_healthy) as the value. 
+        # we provide a condition (service_started | service_healthy) as the value.
         # (service_started): if docker was able to build the image and just start a container instance then we'll move on.
         # (service_healthy): requires that a healthcheck property is configured on dependent service
         condition: service_healthy
         #condition: service_started
+
+volumes:
+    pgdata-volume:
+        external: false

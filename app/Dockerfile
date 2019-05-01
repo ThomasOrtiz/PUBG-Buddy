@@ -1,7 +1,7 @@
 ######################################################
 # Builds and runs the project
 ######################################################
-FROM node
+FROM node:alpine
 
 # Specify the "working directory" for the rest of the Dockerfile
 WORKDIR /usr/src/app

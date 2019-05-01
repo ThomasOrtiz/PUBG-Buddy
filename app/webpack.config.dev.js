@@ -7,8 +7,7 @@ const nodeExternals = require('webpack-node-externals');
 module.exports = merge(common, {
     mode: 'development',
     entry: {
-        index: ['webpack/hot/poll?100', './src/index.ts'],
-        migrate: ['./src/utility/migrate.ts']
+        index: ['webpack/hot/poll?100', './src/index.ts']
     },
     externals: [
         nodeExternals({

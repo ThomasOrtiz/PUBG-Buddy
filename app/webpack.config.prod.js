@@ -6,8 +6,7 @@ const nodeExternals = require('webpack-node-externals');
 module.exports = merge(common, {
     mode: 'production',
     entry: {
-        index: ['./src/index.ts'],
-        migrate: ['./src/utility/migrate.ts']
+        index: ['./src/index.ts']
     },
     externals: [
         nodeExternals()

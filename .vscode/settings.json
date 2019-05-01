@@ -1,8 +1,8 @@
 {
     "files.exclude": {
-        "node_modules/": true,
+        "app/node_modules/": true,
         "**/._*": true,
-        "dist": true,
+        "app/dist": true,
         ".github": true
     }
 }
