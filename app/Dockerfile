@@ -19,5 +19,5 @@ RUN npm install --silent
 RUN npm run build:prod --silent
 
 # Run the application
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:nodemon"]
 

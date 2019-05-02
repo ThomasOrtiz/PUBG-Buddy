@@ -6,7 +6,7 @@ services:
   # Postgres Database Container
   #####################################
   postgres:
-    image: thomasortiz95/pubg-buddy:postgres_service
+    build: ./postgres
     restart: always
     ports:
      - "5432:5432"
@@ -26,8 +26,10 @@ services:
   # Node Container
   #####################################
   node_service:
-    image: thomasortiz95/pubg-buddy:node_service
+    build: ./app
     restart: always
+    volumes:
+        - ./app:/usr/src/app
     # port mappings: localhost:container
     ports:
       - "4000:4000"

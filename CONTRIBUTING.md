@@ -1,7 +1,7 @@
-In order to develop we need a test environment. I'm not sure if this is the preferred way to test a discord bot but I've found it works for me.
+In order to develop we need a test environment with **node** and **postgres**. Luckily, we can use Docker to simplify setting up our DEV Environment.
 
 ## Pre-Req
-1. Install [Node.JS](https://nodejs.org/en/download/).
+1. Install and setup **Docker**. You will need to enable sharing your dev computer's volumes with Docker in its settings.
 2. Install `Typescript` globally by opening a command prompt and running `npm install -g Typescript`.
 3. Get a [PUBG API Key](https://developer.playbattlegrounds.com/).
 
@@ -13,44 +13,25 @@ In order to develop we need a test environment. I'm not sure if this is the pref
 
 ## Getting the code
 1. Fork this repo.
-2. Wehn developing work in the forked repo.
+2. Develop in your forked repo.
 3. When you're ready to merge into the main repo make a pull request.
 
-## Setting up Heroku
-1. Go to [Heroku.com](https://www.heroku.com/).
-2. Create a new Node app.
-3. Go to the `Resources` tab and under `Add-ons` install `Heroku Postgres` .
-    * This will add a `DATABASE_URL` config under the `Settings` tabs.
-
-## Install the Herokou CLI
-1. Follow these [direction](https://devcenter.heroku.com/articles/heroku-cli).
-
-## Install PsSql CLI tools
-1. Follow the [PsSql install guide](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup).
-
-### How to get DATABASE_URL
-1. Click the `Resources` tab.
-2. Under the `Add-ons` section click `Heroku Postgres:: Database`.
-3. On the new page click the `Settings` tab.
-4. Click `View Credentials` and the `DATABASE_URL` will be the value of `URI`
-
-## Setting up your .env file
+## Setting up Environment variables
 1. Open the code in your favorite code editor - I recommend VS Code.
 2. Open the `.env` file.
-3. On Heroku, open your app and go to the `Settings` tab.
-4. Click `Reveal Config Vars`.
-5.
+3.
     * ownerid=`<Your Discord id>`
     * bot_token=`<discord bot user's token>`  -- refer to above documentation.
     * bot_user_id=`<Bot's user id>`
     * isDev=`true`
     * prefix=`!pubg-`
-    * alert_channel_id=`<Channel ID>`  -- this channel will be used to alert when the bot is connected
+    * alert_channel_id=`<Channel ID>`  -- [Optional] this channel will be used to alert when the bot is connected
     * pubg_api_key=`<PUBG Api Key>`
-    * mixpanel_api_key=`<Analytics platform key>`  -- this should be uneeded
-    * discord_bots_api_key=`<DiscordBots integration key>`  -- this should be uneeded
-    * DATABASE_URL=`<Heroku supplied Database Url>` - In Heroku under the `Settings` tab of your app.
+    * mixpanel_api_key=`<Mixpanel platform key>`  -  [Optional]
+    * discord_bots_api_key=`<DiscordBots integration key>`  --  [Optional]
 
-## Run Database Migrations
-1. Open a console and navigate to where the project code is located.
-2. Run `npm run build:prod && npm run migrate`.
+## Running the code
+1. Go into `/app` to have access to `package.json`
+2. In one terminal run `npm docker-compose:dev`
+3. In another terminal run `npm run build:dev`
+4. You should be able to develop now, change code locally, and have docker restart the bot when changes are detected.
