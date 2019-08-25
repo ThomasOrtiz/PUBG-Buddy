@@ -62,12 +62,11 @@ export class Setup extends Command {
             return;
         }
 
-        checkingParametersMsg.edit('Updating this server\'s defaults ...').then(async (msg: Discord.Message) => {
-            SqlServerService.setServerDefaults(msg.guild.id, this.paramMap.prefix, this.paramMap.region, this.paramMap.mode).then(async () => {
-                const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(msg);
-                msg.edit({ embed });
-            });
-        });
+        const updateMsg = await checkingParametersMsg.edit('Updating this server\'s defaults ...');
+        await SqlServerService.setServerDefaults(msg.guild.id, this.paramMap.prefix, this.paramMap.region, this.paramMap.mode);
+
+        const embed: Discord.RichEmbed = await this.getCurrentServerDefaultsEmbed(msg);
+        updateMsg.edit({ embed });
     };
 
     /**
@@ -106,7 +105,7 @@ export class Setup extends Command {
 
         return new Discord.RichEmbed()
             .setTitle('Server Defaults')
-            .setDescription('The defaults that a server has when running PUBG Bot commands.')
+            .setDescription(':warning: Bot can not make changes presently :warning: \n\nThe defaults that a server has when running PUBG Bot commands.')
             .setThumbnail(msg.guild.iconURL)
             .setColor('F2A900')
             .addField('Default Bot Prefix', CommonService.getEnvironmentVariable('prefix'), true)

@@ -66,7 +66,13 @@ export class AddUser extends Command {
             return;
         }
 
-        const registered: boolean = await SqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
+        let registered: boolean = false;
+        try {
+            registered = await SqlServerRegisteryService.registerUserToServer(pubgId, message.guild.id);
+        } catch (e) {
+            registered = false;
+        }
+
         if (registered) {
             const registeredPlayers: IPlayer[] = await SqlServerRegisteryService.getRegisteredPlayersForServer(msg.guild.id);
             const registeredPlayersStr: string = this.getPlayerString(registeredPlayers);
@@ -78,7 +84,7 @@ export class AddUser extends Command {
                 .addBlankField(true);
             message.edit(`Added **${username}**`, {embed});
         } else {
-            message.edit(`Could not add **${username}**`);
+            message.edit(`Could not add **${username}** \n\n:warning: Bot can not make changes presently :warning:`);
         }
     }
 

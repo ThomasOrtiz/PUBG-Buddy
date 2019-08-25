@@ -103,7 +103,13 @@ export class Register extends Command {
             return;
         }
 
-        const registered: boolean = await SqlUserRegisteryService.registerUser(msg.author.id, pubgId);
+        let registered: boolean = false;
+        try {
+            registered = await SqlUserRegisteryService.registerUser(msg.author.id, pubgId);
+        } catch (e) {
+            registered = false;
+        }
+
         if (registered) {
             const player: IPlayer = await SqlUserRegisteryService.getRegisteredUser(msg.author.id);
 
@@ -120,7 +126,7 @@ export class Register extends Command {
 
             message.edit({embed});
         } else {
-            message.edit(`Failed to register your Discord user with PUBG name **${username}**`);
+            message.edit(`Failed to register your Discord user with PUBG name **${username}** \n\n:warning: Bot can not make changes presently :warning:`);
         }
 
     }
