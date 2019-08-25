@@ -80,7 +80,7 @@ export class Drop extends Command {
     private async createImage(map: string, drop: DropLocation): Promise<Discord.Attachment> {
         let image: Jimp = (await ImageService.loadImage(this.getMapImage(map))).clone();
 
-        const font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_RED_OUTLINE_64);
+        const font = await ImageService.loadFont(FontLocation.TEKO_BOLD_RED_OUTLINE_64);
         const textObj: any = {
             text: 'x',
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,

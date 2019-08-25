@@ -307,7 +307,7 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
+        const font_32 = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
 
         textObj.text = `Players havn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32, textObj.text);
@@ -324,9 +324,9 @@ export class Compare extends Command {
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
 
-        const font_bold_52: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_52);
-        const font_bold_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
-        const font_bold_42: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
+        const font_bold_52 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_52);
+        const font_bold_48 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_bold_42 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_42);
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
         let textWidth: number;
@@ -334,7 +334,7 @@ export class Compare extends Command {
         textObj.text = `${this.paramMap.playerA} vs (${this.paramMap.playerB})`;
         textWidth = Jimp.measureText(font_bold_52, textObj.text);
 
-        let username_font: Jimp.Font = font_bold_52;
+        let username_font = font_bold_52;
         let username_height: number = 35;
         if (textWidth > 755) {
             username_font = font_bold_42
@@ -361,9 +361,9 @@ export class Compare extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_48_white: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
-        const font_48_orange: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
-        const font_name_badge: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
+        const font_48_white =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_36);
+        const font_48_orange = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_30);
+        const font_name_badge = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
         let textWidth: number;
 
         const body_subheading_x: number = 50;

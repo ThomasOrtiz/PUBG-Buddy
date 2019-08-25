@@ -17,14 +17,14 @@ export class ImageService {
         return await cache.get<Jimp>(cacheKey, storeFunction, ttl);
     }
 
-    public static async loadFont(font: string): Promise<Jimp.Font> {
+    public static async loadFont(font: string): Promise<any> {
         const cacheKey: string = `loadFont-${font}`;
         const ttl: number = TimeInSeconds.THIRTY_MINUTES;
-        const storeFunction: Function = async (): Promise<Jimp.Font> => {
+        const storeFunction: Function = async (): Promise<any> => {
             return await Jimp.loadFont(font)
         };
 
-        return await cache.get<Jimp.Font>(cacheKey, storeFunction, ttl);
+        return await cache.get(cacheKey, storeFunction, ttl);
     }
 
     public static combineImagesVertically(imgOne: Jimp, imgTwo: Jimp): Jimp {

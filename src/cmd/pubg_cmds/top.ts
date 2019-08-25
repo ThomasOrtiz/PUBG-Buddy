@@ -367,8 +367,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
-        const font_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_64 =  await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
+        const font_48 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
@@ -452,9 +452,9 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const body_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
-        const username_font: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
-        const titleLevelFont: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
+        const body_font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
+        const username_font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
+        const titleLevelFont = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
 
         const x_centers : any = {
             username: 90,
@@ -554,8 +554,8 @@ export class Top extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_64);
-        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
+        const font_64 =  await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_64);
+        const font_32 = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
 
 
         // Add top header

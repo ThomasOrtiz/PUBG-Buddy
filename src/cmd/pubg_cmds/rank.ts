@@ -274,7 +274,7 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_32: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
+        const font_32 = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_32);
 
         textObj.text = `Player hasn\'t played "${mode}" games this season`;
         const textWidth = Jimp.measureText(font_32, textObj.text);
@@ -290,8 +290,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_64: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
-        const font_48: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
+        const font_64 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_72);
+        const font_48 = await ImageService.loadFont(FontLocation.TEKO_BOLD_WHITE_48);
         let textWidth: number;
 
         const regionDisplayName: string = this.paramMap.region.toUpperCase().replace('_', '-');
@@ -317,8 +317,8 @@ export class Rank extends Command {
             alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
         }
-        const font_48_white: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
-        const font_48_orange: Jimp.Font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_40);
+        const font_48_white = await ImageService.loadFont(FontLocation.TEKO_REGULAR_WHITE_48);
+        const font_48_orange = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_40);
         let textWidth: number;
 
         const body_subheading_x: number = 50;
