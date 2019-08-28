@@ -126,7 +126,7 @@ export class Register extends Command {
 
             message.edit({embed});
         } else {
-            message.edit(`Failed to register your Discord user with PUBG name **${username}** \n\n:warning: Bot can not make changes presently :warning:`);
+            message.edit(`Failed to register your Discord user with PUBG name **${username}**`);
         }
 
     }

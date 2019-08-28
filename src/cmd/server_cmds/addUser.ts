@@ -84,7 +84,7 @@ export class AddUser extends Command {
                 .addBlankField(true);
             message.edit(`Added **${username}**`, {embed});
         } else {
-            message.edit(`Could not add **${username}** \n\n:warning: Bot can not make changes presently :warning:`);
+            message.edit(`Could not add **${username}**`);
         }
     }
 

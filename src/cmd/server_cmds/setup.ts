@@ -105,7 +105,7 @@ export class Setup extends Command {
 
         return new Discord.RichEmbed()
             .setTitle('Server Defaults')
-            .setDescription(':warning: Bot can not make changes presently :warning: \n\nThe defaults that a server has when running PUBG Bot commands.')
+            .setDescription('The defaults that a server has when running PUBG Bot commands.')
             .setThumbnail(msg.guild.iconURL)
             .setColor('F2A900')
             .addField('Default Bot Prefix', CommonService.getEnvironmentVariable('prefix'), true)
