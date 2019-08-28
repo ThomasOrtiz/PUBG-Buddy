@@ -46,9 +46,10 @@ export class SqlServerService {
 
             // This handles the very small window in time where the server hasn't been added to the database but messages are coming through
             if (res.rowCount === 0) {
+                await this.registerServer(serverId);
                 return {
                     id: '',
-                    serverId: '',
+                    serverId: serverId,
                     default_bot_prefix: '!pubg-',
                     default_region: 'PC_NA',
                     default_mode: 'SQUAD_FPP',
