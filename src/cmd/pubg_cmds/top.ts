@@ -102,7 +102,7 @@ export class Top extends Command {
             return;
         }
 
-        await reply.edit(`Aggregating **Top ${this.paramMap.amount}** on **${this.registeredUsers.length} registered users** ... give me a second`);
+        await reply.edit(`Aggregating **Top ${this.paramMap.amount} ${this.paramMap.sort.toUpperCase()}** on **${this.registeredUsers.length} registered users** ... give me a second`);
 
         // Get list of ids
         reply.edit(`${reply.content}\nGetting player data ...`);
@@ -387,7 +387,7 @@ export class Top extends Command {
         let gameModeDescription: string = gameModeSplit[0];
         gameModeDescription += (gameModeSplit.length == 2) ? ` ${gameModeSplit[1]}` : '';
 
-        textObj.text = `Top ${this.paramMap.amount} - ${gameModeDescription}`;
+        textObj.text = `Top ${this.paramMap.amount} ${this.paramMap.sort.toUpperCase()} - ${gameModeDescription}`;
         img.print(font_64, 30, 20, textObj);
 
         textObj.text = regionDisplayName;
@@ -577,7 +577,7 @@ export class Top extends Command {
         let textWidth: number;
 
         let headerImg = img.clone();
-        textObj.text = `Top ${this.paramMap.amount} - ${gameModeDescription}`;
+        textObj.text = `Top ${this.paramMap.amount} ${this.paramMap.sort.toUpperCase()} - ${gameModeDescription}`;
         headerImg.print(font_64, 20, 30, textObj);
 
         textObj.text = regionDisplayName;
