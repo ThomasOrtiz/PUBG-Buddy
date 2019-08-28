@@ -22,6 +22,7 @@ interface ParameterMap {
     season: string;
     region: string;
     mode: string;
+    sort: string;
 }
 
 class PlayerWithSeasonData {
@@ -58,13 +59,21 @@ export class Top extends Command {
     help: CommandHelp = {
         name: 'top',
         description: `Gets the top "x" players registered in the server. Players that haven't played this season are excluded.`,
-        usage: '<prefix>top [Number-Of-Users] [season=] [region=] [mode=]',
+        usage: "<prefix>top [Number-Of-Users] [season=] [region=] [mode=] [sort=]",
+        paramDescription: [
+            '**[Number-Of-Users]**: How big of a leaderboard to return.',
+            '**[season=]**: Season to grab data from - defaults to current season.',
+            '**[region=]**: Region to grab data from.',
+            '**[mode=]**: Game mode.',
+            '**[sort=]**: How to sort the leaderboard - defaults to "rating". Use "rating", "kd", "kda", or "dmg".'
+        ],
         examples: [
             '!pubg-top',
             '!pubg-top season=2018-03',
             '!pubg-top season=2018-03 region=pc-na',
             '!pubg-top season=2018-03 region=pc-na',
             '!pubg-top season=2018-03 region=pc-na mode=solo',
+            '!pubg-top season=2018-03 region=pc-na mode=solo sort=kd',
             '!pubg-top 5',
             '!pubg-top 5 season=2018-03',
             '!pubg-top 5 season=2018-03 region=pc-na',
@@ -135,7 +144,8 @@ export class Top extends Command {
             amount : amount,
             season: pubg_params.season,
             region: pubg_params.region.toUpperCase().replace('-', '_'),
-            mode: pubg_params.mode.toUpperCase().replace('-', '_')
+            mode: pubg_params.mode.toUpperCase().replace('-', '_'),
+            sort: ParameterService.getParamValue('sort=', params, 'rating'),
         }
 
         AnalyticsService.track(this.help.name, {
@@ -416,7 +426,7 @@ export class Top extends Command {
         const statsToGetKey = this.getWhichStatsToGet(mode);
 
         // Create UserInfo array with specific season data
-        let userInfo: PlayerWithGameModeStats[] = new Array();
+        let userInfo: PlayerWithGameModeStats[] = [];
         for (let i = 0; i < players.length; i++) {
             const data: PlayerWithSeasonData = players[i];
             if (!data.seasonData) { continue; }
@@ -428,18 +438,22 @@ export class Top extends Command {
         if (userInfo.length === 0) { return null; }
 
         const platform: PlatformRegion = PlatformRegion[this.paramMap.region];
-        if (PubgSeasonService.isOldSeason(platform, this.paramMap.season)) {
-            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
-                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
-                return (+overallRatingB) - (+overallRatingA);
-            });
-        } else {
-            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
-                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.rankPoints, b.gameModeStats.rankPoints);
-                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.rankPoints, a.gameModeStats.rankPoints);
-                return (+overallRatingB) - (+overallRatingA);
-            });
+        switch (this.paramMap.sort) {
+            case 'rating':
+                this.sortByRating(platform, userInfo);
+                break;
+            case 'kd':
+                this.sortByKD(userInfo);
+                break;
+            case 'kda':
+                this.sortByKDA(userInfo);
+                break;
+            case 'dmg':
+                this.sortByDamage(userInfo);
+                break;
+            default:
+                this.sortByRating(platform, userInfo);
+                break;
         }
 
         // Grab only the top 'x' players
@@ -447,11 +461,7 @@ export class Top extends Command {
     }
 
     private async addBodyTextToImage(img: Jimp, playerSeason: PlayerWithGameModeStats): Promise<Jimp> {
-        const textObj: any = {
-            text: '',
-            alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-            alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE
-        }
+        const textObj: any = { text: '', alingmentX: Jimp.HORIZONTAL_ALIGN_CENTER, alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE }
         const body_font = await ImageService.loadFont(FontLocation.TEKO_BOLD_ORANGE_42);
         const username_font = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_42);
         const titleLevelFont = await ImageService.loadFont(FontLocation.TEKO_BOLD_BLACK_24);
@@ -585,5 +595,45 @@ export class Top extends Command {
         warningImg.print(font_32, (img.getWidth()/2)-(textWidth/2), img.getHeight()/2 - 15, textObj);
 
         return ImageService.combineImagesVertically(headerImg, warningImg);
+    }
+
+    private sortByRating(platform: PlatformRegion, userInfo: PlayerWithGameModeStats[]) {
+        if (PubgSeasonService.isOldSeason(platform, this.paramMap.season)) {
+            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.winPoints, b.gameModeStats.killPoints);
+                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.winPoints, a.gameModeStats.killPoints);
+                return Number(overallRatingB) - Number(overallRatingA);
+            });
+        } else {
+            userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+                const overallRatingB = PubgRatingService.calculateOverallRating(b.gameModeStats.rankPoints, b.gameModeStats.rankPoints);
+                const overallRatingA = PubgRatingService.calculateOverallRating(a.gameModeStats.rankPoints, a.gameModeStats.rankPoints);
+                return Number(overallRatingB) - Number(overallRatingA);
+            });
+        }
+    }
+
+    private sortByKD(userInfo: PlayerWithGameModeStats[]) {
+        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+            const b_kd = CommonService.round(b.gameModeStats.kills / b.gameModeStats.losses) || 0;
+            const a_kd = CommonService.round(a.gameModeStats.kills / a.gameModeStats.losses) || 0;
+            return Number(b_kd) - Number(a_kd);
+        });
+    }
+
+    private sortByKDA(userInfo: PlayerWithGameModeStats[]) {
+        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+            const b_kda = CommonService.round((b.gameModeStats.kills + b.gameModeStats.assists) / b.gameModeStats.losses) || 0;
+            const a_kda = CommonService.round((a.gameModeStats.kills + a.gameModeStats.assists) / a.gameModeStats.losses) || 0;
+            return Number(b_kda) - Number(a_kda);
+        });
+    }
+
+    private sortByDamage(userInfo: PlayerWithGameModeStats[]) {
+        userInfo.sort((a: PlayerWithGameModeStats, b: PlayerWithGameModeStats) => {
+            const b_avgDmg = CommonService.round(b.gameModeStats.damageDealt / b.gameModeStats.roundsPlayed) || 0;
+            const a_avgDmg = CommonService.round(a.gameModeStats.damageDealt / a.gameModeStats.roundsPlayed) || 0;
+            return Number(b_avgDmg) - Number(a_avgDmg)
+        });
     }
 }

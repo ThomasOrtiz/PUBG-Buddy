@@ -5,6 +5,7 @@ export interface CommandHelp {
     name: string;
     description: string;
     usage: string;
+    paramDescription?: string[];
     examples: string[];
 }
 

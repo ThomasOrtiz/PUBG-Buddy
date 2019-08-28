@@ -146,6 +146,12 @@ export class Help extends Command {
 
             embed.addField('Usage', commandObj.help.usage);
             embed.addBlankField();
+
+            if (commandObj.help.paramDescription) {
+                embed.addField('Parameter Explanation', commandObj.help.paramDescription);
+                embed.addBlankField();
+            }
+
             embed.addField('Examples', exampleList);
 
             return embed;
