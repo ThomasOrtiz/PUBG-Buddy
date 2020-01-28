@@ -53,6 +53,8 @@ export class Matches extends Command {
 
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        this.checkPermissions(bot, msg);
+
         try {
             this.paramMap = await this.getParameters(msg, params);
         } catch(e) {
@@ -91,6 +93,24 @@ export class Matches extends Command {
         this.setupReactions(reply, msg.author, seasonData);
         reply.edit(`**${msg.author.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, { embed });
     };
+
+    private checkPermissions(bot: DiscordClientWrapper, msg: Discord.Message) {
+        const botUser = msg.guild.members.find('id', bot.user.id);
+
+        let warningMessage: string = '';
+
+        if (!botUser.hasPermission('ADD_REACTIONS')) {
+            warningMessage += `${CommonMessages.REACTION_WARNING}`
+        }
+
+        if (!botUser.hasPermission('MANAGE_MESSAGES')) {
+            warningMessage += `\n${CommonMessages.MANAGE_MESSAGE_WARNING}`
+        }
+
+        if (warningMessage !== '') {
+            msg.channel.sendMessage(warningMessage);
+        }
+    }
 
     /**
      * Retrieves the paramters for the command
@@ -173,17 +193,13 @@ export class Matches extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             await this.addSpecificDataToEmbed(embed, seasonData.soloFPPMatchIds, 'Solo FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.soloMatchIds, 'Solo TPP');
 
-            await msg.edit(warningMessage, { embed });
+            await msg.edit('', { embed });
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             AnalyticsService.track(`${this.help.name} - Click 2`, {
@@ -193,17 +209,13 @@ export class Matches extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);;
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             await this.addSpecificDataToEmbed(embed, seasonData.duoFPPMatchIds, 'Duo FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.duoMatchIds, 'Duo TPP');
 
-            await msg.edit(warningMessage, { embed });
+            await msg.edit('', { embed });
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
             AnalyticsService.track(`${this.help.name} - Click 4`, {
@@ -213,17 +225,13 @@ export class Matches extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage;
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);
 
             const embed: Discord.RichEmbed = await this.createBaseEmbed();
             await this.addSpecificDataToEmbed(embed, seasonData.squadFPPMatchIds, 'Squad FPP');
             await this.addSpecificDataToEmbed(embed, seasonData.squadMatchIds, 'Squad TPP');
 
-            await msg.edit(warningMessage, { embed });
+            await msg.edit('', { embed });
         };
         DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);
     }

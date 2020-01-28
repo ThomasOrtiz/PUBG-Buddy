@@ -1,5 +1,6 @@
 export enum CommonMessages {
-    REACTION_WARNING = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:'
+    MANAGE_MESSAGE_WARNING = ':warning: Bot is missing the `Text Permissions > Manage Messages` permission. Give permission for the best experience. :warning:',
+    REACTION_WARNING = ':warning: Bot is missing the `Text Permissions > Add Reactions` permission. Give permission for the best experience. :warning:',
 }
 
 export enum TimeInSeconds {

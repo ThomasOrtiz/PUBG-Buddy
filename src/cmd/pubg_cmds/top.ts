@@ -86,6 +86,8 @@ export class Top extends Command {
     private registeredUsers: IPlayer[];
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        this.checkPermissions(bot, msg);
+
         const originalPoster: Discord.User = msg.author;
         this.paramMap = await this.getParameters(msg, params);
 
@@ -119,6 +121,24 @@ export class Top extends Command {
         const imgMessage: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
         this.setupReactions(imgMessage, originalPoster, playerSeasons);
     };
+
+    private checkPermissions(bot: DiscordClientWrapper, msg: Discord.Message) {
+        const botUser = msg.guild.members.find('id', bot.user.id);
+
+        let warningMessage: string = '';
+
+        if (!botUser.hasPermission('ADD_REACTIONS')) {
+            warningMessage += `${CommonMessages.REACTION_WARNING}`
+        }
+
+        if (!botUser.hasPermission('MANAGE_MESSAGES')) {
+            warningMessage += `\n${CommonMessages.MANAGE_MESSAGE_WARNING}`
+        }
+
+        if (warningMessage !== '') {
+            msg.channel.sendMessage(warningMessage);
+        }
+    }
 
     /**
      * Retrieves the paramters for the command
@@ -226,11 +246,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage: string = '';
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);
 
             if (msg.deletable) {
                 await msg.delete().catch(() => {});
@@ -240,7 +256,7 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'solo');
 
             await reply.delete();
-            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
         const onTwoCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
@@ -250,11 +266,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage: string = '';
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);
 
             if (msg.deletable) {
                 await msg.delete().catch(() => {});
@@ -264,7 +276,7 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'duo');
 
             await reply.delete();
-            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
         const onFourCollect: Function = async (reaction: Discord.MessageReaction, reactionCollector: Discord.Collector<string, Discord.MessageReaction>) => {
@@ -274,11 +286,7 @@ export class Top extends Command {
                 mode: this.paramMap.mode
             });
 
-            let warningMessage: string = '';
-            await reaction.remove(originalPoster).catch(async (err) => {
-                if (!msg.guild) { return; }
-                warningMessage = CommonMessages.REACTION_WARNING;
-            });
+            await reaction.remove(originalPoster);
 
 
             if (msg.deletable) {
@@ -289,7 +297,7 @@ export class Top extends Command {
             const attatchment: Discord.Attachment = await this.createImages(players, 'squad');
 
             await reply.delete();
-            const newMsg: Discord.Message = await msg.channel.send(`${warningMessage}**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
+            const newMsg: Discord.Message = await msg.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
             this.setupReactions(newMsg, originalPoster, players);
         };
         DiscordMessageService.setupReactions(msg, originalPoster, onOneCollect, onTwoCollect, onFourCollect);

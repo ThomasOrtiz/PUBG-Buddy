@@ -5,7 +5,7 @@ import {
     ImageService
 } from '../../services';
 import Jimp = require('jimp');
-import { PubgMapImageLocation, FontLocation } from '../../shared/constants';
+import { PubgMapImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
 
 interface DropLocation {
     name: string;
@@ -35,6 +35,8 @@ export class Drop extends Command {
     }
 
     async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        this.checkPermissions(bot, msg);
+
         let map: string = this.getParameters(params);
 
         let response: Discord.Message;
@@ -57,6 +59,24 @@ export class Drop extends Command {
             discord_id: msg.author.id,
             discord_username: msg.author.tag
         });
+    }
+
+    private checkPermissions(bot: DiscordClientWrapper, msg: Discord.Message) {
+        const botUser = msg.guild.members.find('id', bot.user.id);
+
+        let warningMessage: string = '';
+
+        if (!botUser.hasPermission('ADD_REACTIONS')) {
+            warningMessage += `${CommonMessages.REACTION_WARNING}`
+        }
+
+        if (!botUser.hasPermission('MANAGE_MESSAGES')) {
+            warningMessage += `\n${CommonMessages.MANAGE_MESSAGE_WARNING}`
+        }
+
+        if (warningMessage !== '') {
+            msg.channel.sendMessage(warningMessage);
+        }
     }
 
     /**

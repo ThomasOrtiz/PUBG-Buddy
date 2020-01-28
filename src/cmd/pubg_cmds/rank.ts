@@ -11,7 +11,7 @@ import {
 import { Command, CommandConfiguration, CommandHelp, DiscordClientWrapper } from '../../entities';
 import { PubgAPI, PlatformRegion, PlayerSeason, Player, GameModeStats, Season } from '../../pubg-typescript-api';
 import Jimp = require('jimp');
-import { ImageLocation, FontLocation } from '../../shared/constants';
+import { ImageLocation, FontLocation, CommonMessages } from '../../shared/constants';
 import { PubgParameters } from '../../interfaces';
 import { PubgSeasonService } from '../../services/pubg-api/season.service';
 
@@ -51,6 +51,8 @@ export class Rank extends Command {
     private paramMap: ParameterMap;
 
     public async run(bot: DiscordClientWrapper, msg: Discord.Message, params: string[], perms: number) {
+        this.checkPermissions(bot, msg);
+
         const originalPoster: Discord.User = msg.author;
 
         try {
@@ -93,6 +95,24 @@ export class Rank extends Command {
         const imageReply: Discord.Message = await message.channel.send(`**${originalPoster.username}**, use the **1**, **2**, and **4** **reactions** to switch between **Solo**, **Duo**, and **Squad**.`, attatchment) as Discord.Message;
         this.setupReactions(imageReply, originalPoster, seasonData);
     };
+
+    private checkPermissions(bot: DiscordClientWrapper, msg: Discord.Message) {
+        const botUser = msg.guild.members.find('id', bot.user.id);
+
+        let warningMessage: string = '';
+
+        if (!botUser.hasPermission('ADD_REACTIONS')) {
+            warningMessage += `${CommonMessages.REACTION_WARNING}`
+        }
+
+        if (!botUser.hasPermission('MANAGE_MESSAGES')) {
+            warningMessage += `\n${CommonMessages.MANAGE_MESSAGE_WARNING}`
+        }
+
+        if (warningMessage !== '') {
+            msg.channel.sendMessage(warningMessage);
+        }
+    }
 
     /**
      * Retrieves the paramters for the command
